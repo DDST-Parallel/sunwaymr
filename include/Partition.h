@@ -2,7 +2,7 @@
  * Partition.h
  *
  *  Created on: Dec 2, 2015
- *      Author: y
+ *      Author: yupeng
  */
 
 #ifndef PARTITION_H_
