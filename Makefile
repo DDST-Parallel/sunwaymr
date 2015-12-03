@@ -1,3 +1,7 @@
+.DEFAULT_GOAL := all
+
+CXX = g++
+
 INCLUDES = -Iinclude
 
 CXXFLAGS =	-O2 -g -Wall -fmessage-length=0 $(INCLUDES) 
@@ -20,22 +24,22 @@ EXAMPLETARGETS = $(EXAMPLESRCS:.cpp= )
 
 TESTSTARGETS = $(TESTSSRCS:.cpp= )
 
-LIBTARGET = SunwayMR.so
-
-$(LIBTARGET) : $(LIBOBJS)
-	$(CXX) $(LIBS) $(LIBOBJS) -o $(LIBTARGET)
+#LIBTARGET = SunwayMR.so
+#
+#$(LIBTARGET) : $(LIBOBJS)
+#	$(CXX) $(LIBS) $(LIBOBJS) -o $(LIBTARGET)
 
 $(EXAMPLETARGETS):
-	$(CXX) $(LIBS) $(addsuffix .o,$@) -o $@
+	$(CXX) $(CXXFLAGS) $(LIBS) $(addsuffix .o,$@) -o $@
 
 $(TESTSTARGETS): 
-	$(CXX) $(LIBS) $(addsuffix .o,$@) -o $@
+	$(CXX) $(CXXFLAGS) $(LIBS) $(addsuffix .o,$@) -o $@
 
-TARGETS =	$(OBJS) $(EXAMPLETARGETS) $(TESTSTARGETS)
+TARGETS =	$(OBJS) $(LIBTARGET) $(EXAMPLETARGETS) $(TESTSTARGETS)
 
 all:	$(TARGETS)
 
 clean:
 	rm -f $(TARGETS)
 
-.PHONY: all clean targets
+.PHONY: all clean
