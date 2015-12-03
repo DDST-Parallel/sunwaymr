@@ -14,7 +14,8 @@ using std::vector;
 template <class T>
 class IteratorSeq {
 public:
-	IteratorSeq(T start, T end, T step, bool inclusive = false);
+	IteratorSeq(T start, T end, T step);
+	IteratorSeq(T start, T end, T step, bool inclusive);
 	IteratorSeq(vector<T> &v);
 	int type; // 0: range, 1: vector
 	long size();
@@ -24,7 +25,7 @@ public:
 	bool isInclusive();
 	vector<T> getVector();
 	template <class U> IteratorSeq<U> map(U (*f)(T));
-	T reduceLeft(T (*g)(T,T));
+	vector<T> reduceLeft(T (*g)(T,T));
 
 private:
 	T start;
