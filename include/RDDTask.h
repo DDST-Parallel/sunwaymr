@@ -12,12 +12,12 @@
 template <class T, class U>
 class RDDTask: public Task<U> {
 public:
-	RDDTask(RDD<T> r, Partition p);
+	RDDTask(RDD<T> &r, Partition &p);
 	virtual ~RDDTask();
 	virtual U run();
 	virtual vector<string> preferredLocations();
-	virtual RDD<T> rdd;
-	virtual Partition partition;
+	virtual RDD<T> &rdd;
+	virtual Partition &partition;
 };
 
 

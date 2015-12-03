@@ -10,18 +10,19 @@
 
 #include <vector>
 #include "Partition.h"
+#include "IteratorSeq.h"
 using std::vector;
 
 template <class T>
 class ParallelArrayPartition: public Partition {
 public:
-	ParallelArrayPartition(long rddID, int partitionID, vector<T> values);
-	vector<T> iteratorArray();
+	ParallelArrayPartition(long rddID, int partitionID, IteratorSeq<T> &values);
+	IteratorSeq<T> iteratorSeq();
 
 private:
 	long rddID;
 	int partitionID;
-	vector<T> values;
+	IteratorSeq<T> &values;
 };
 
 

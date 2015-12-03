@@ -10,15 +10,16 @@
 
 #include <vector>
 #include "SunwayMRContext.h"
+#include "IteratorSeq.h"
 using std::vector;
 
 template <class T>
 class ParallelArray : public RDD<T> {
 public:
-	ParallelArray(SunwayMRContext c, T t1, T t2, int numSlices);
+	ParallelArray(SunwayMRContext &c, IteratorSeq<T> &seq, int numSlices);
 	vector<Partition> getPartitions();
-	vector<string> preferredLocations(Partition p);
-	vector<T> iteratorArray(Partition p);
+	vector<string> preferredLocations(Partition &p const);
+	IteratorSeq<T> iteratorSeq(Partition &p const);
 
 };
 

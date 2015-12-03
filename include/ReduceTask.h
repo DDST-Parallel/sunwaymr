@@ -14,7 +14,7 @@ using std::vector;
 
 template <class T>
 class ReduceTask : public RDDTask<T, vector<T>> {
-	ReduceTask(RDD<T> r, Partition p, T (*g)(T, T));
+	ReduceTask(RDD<T> &r, Partition &p, T (*g)(T, T));
 	vector<T> run();
 
 private:

@@ -9,17 +9,19 @@
 #define MAPPEDRDD_H_
 
 #include <vector>
+#include "IteratorSeq.h"
 using std::vector;
 
 template <class U, class T>
 class MappedRDD : public RDD<U> {
 public:
+	MappedRDD(RDD<U> &prev, U (*f)(T));
 	vector<Partition> getPartitions();
-	vector<string> preferredLocations(Partition p);
-	vector<U> iteratorArray(Partition p);
+	vector<string> preferredLocations(Partition &p const);
+	IteratorSeq<U> iteratorSeq(Partition &p const);
 
 private:
-	RDD<T> prevRDD;
+	RDD<T> &prevRDD;
 	U (*mappedFunction)(T);
 };
 
