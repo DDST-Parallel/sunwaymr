@@ -16,8 +16,8 @@ public:
 	virtual ~RDDTask();
 	virtual U run();
 	virtual vector<string> preferredLocations();
-	virtual RDD<T> &rdd;
-	virtual Partition &partition;
+	RDD<T> &rdd;
+	Partition &partition;
 };
 
 

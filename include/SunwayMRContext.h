@@ -13,13 +13,14 @@
 #include "Task.h"
 #include "TaskResult.h"
 #include "Logging.h"
+#include "Scheduler.h"
 using std::string;
 
 class SunwayMRContext : public Logging {
 public:
 	template <class T> ParallelArray<T> parallelize(T t1, T t2);
 	template <class T> ParallelArray<T> parallelize(T t1, T t2, int numSlices);
-	template <class T> vector<TaskResult<T>> runTasks(vector<Task<T>> &tasks);
+	template <class T> vector< TaskResult<T> > runTasks(vector< Task<T> > &tasks);
 
 private:
 	Scheduler scheduler;

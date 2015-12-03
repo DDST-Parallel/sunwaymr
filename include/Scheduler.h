@@ -20,7 +20,7 @@ public:
 	virtual ~Scheduler();
 	virtual void start();
 	virtual int totalThreads();
-	template <class T> vector<TaskResult<T>> runTasks(vector<Task<T>> &tasks);
+	template <class T> vector< TaskResult<T> > runTasks(vector< Task<T> > &tasks);
 
 private:
 	template <class T> void taskFinished(TaskResult<T> &t);
