@@ -18,9 +18,9 @@ public:
 	IteratorSeq(vector<T> &v);
 	int type; // 0: range, 1: vector
 	long size();
-	T start();
-	T end();
-	T step();
+	T getStart();
+	T getEnd();
+	T getStep();
 	bool isInclusive();
 	vector<T> getVector();
 	template <class U> IteratorSeq<U> map(U (*f)(T));

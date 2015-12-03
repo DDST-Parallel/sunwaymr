@@ -12,9 +12,10 @@
 #include "ParallelArray.h"
 #include "Task.h"
 #include "TaskResult.h"
+#include "Logging.h"
 using std::string;
 
-class SunwayMRContext {
+class SunwayMRContext : public Logging {
 public:
 	template <class T> ParallelArray<T> parallelize(T t1, T t2);
 	template <class T> ParallelArray<T> parallelize(T t1, T t2, int numSlices);

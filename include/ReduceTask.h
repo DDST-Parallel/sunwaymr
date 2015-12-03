@@ -10,10 +10,11 @@
 
 #include <vector>
 #include "RDDTask.h"
+#include "Logging.h"
 using std::vector;
 
 template <class T>
-class ReduceTask : public RDDTask<T, vector<T>> {
+class ReduceTask : public RDDTask<T, vector<T>>, public Logging {
 	ReduceTask(RDD<T> &r, Partition &p, T (*g)(T, T));
 	vector<T> run();
 

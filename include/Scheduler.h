@@ -11,9 +11,10 @@
 #include <vector>
 #include "Task.h"
 #include "TaskResult.h"
+#include "Logging.h"
 using std::vector;
 
-class Scheduler {
+class Scheduler : public Logging {
 public:
 	Scheduler(string hostFilePath, string master, string appName, bool localMode = false);
 	virtual ~Scheduler();
