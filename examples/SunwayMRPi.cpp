@@ -5,8 +5,13 @@
  *      Author: yupeng
  */
 
+#include <iostream>
+using std::cout;
+using std::endl;
 
-//int main() {
-//	return 0;
-//}
+int main() {
+
+	cout<< "hello pi" << endl;
+	return 0;
+}
 
