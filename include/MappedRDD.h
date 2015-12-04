@@ -17,8 +17,8 @@ class MappedRDD : public RDD<U> {
 public:
 	MappedRDD(RDD<U> &prev, U (*f)(T));
 	vector<Partition> getPartitions();
-	vector<string> preferredLocations(Partition &p const);
-	IteratorSeq<U> iteratorSeq(Partition &p const);
+	vector<string> preferredLocations(Partition &p);
+	IteratorSeq<U> iteratorSeq(Partition &p);
 
 private:
 	RDD<T> &prevRDD;
