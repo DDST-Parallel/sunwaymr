@@ -14,7 +14,7 @@ template <class T> ReduceTask<T>::ReduceTask(RDD<T> &r, Partition &p, T (*g)(T, 
 }
 
 template <class T> vector<T>  ReduceTask<T>::run() {
-	IteratorSeq<T> iter = RDDTask< T, vector<T> >::rdd->iteratorSeq(RDDTask< T, vector<T> >::partition);
+	IteratorSeq<T> iter = RDDTask< T, vector<T> >::rdd.iteratorSeq(RDDTask< T, vector<T> >::partition);
 	return iter.reduceLeft(g);
 }
 
