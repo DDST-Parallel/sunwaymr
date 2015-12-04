@@ -1,10 +1,10 @@
 .DEFAULT_GOAL := all
 
-CXX = g++
+CXX = gcc
 
 INCLUDES = -Iinclude
 
-CXXFLAGS =	-O2 -g -Wall -fmessage-length=0 $(INCLUDES) 
+CXXFLAGS = -lstdc++ -O2 -g -Wall -fmessage-length=0 $(INCLUDES) 
 
 EXAMPLESRCS = $(wildcard examples/*.cpp)
 
@@ -30,12 +30,12 @@ TESTSTARGETS = $(TESTSSRCS:.cpp= )
 #	$(CXX) $(LIBS) $(LIBOBJS) -o $(LIBTARGET)
 
 $(EXAMPLETARGETS):
-	$(CXX) $(CXXFLAGS) $(LIBS) $(addsuffix .o,$@) -o $@
+	$(CXX) $(addsuffix .cpp,$@) $(CXXFLAGS) $(LIBS) -o $@
 
 $(TESTSTARGETS): 
-	$(CXX) $(CXXFLAGS) $(LIBS) $(addsuffix .o,$@) -o $@
+	$(CXX) $(addsuffix .cpp,$@) $(CXXFLAGS) $(LIBS) -o $@
 
-TARGETS =	$(OBJS) $(LIBTARGET) $(EXAMPLETARGETS) $(TESTSTARGETS)
+TARGETS =	$(LIBOBJS) $(LIBTARGET) $(EXAMPLETARGETS) $(TESTSTARGETS)
 
 all:	$(TARGETS)
 
