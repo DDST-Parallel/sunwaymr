@@ -8,13 +8,14 @@ template <class T>
 ParallelArray<T>::ParallelArray(SunwayMRContext &c, IteratorSeq<T> &seq, int numSlices)
 	: RDD<T>::RDD (c) , seq(seq), numSlices(numSlices)
 {
+	parallelArray_id = current_id++;
 }
 
 template <class T>
 vector<Partition> ParallelArray<T>::getPartitions()
 {
 	vector<Partition> partitions;
-	parallelArray_id = current_id++;
+	
 	vector< IteratorSeq<T> > slices = slice();
 	//construct partitions
 	for (int i = 0; i < slices.size(); i++)
