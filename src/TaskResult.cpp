@@ -7,6 +7,7 @@
 
 #include "TaskResult.h"
 
-template <class T> TaskResult<T>::TaskResult() {
+template <class T> TaskResult<T>::TaskResult(Task<T> &t, T &result)
+: task(t), value(result) {
 
 }

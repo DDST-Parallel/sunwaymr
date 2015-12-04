@@ -18,8 +18,8 @@ class Task {
 public:
 	Task();
 	virtual ~Task();
-	virtual T run();
-	virtual vector<string> preferredLocations();
+	virtual T run() = 0;
+	virtual vector<string> preferredLocations() { return vector<string>(0); }
 };
 
 

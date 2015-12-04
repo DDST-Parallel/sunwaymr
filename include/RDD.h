@@ -17,6 +17,8 @@
 using std::string;
 using std::vector;
 
+template <class U, class T> class MappedRDD;
+
 template <class T>
 class RDD {
 public:

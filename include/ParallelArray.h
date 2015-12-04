@@ -17,6 +17,9 @@
 using std::vector;
 using std::string;
 
+template <class T> class RDD;
+class SunwayMRContext;
+
 template <class T>
 class ParallelArray : public RDD<T> {
 public:

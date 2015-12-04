@@ -13,7 +13,6 @@
 template <class T>
 class TaskResult {
 public:
-	TaskResult();
 	TaskResult(Task<T> &t, T &result);
 	Task<T> &task;
 	T &value; // result value

@@ -12,7 +12,7 @@ TESTSSRCS = $(wildcard tests/*.cpp)
 
 LIBSRCS = $(wildcard src/*.cpp)
 
-SRCS = $(sort $(LIBSRCS) $(EXAMPLESRCS) $(TESTSSRCS))
+SRCS = $(LIBSRCS) $(EXAMPLESRCS) $(TESTSSRCS)
 
 LIBOBJS = $(LIBSRCS:.cpp=.o)
 

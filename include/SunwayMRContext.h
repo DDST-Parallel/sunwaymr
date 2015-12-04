@@ -16,6 +16,8 @@
 #include "Scheduler.h"
 using std::string;
 
+template <class T> class ParallelArray;
+
 class SunwayMRContext : public Logging {
 public:
 	template <class T> ParallelArray<T> parallelize(T t1, T t2);

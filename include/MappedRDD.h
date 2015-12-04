@@ -9,8 +9,14 @@
 #define MAPPEDRDD_H_
 
 #include <vector>
+#include <string>
+#include "RDD.h"
+#include "Partition.h"
 #include "IteratorSeq.h"
 using std::vector;
+using std::string;
+
+template <class T> class RDD;
 
 template <class U, class T>
 class MappedRDD : public RDD<U> {
