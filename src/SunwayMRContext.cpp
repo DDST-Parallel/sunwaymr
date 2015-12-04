@@ -5,11 +5,30 @@
  *      Author: yupeng
  */
 
+#include <exception>
 #include "SunwayMRContext.h"
+using std::exception;
+
+SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
+: appName(appName) {
+	if (argc < 3) {
+		// error -- two console parameters at least
+		// the first is hostsFile, and the second is master
+		logError("two console parameters at least \n the first is hostsFile, and the second is master");
+		throw(exception());
+
+	} else {
+		hostsFilePath = string(argv[1]);
+		master = string(argv[2]);
+		scheduler = Scheduler(hostsFilePath, master, appName);
+
+		scheduler.start();
+	}
+}
 
 SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string appName)
 : scheduler(Scheduler(hostsFilePath, master, appName)), hostsFilePath(hostsFilePath), master(master), appName(appName) {
-
+	scheduler.start();
 }
 
 ParallelArray<int> SunwayMRContext::parallelize(int start, int end) {

@@ -16,6 +16,7 @@ using std::vector;
 
 class Scheduler : public Logging {
 public:
+	Scheduler();
 	//Scheduler(string hostFilePath, string master, string appName, bool localMode = false);
 	Scheduler(string hostFilePath, string master, string appName); // master may be "local"
 	virtual ~Scheduler();

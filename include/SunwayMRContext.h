@@ -21,6 +21,7 @@ template <class T> class ParallelArray;
 
 class SunwayMRContext : public Logging {
 public:
+	SunwayMRContext(string appName, int argc, char *argv[]);
 	SunwayMRContext(string hostsFilePath, string master, string appName);
 
 	ParallelArray<int> parallelize(int start, int end);
