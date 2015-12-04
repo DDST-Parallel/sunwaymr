@@ -8,13 +8,13 @@
 #ifndef PARTITION_H_
 #define PARTITION_H_
 
-#include "IteratorSeq.h"
-
-template <class T>
 class Partition {
 public:
+	Partition(int partitionID);
 	virtual ~Partition();
-	virtual IteratorSeq<T> iteratorSeq() = 0;
+	virtual int getPartitionID();
+
+	int partitionID;
 };
 
 #endif /* PARTITION_H_ */

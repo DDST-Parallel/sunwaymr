@@ -21,7 +21,6 @@ public:
 
 private:
 	long rddID;
-	int partitionID;
 	IteratorSeq<T> &values;
 };
 
