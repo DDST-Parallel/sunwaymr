@@ -3,7 +3,7 @@
 using namespace std;
 
 template <class U, class T>
-MappedRDD<U, T>::MappedRDD(RDD<U> &prev, U (*f)(T))
+MappedRDD<U, T>::MappedRDD(RDD<T> &prev, U (*f)(T))
 	: prevRDD(prev)
 {
 	mappedFunction = f;

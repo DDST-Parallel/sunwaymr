@@ -9,6 +9,11 @@ RDD<T>::RDD(SunwayMRContext &c)
 {
 }
 
+template <class T>
+RDD<T>::~RDD()
+{
+
+}
 
 template <class T> template <class U>
 MappedRDD<U, T> RDD<T>::map(U (*f)(T))

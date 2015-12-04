@@ -31,8 +31,8 @@ public:
 	//data
 	IteratorSeq<T> &seq;
 	int numSlices;
-	int parallelArray_id; 
-	static int current_id;
+	long parallelArray_id; 
+	static long current_id;
 };
 
 
