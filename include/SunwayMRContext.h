@@ -14,20 +14,30 @@
 #include "TaskResult.h"
 #include "Logging.h"
 #include "Scheduler.h"
+#include "IteratorSeq.h"
 using std::string;
 
 template <class T> class ParallelArray;
 
 class SunwayMRContext : public Logging {
 public:
-	template <class T> ParallelArray<T> parallelize(T t1, T t2);
-	template <class T> ParallelArray<T> parallelize(T t1, T t2, int numSlices);
+	SunwayMRContext(string hostsFilePath, string master, string appName);
+
+	ParallelArray<int> parallelize(int start, int end);
+	ParallelArray<int> parallelize(int start, int end, int numSlices);
+	ParallelArray<long> parallelize(long start, long end);
+	ParallelArray<long> parallelize(long start, long end, int numSlices);
+	template <class T> ParallelArray<T> parallelize(vector<T> &v);
+	template <class T> ParallelArray<T> parallelize(vector<T> &v, int numSlices);
+	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> iter);
+	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> iter, int numSlices);
+
 	template <class T> vector< TaskResult<T> > runTasks(vector< Task<T> > &tasks);
 
 private:
 	Scheduler scheduler;
 
-	bool init(string hostsFilePath);
+	string hostsFilePath, master, appName;
 };
 
 
