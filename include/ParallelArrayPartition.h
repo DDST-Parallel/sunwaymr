@@ -20,6 +20,7 @@ public:
 	IteratorSeq<T> iteratorSeq();
 
 private:
+	int partitionID;
 	long rddID;
 	IteratorSeq<T> &values;
 };

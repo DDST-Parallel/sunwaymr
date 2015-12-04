@@ -10,11 +10,9 @@
 
 class Partition {
 public:
-	Partition(int partitionID);
 	virtual ~Partition();
-	virtual int getPartitionID();
+	virtual void printInfo();
 
-	int partitionID;
 };
 
 #endif /* PARTITION_H_ */

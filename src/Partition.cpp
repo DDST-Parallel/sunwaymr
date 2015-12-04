@@ -7,13 +7,6 @@
 
 #include "Partition.h"
 
-Partition::Partition(int partitionID)
-: partitionID(partitionID) {
-
-}
-
-int Partition::getPartitionID() {
-	return partitionID;
-}
+void Partition::printInfo() { }
 
 
