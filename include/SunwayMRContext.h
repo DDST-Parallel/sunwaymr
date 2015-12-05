@@ -40,6 +40,8 @@ private:
 
 	string hostsFilePath, master, appName;
 	int sendPort, listenPort;
+
+	void startScheduler();
 };
 
 

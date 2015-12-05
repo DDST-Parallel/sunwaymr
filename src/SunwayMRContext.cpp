@@ -5,30 +5,45 @@
  *      Author: yupeng
  */
 
-#include <exception>
+#include <stdlib.h>
 #include "SunwayMRContext.h"
-using std::exception;
 
 SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 : appName(appName) {
-	if (argc < 3) {
+	if (argc < 5) {
 		// error -- two console parameters at least
 		// the first is hostsFile, and the second is master
 		logError("two console parameters at least \n the first is hostsFile, and the second is master");
-		throw(exception());
+		exit(101);
 
 	} else {
 		hostsFilePath = string(argv[1]);
 		master = string(argv[2]);
-		scheduler = Scheduler(hostsFilePath, master, appName);
+		sendPort = atoi(argv[3]);
+		listenPort = atoi(argv[4]);
 
-		scheduler.start();
+		scheduler = Scheduler(hostsFilePath, master, appName, sendPort, listenPort);
+
+		startScheduler();
+
 	}
 }
 
-SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string appName)
-: scheduler(Scheduler(hostsFilePath, master, appName)), hostsFilePath(hostsFilePath), master(master), appName(appName) {
-	scheduler.start();
+SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string appName, int sendPort, int listenPort)
+: scheduler(Scheduler(hostsFilePath, master, appName, sendPort, listenPort)),
+  hostsFilePath(hostsFilePath), master(master), appName(appName),
+  sendPort(sendPort), listenPort(listenPort) {
+	startScheduler();
+
+}
+
+void SunwayMRContext::startScheduler() {
+	bool r = scheduler.start();
+
+	if (!r) {
+		logError("failed to start scheduler, send port or listen port may be in use.");
+		exit(102);
+	}
 }
 
 ParallelArray<int> SunwayMRContext::parallelize(int start, int end) {
