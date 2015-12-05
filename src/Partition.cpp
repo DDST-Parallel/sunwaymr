@@ -7,6 +7,7 @@
 
 #include "Partition.h"
 
+Partition::~Partition() { }
 void Partition::printInfo() { }
 
 
