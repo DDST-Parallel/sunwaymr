@@ -22,7 +22,7 @@ template <class U, class T>
 class MappedRDD : public RDD<U> {
 public:
 	MappedRDD(RDD<T> &prev, U (*f)(T));
-	vector<Partition> getPartitions();
+	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq<U> iteratorSeq(Partition &p);
 

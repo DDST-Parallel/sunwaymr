@@ -10,13 +10,13 @@ ParallelArray<T>::ParallelArray(SunwayMRContext &c, IteratorSeq<T> &seq, int num
 {
 	parallelArray_id = current_id++;
 	// get partitions
-	vector<Partition> partitions;
+	vector<Partition*> partitions;
 
 	vector< IteratorSeq<T> > slices = slice();
 	//construct partitions
 	for (int i = 0; i < slices.size(); i++)
 	{
-		ParallelArrayPartition<T> partition(parallelArray_id, i, slices[i]);
+		Partition* partition = new ParallelArrayPartition<T>(parallelArray_id, i, slices[i]);
 		partitions.push_back(partition);
 	}
 
@@ -24,7 +24,7 @@ ParallelArray<T>::ParallelArray(SunwayMRContext &c, IteratorSeq<T> &seq, int num
 }
 
 template <class T>
-vector<Partition> ParallelArray<T>::getPartitions()
+vector<Partition*> ParallelArray<T>::getPartitions()
 {
 	return RDD<T>::partitions;
 }

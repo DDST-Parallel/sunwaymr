@@ -8,6 +8,7 @@
 #ifndef PARTITION_H_
 #define PARTITION_H_
 
+
 class Partition {
 public:
 	virtual ~Partition();

@@ -16,8 +16,8 @@ using std::string;
 template <class T>
 class Task {
 public:
-	Task();
-	virtual ~Task();
+	Task(){};
+	virtual ~Task(){};
 	virtual T run() = 0;
 	virtual vector<string> preferredLocations() { return vector<string>(0); }
 };

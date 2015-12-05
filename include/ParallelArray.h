@@ -24,7 +24,7 @@ template <class T>
 class ParallelArray : public RDD<T> {
 public:
 	ParallelArray(SunwayMRContext &c, IteratorSeq<T> &seq, int numSlices);
-	vector<Partition> getPartitions();
+	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq<T> iteratorSeq(Partition &p);
 	vector< IteratorSeq<T> > slice();

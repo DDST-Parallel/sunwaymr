@@ -19,7 +19,7 @@ public:
 	ParallelArrayPartition(long rddID, int partitionID, IteratorSeq<T> &values);
 	IteratorSeq<T> iteratorSeq();
 
-private:
+
 	int partitionID;
 	long rddID;
 	IteratorSeq<T> &values;

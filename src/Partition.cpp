@@ -6,8 +6,15 @@
  */
 
 #include "Partition.h"
+#include <vector>
+using namespace std;
+
 
 Partition::~Partition() { }
+
 void Partition::printInfo() { }
+
+
+
 
 

@@ -10,7 +10,7 @@ MappedRDD<U, T>::MappedRDD(RDD<T> &prev, U (*f)(T))
 }
 
 template <class U, class T>
-vector<Partition> MappedRDD<U, T>::getPartitions()
+vector<Partition*> MappedRDD<U, T>::getPartitions()
 {
 	return prevRDD.getPartitions();
 }

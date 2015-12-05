@@ -25,7 +25,7 @@ class RDD {
 public:
 	RDD(SunwayMRContext &c);
 	virtual ~RDD();
-	virtual vector<Partition> getPartitions()=0;
+	virtual vector<Partition*> getPartitions()=0;
 	virtual vector<string> preferredLocations(Partition &p)=0;
 	virtual IteratorSeq<T> iteratorSeq(Partition &p)=0;
 
@@ -33,7 +33,7 @@ public:
 	T reduce(T (*g)(T, T));
 
 	SunwayMRContext &context;
-	vector<Partition> partitions;
+	vector<Partition*> partitions;
 };
 
 
