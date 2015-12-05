@@ -28,9 +28,11 @@ T RDD<T>::reduce(T (*g)(T, T))
 {
 	// construct tasks
 	vector< Task<T>* > tasks;
-	for (int i = 0; i < partitions.size(); i++)
+	vector<Partition*> pars = getPartitions();
+
+	for (int i = 0; i < pars.size(); i++)
 	{
-		Task<T> *task = new ReduceTask<T>(*this, partitions[i], g);
+		Task<T> *task = new ReduceTask<T>(*this, *(pars[i]), g);
 		tasks.push_back(task);
 	}
 	// run tasks via context
