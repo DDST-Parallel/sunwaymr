@@ -22,11 +22,15 @@ public:
 
 	virtual bool start(); // may fail to start if listenPort is in use
 	virtual int totalThreads();
-	template <class T> vector< TaskResult<T> > runTasks(vector< Task<T> > &tasks);
+	template <class T> vector< TaskResult<T> > runTasks(vector< Task<T>* > &tasks);
 
 private:
 	string hostFilePath, master, appName;
 	int listenPort;
+
+	vector<string> IPVector;
+	vector<int> threadCountVector;
+	vector<int> memoryVector;
 
 	template <class T> void taskFinished(TaskResult<T> &t);
 	bool listen();
