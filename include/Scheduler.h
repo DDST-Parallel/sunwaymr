@@ -18,9 +18,9 @@ class Scheduler : public Logging {
 public:
 	Scheduler();
 	//Scheduler(string hostFilePath, string master, string appName, bool localMode = false);
-	Scheduler(string hostFilePath, string master, string appName); // master may be "local"
+	Scheduler(string hostFilePath, string master, string appName, int sendPort, int listenPort); // master may be "local"
 	virtual ~Scheduler();
-	virtual void start();
+	virtual bool start(); // may fail to start if ports are in use
 	virtual int totalThreads();
 	template <class T> vector< TaskResult<T> > runTasks(vector< Task<T> > &tasks);
 
