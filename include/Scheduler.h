@@ -19,12 +19,18 @@ public:
 	Scheduler();
 	Scheduler(string hostFilePath, string master, string appName, int listenPort); // master may be "local"
 	virtual ~Scheduler();
-	virtual bool start(); // may fail to start if listenPort are in use
+
+	virtual bool start(); // may fail to start if listenPort is in use
 	virtual int totalThreads();
 	template <class T> vector< TaskResult<T> > runTasks(vector< Task<T> > &tasks);
 
 private:
+	string hostFilePath, master, appName;
+	int listenPort;
+
 	template <class T> void taskFinished(TaskResult<T> &t);
+	bool listen();
+	bool sendMessage(string message);
 
 	// other new functions below...
 };
