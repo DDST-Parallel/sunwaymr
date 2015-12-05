@@ -33,7 +33,7 @@ public:
 	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> iter);
 	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> iter, int numSlices);
 
-	template <class T> vector< TaskResult<T> > runTasks(vector< Task<T> > &tasks);
+	template <class T> vector< TaskResult<T> > runTasks(vector< Task<T>* > &tasks);
 
 private:
 	Scheduler scheduler;

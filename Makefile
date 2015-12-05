@@ -4,7 +4,7 @@ CXX = gcc
 
 INCLUDES = -Iinclude
 
-CXXFLAGS = -lstdc++ -O2 -g -Wall -fmessage-length=0 $(INCLUDES) 
+CXXFLAGS = -lstdc++ -fPIC -O2 -g -Wall -fmessage-length=0 $(INCLUDES) 
 
 EXAMPLESRCS = $(wildcard examples/*.cpp)
 
@@ -24,10 +24,10 @@ EXAMPLETARGETS = $(EXAMPLESRCS:.cpp= )
 
 TESTSTARGETS = $(TESTSSRCS:.cpp= )
 
-#LIBTARGET = SunwayMR.so
-#
-#$(LIBTARGET) : $(LIBOBJS)
-#	$(CXX) $(LIBS) $(LIBOBJS) -o $(LIBTARGET)
+LIBTARGET = SunwayMR.so
+
+$(LIBTARGET) : $(LIBOBJS)
+	$(CXX) $(LIBS) $(LIBOBJS) -shared -fPIC -o $(LIBTARGET)
 
 $(EXAMPLETARGETS):
 	$(CXX) $(addsuffix .cpp,$@) $(CXXFLAGS) $(LIBS) -o $@

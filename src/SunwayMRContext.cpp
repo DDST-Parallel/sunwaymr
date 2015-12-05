@@ -10,10 +10,9 @@
 
 SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 : appName(appName) {
-	if (argc < 4) {
-		// error -- two console parameters at least
-		// the first is hostsFile, and the second is master
-		logError("two console parameters at least \n the first is hostsFile, and the second is master");
+	if (argc < 3) {
+		// error
+		logError("3 parameters at least \nhostsFile, master, listenPort");
 		exit(101);
 
 	} else {
@@ -77,7 +76,7 @@ template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> 
 	return ParallelArray<T>(*this, iter, numSlices);
 }
 
-template <class T> vector< TaskResult<T> > SunwayMRContext::runTasks(vector< Task<T> > &tasks) {
+template <class T> vector< TaskResult<T> > SunwayMRContext::runTasks(vector< Task<T>* > &tasks) {
 	return scheduler.runTasks(tasks);
 }
 
