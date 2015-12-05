@@ -10,7 +10,7 @@
 
 SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 : appName(appName) {
-	if (argc < 5) {
+	if (argc < 4) {
 		// error -- two console parameters at least
 		// the first is hostsFile, and the second is master
 		logError("two console parameters at least \n the first is hostsFile, and the second is master");
@@ -19,20 +19,19 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 	} else {
 		hostsFilePath = string(argv[1]);
 		master = string(argv[2]);
-		sendPort = atoi(argv[3]);
-		listenPort = atoi(argv[4]);
+		listenPort = atoi(argv[3]);
 
-		scheduler = Scheduler(hostsFilePath, master, appName, sendPort, listenPort);
+		scheduler = Scheduler(hostsFilePath, master, appName, listenPort);
 
 		startScheduler();
 
 	}
 }
 
-SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string appName, int sendPort, int listenPort)
-: scheduler(Scheduler(hostsFilePath, master, appName, sendPort, listenPort)),
+SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string appName, int listenPort)
+: scheduler(Scheduler(hostsFilePath, master, appName, listenPort)),
   hostsFilePath(hostsFilePath), master(master), appName(appName),
-  sendPort(sendPort), listenPort(listenPort) {
+  listenPort(listenPort) {
 	startScheduler();
 
 }

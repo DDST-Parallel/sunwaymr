@@ -22,7 +22,7 @@ template <class T> class ParallelArray;
 class SunwayMRContext : public Logging {
 public:
 	SunwayMRContext(string appName, int argc, char *argv[]);
-	SunwayMRContext(string hostsFilePath, string master, string appName, int sendPort, int listenPort);
+	SunwayMRContext(string hostsFilePath, string master, string appName, int listenPort);
 
 	ParallelArray<int> parallelize(int start, int end);
 	ParallelArray<int> parallelize(int start, int end, int numSlices);
@@ -39,7 +39,7 @@ private:
 	Scheduler scheduler;
 
 	string hostsFilePath, master, appName;
-	int sendPort, listenPort;
+	int listenPort;
 
 	void startScheduler();
 };
