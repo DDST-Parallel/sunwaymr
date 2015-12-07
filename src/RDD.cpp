@@ -47,7 +47,8 @@ T RDD<T>::reduce(T (*g)(T, T))
 	//get results
 	vector<T> values_results;
 	for (int j = 0; j < results.size(); j++)
-		values_results.push_back(results[j].value[0]);
+		if(results[j].size() > 0)
+			values_results.push_back(results[j].value[0]);
 
 	if (values_results.size() == 0)
 	{
