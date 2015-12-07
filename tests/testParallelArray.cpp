@@ -42,28 +42,17 @@ int main()
 
 	SunwayMRContext sc("hostFilePath", "127.0.0.1", "knshen", 8080);
 	ParallelArray<int> parallel_array1 = sc.parallelize(data1, 10);
-	//ParallelArray<int> parallel_array2 = sc.parallelize(data2, 10);
-	//ParallelArray<int> parallel_array3 = sc.parallelize(data3, 10);
+	ParallelArray<int> parallel_array2 = sc.parallelize(data2, 10);
+	ParallelArray<int> parallel_array3 = sc.parallelize(data3, 10);
 
-	//IteratorSeq<int> iter(1, 100, 1);
-	//ParallelArray<int> range = sc.parallelize(iter, 10);
+	IteratorSeq<int> iter(1, 100, 2);
+	ParallelArray<int> range = sc.parallelize(iter, 10);
 
 	vector<Partition*> p1 = parallel_array1.getPartitions();
-	//vector<Partition*> p2 = parallel_array2.getPartitions();
-	//vector<Partition*> p3 = parallel_array3.getPartitions();
-	//vector<Partition*> p4 = range.getPartitions();
+	vector<Partition*> p2 = parallel_array2.getPartitions();
+	vector<Partition*> p3 = parallel_array3.getPartitions();
+	vector<Partition*> p4 = range.getPartitions();
 
-	cout << parallel_array1.parallelArray_id << ":" << endl;
-
-	
-	ParallelArrayPartition<int> *pp = dynamic_cast< ParallelArrayPartition<int> * >(p1[0]);
-		cout << pp->rddID << "	" << pp->partitionID << "	" << endl;
-		vector<int> data = pp->iteratorSeq().getVector();
-	for(int i=0; i<data.size(); i++)
-	{
-		cout<<data[i]<<" ";
-	}
-	/*
 	for (int i = 0; i < p1.size(); i++)
 	{
 		ParallelArrayPartition<int> *pp = dynamic_cast< ParallelArrayPartition<int> * >(p1[i]);
@@ -72,9 +61,44 @@ int main()
 		cout << "data: " << data.size() << endl;
 		cout << data[0] << " ~  " << data[data.size() - 1] << endl;
 
-	}*/
+	}
 	cout << "\n------------------------------------------------------------" << endl;
 	
-	parallel_array1.map(f);
+	for (int i = 0; i < p2.size(); i++)
+	{
+		ParallelArrayPartition<int> *pp = dynamic_cast< ParallelArrayPartition<int> * >(p2[i]);
+		cout << pp->rddID << "	" << pp->partitionID << "	" << endl;
+		vector<int> data = pp->iteratorSeq().getVector();
+		cout << "data: " << data.size() << endl;
+		cout << data[0] << " ~  " << data[data.size() - 1] << endl;
+
+	}
+	cout << "\n------------------------------------------------------------" << endl;
+
+	for (int i = 0; i < p3.size(); i++)
+	{
+		ParallelArrayPartition<int> *pp = dynamic_cast< ParallelArrayPartition<int> * >(p3[i]);
+		cout << pp->rddID << "	" << pp->partitionID << "	" << endl;
+		vector<int> data = pp->iteratorSeq().getVector();
+		cout << "data: " << data.size() << endl;
+		cout << data[0] << " ~  " << data[data.size() - 1] << endl;
+
+	}
+	cout << "\n------------------------------------------------------------" << endl;
+
+	for (int i = 0; i < p4.size(); i++)
+	{
+		ParallelArrayPartition<int> *pp = dynamic_cast< ParallelArrayPartition<int> * >(p4[i]);
+		cout << pp->rddID << "	" << pp->partitionID << "	" << endl;
+		IteratorSeq<int> data = pp->iteratorSeq();
+		cout << "data: " << data.size() << endl;
+		cout << data.getStart() << " :  " <<data.getStep()<<" : "<< data.getEnd() << endl;
+
+	}
+	cout << "\n------------------------------------------------------------" << endl;
+
+	MappedRDD<int, int> map_rdd = parallel_array1.map(f);
+	int r = map_rdd.reduce(g);
+	cout<<"r: "<<r<<endl;
 	return 0;
 }
