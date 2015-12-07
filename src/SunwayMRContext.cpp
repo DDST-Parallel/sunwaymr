@@ -104,7 +104,7 @@ template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> 
 	return ParallelArray<T>(*this, iter, numSlices);
 }
 
-template <class T> vector< TaskResult<T> > SunwayMRContext::runTasks(vector< Task<T>* > &tasks) {
+template <class T> vector< TaskResult<T>* > SunwayMRContext::runTasks(vector< Task<T>* > &tasks) {
 	return scheduler.runTasks(tasks);
 }
 
