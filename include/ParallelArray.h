@@ -27,7 +27,7 @@ public:
 	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq<T> iteratorSeq(Partition &p);
-	vector< IteratorSeq<T> > slice();
+	vector< IteratorSeq<T>* > slice();
 	//data
 	IteratorSeq<T> &seq;
 	int numSlices;

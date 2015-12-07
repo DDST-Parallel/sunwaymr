@@ -32,8 +32,8 @@ public:
 	ParallelArray<long> parallelize(long start, long end, int numSlices);
 	template <class T> ParallelArray<T> parallelize(vector<T> &v);
 	template <class T> ParallelArray<T> parallelize(vector<T> &v, int numSlices);
-	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> iter);
-	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> iter, int numSlices);
+	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> &iter);
+	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> &iter, int numSlices);
 
 	template <class T> vector< TaskResult<T> > runTasks(vector< Task<T>* > &tasks);
 

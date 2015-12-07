@@ -62,34 +62,45 @@ void SunwayMRContext::startScheduler() {
 }
 
 ParallelArray<int> SunwayMRContext::parallelize(int start, int end) {
-	return parallelize(IteratorSeq<int>(start, end, 1), scheduler.totalThreads());
+	int step = (start > end) ? -1 : 1;
+	IteratorSeq<int> *iter = new IteratorSeq<int>(start, end, step);
+	return parallelize(*iter, scheduler.totalThreads());
 }
 
 ParallelArray<int> SunwayMRContext::parallelize(int start, int end, int numSlices) {
-	return parallelize(IteratorSeq<int>(start, end, 1), numSlices);
+	int step = (start > end) ? -1 : 1;
+	IteratorSeq<int> *iter = new IteratorSeq<int>(start, end, step);
+	return parallelize(*iter, numSlices);
 }
 
 ParallelArray<long> SunwayMRContext::parallelize(long start, long end) {
-	return parallelize(IteratorSeq<long>(start, end, 1), scheduler.totalThreads());
+	long step = (start > end) ? -1l : 1l;
+	IteratorSeq<long> *iter = new IteratorSeq<long>(start, end, step);
+	return parallelize(*iter, scheduler.totalThreads());
 }
 
 ParallelArray<long> SunwayMRContext::parallelize(long start, long end, int numSlices) {
-	return parallelize(IteratorSeq<long>(start, end, 1), numSlices);
+	long step = (start > end) ? -1l : 1l;
+	IteratorSeq<long> *iter = new IteratorSeq<long>(start, end, step);
+	return parallelize(*iter, numSlices);
 }
 
 template <class T> ParallelArray<T> SunwayMRContext::parallelize(vector<T> &v) {
-	return parallelize(IteratorSeq<T>(v), scheduler.totalThreads());
+	IteratorSeq<T> *iter = new IteratorSeq<T>(v);
+	return parallelize(*iter, scheduler.totalThreads());
 }
 
 template <class T> ParallelArray<T> SunwayMRContext::parallelize(vector<T> &v, int numSlices){
-	return parallelize(IteratorSeq<T>(v), numSlices);
+	IteratorSeq<T> *iter = new IteratorSeq<T>(v);
+	return parallelize(*iter, numSlices);
 }
 
-template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> iter) {
+template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> &iter) {
 	return parallelize(iter, scheduler.totalThreads());
 }
 
-template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> iter, int numSlices) {
+// actual parallelizer
+template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> &iter, int numSlices) {
 	return ParallelArray<T>(*this, iter, numSlices);
 }
 
