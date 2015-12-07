@@ -34,20 +34,20 @@ template <class T>
 T RDD<T>::reduce(T (*g)(T, T))
 {
 	// construct tasks
-	vector< Task<T>* > tasks;
+	vector< Task< vector<T> >* > tasks;
 	vector<Partition*> pars = getPartitions();
 
 	for (int i = 0; i < pars.size(); i++)
 	{
-		Task<T> *task = new ReduceTask<T>(*this, *(pars[i]), g);
+		Task< vector<T> > *task = new ReduceTask<T>(*this, *(pars[i]), g);
 		tasks.push_back(task);
 	}
 	// run tasks via context
-	vector< TaskResult<T> > results = context.runTasks(tasks);
+	vector< TaskResult< vector<T> >* > results = context.runTasks(tasks);
 	//get results
 	vector<T> values_results;
 	for (int j = 0; j < results.size(); j++)
-		values_results.push_back(results[j].value);
+		values_results.push_back(results[j].value[0]);
 
 	if (values_results.size() == 0)
 	{
@@ -57,5 +57,5 @@ T RDD<T>::reduce(T (*g)(T, T))
 	}
 	//reduce left results
 	IteratorSeq<T> it(values_results);
-	return it.reduceLeft(g);
+	return it.reduceLeft(g)[0];
 }
