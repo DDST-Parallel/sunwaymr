@@ -5,9 +5,16 @@
 using namespace std;
 
 template <class T>
+RDD<T>::RDD()
+: context(*(new SunwayMRContext())) {
+
+}
+
+template <class T>
 RDD<T>::RDD(SunwayMRContext &c)
-	: context(c)
+: context(c)
 {
+
 }
 
 template <class T>

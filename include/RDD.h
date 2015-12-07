@@ -23,6 +23,7 @@ class SunwayMRContext;
 template <class T>
 class RDD {
 public:
+	RDD();
 	RDD(SunwayMRContext &c);
 	virtual ~RDD();
 	virtual vector<Partition*> getPartitions()=0;

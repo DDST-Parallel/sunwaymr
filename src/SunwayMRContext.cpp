@@ -8,6 +8,13 @@
 #include <stdlib.h>
 #include "SunwayMRContext.h"
 
+SunwayMRContext::SunwayMRContext() {
+	hostsFilePath = "";
+	master = "";
+	listenPort = 0;
+	scheduler = Scheduler();
+}
+
 SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 : appName(appName) {
 	if (argc < 3) {
@@ -31,6 +38,16 @@ SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string app
 : scheduler(Scheduler(hostsFilePath, master, appName, listenPort)),
   hostsFilePath(hostsFilePath), master(master), appName(appName),
   listenPort(listenPort) {
+	startScheduler();
+
+}
+
+void SunwayMRContext::init(string hostsFilePath, string master, string appName, int listenPort) {
+	scheduler = Scheduler(hostsFilePath, master, appName, listenPort);
+	this->hostsFilePath = hostsFilePath;
+	this->master = master;
+	this->appName = appName;
+	this->listenPort = listenPort;
 	startScheduler();
 
 }
