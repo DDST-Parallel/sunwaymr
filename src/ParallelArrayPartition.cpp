@@ -4,7 +4,7 @@ using namespace std;
 
 template <class T>
 ParallelArrayPartition<T>::ParallelArrayPartition(long _rddID, int _partitionID, IteratorSeq<T> &_values) 
-: values(_values), rddID(_rddID), partitionID(_partitionID)
+: rddID(_rddID), partitionID(_partitionID), values(_values)
 {
 }
 

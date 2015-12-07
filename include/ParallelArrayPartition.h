@@ -19,9 +19,8 @@ public:
 	ParallelArrayPartition(long rddID, int partitionID, IteratorSeq<T> &values);
 	IteratorSeq<T> iteratorSeq();
 
-
-	int partitionID;
 	long rddID;
+	int partitionID;
 	IteratorSeq<T> &values;
 };
 
