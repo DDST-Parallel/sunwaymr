@@ -85,35 +85,35 @@ template <class T> template <class U> IteratorSeq<U> IteratorSeq<T>::map(U (*f)(
 	return IteratorSeq<U>(ret);
 }
 
-template <class T> vector<T> IteratorSeq<T>::reduceLeft(T (*g)(T,T)) {
-	vector<T> ret;
+template <class T> vector<T>& IteratorSeq<T>::reduceLeft(T (*g)(T,T)) {
+	vector<T> *ret = new vector<T>;
 
 	if(type == 0) {
 		if (size() > 0) {
-			if (size() == 1) ret.push_back(start);
+			if (size() == 1) ret->push_back(start);
 			else {
 				T t = g(start, start + step);
 				for(int i = 2; i < size(); i++) {
 					t = g(t, start + step * i);
 				}
-				ret.push_back(t);
+				ret->push_back(t);
 			}
 		}
 
 	} else {
 		if (v.size() > 0) {
-			if (v.size() == 1) ret.push_back(v[0]);
+			if (v.size() == 1) ret->push_back(v[0]);
 			else {
 				T t = g(v[0], v[1]);
 				for(int i = 2; i < v.size(); i++) {
 					t = g(t, v[i]);
 				}
-				ret.push_back(t);
+				ret->push_back(t);
 			}
 		}
 	}
 
-	return ret;
+	return *ret;
 }
 
 

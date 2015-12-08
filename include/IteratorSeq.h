@@ -25,7 +25,7 @@ public:
 	bool isInclusive();
 	vector<T> getVector();
 	template <class U> IteratorSeq<U> map(U (*f)(T));
-	vector<T> reduceLeft(T (*g)(T,T));
+	vector<T>& reduceLeft(T (*g)(T,T));
 
 private:
 	T start;

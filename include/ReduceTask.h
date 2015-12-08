@@ -17,7 +17,7 @@ template <class T>
 class ReduceTask : public RDDTask< T, vector<T> >, public Logging {
 public:
 	ReduceTask(RDD<T> &r, Partition &p, T (*g)(T, T));
-	vector<T> run();
+	vector<T>& run();
 
 private:
 	T (*g)(T, T);
