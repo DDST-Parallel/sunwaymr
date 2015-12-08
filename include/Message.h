@@ -15,21 +15,16 @@
  * */
 
 #include <string>
-#include <vector>
 using std::string;
-using std::vector;
-#include "TaskResult.h"
 
-template <class T>
 class Message{
 public:
 	string myIP;
 	string remoteIP;
 
 	//slave send to master
-	//int currentOccupyThreadNum;
-	//int currentOccupyMemoryNum;
-	vector< TaskResult<T>* > taskResultArray;
+	int taskId;
+	int taskValue;
 
 	//master send to slave
 	//none for now
@@ -39,8 +34,7 @@ public:
 
 	//construct
 	Message();
-	//Message(string myIp,string remoteIp,int cOTN, int cOMN, int iCFM);
-	Message(string myIp,string remoteIp,vector< TaskResult<T>* > taskRA, int iCFM);
+	Message(string myIp,string remoteIp, int tid, int tv, int iCFM);
 
     virtual ~Message();
 };

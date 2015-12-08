@@ -16,21 +16,25 @@
 
 using std::vector;
 
+//thread pool
 template <class T>
 class ThreadPool:public Logging{
 public:
 	ThreadPool(int threadNum=10);
-	int addToThreadPool(Task *task);
+	int addToThreadPool(Task<T> &task,int tid);
 	int stopAll();
 	int getCurrentOccupyThreadNum();
+    static vector <int> taskId;
+    static vector <T> taskValue;
+
 protected:
-	static void* threadFunc(void * threadData); //new thread call func
+	static void* threadFunc(void * threadData=NULL); //new thread call func
 	static int moveToIdle(pthread_t tid);       //thread finished, then return to idle thread queue
 	static int moveToBusy(pthread_t tid);       //move to busy thread
-
 	int create();                               //create thread pool
 private:
 	static vector < Task<T> > tasksList;
+
     static bool shutdown;
     int taskLauched;
     pthread_t *pthread_id;
