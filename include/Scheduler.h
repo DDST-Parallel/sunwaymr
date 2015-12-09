@@ -17,8 +17,11 @@
 using std::vector;
 
 int vectorFind(vector<string>&  v, string value);
+vector<int> vectorFindAll(vector<string>& v, string value);
 int vectorNonZero(vector<int>& v);
 int vectorIntMax(vector<int>& v);
+vector<int> vectorTimes(vector<int>& v,float m);
+int vectorSum(vector<int>& v);
 
 /*listening for new message from listenPort*/
 void* listenReceive(void* data);
@@ -50,8 +53,10 @@ private:
 
 	vector<string> IPVector;
 	vector<string> preferredIPVector;
+
 	vector<int> threadCountVector;
 	vector<int> threadRemainVector;
+
 	vector<int> memoryVector;
 
 	//template <class T> void taskFinished(TaskResult<T> &t);

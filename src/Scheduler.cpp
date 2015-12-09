@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <sstream>
 #include <algorithm>
+#include <math.h>
 
 //#include <sys/types.h>
 #define BACKLOG 10  /*maximum connect request*/
@@ -109,6 +110,7 @@ Scheduler::Scheduler(string hostFP, string mas, string appN, int listenP){
 	ins.close();
 
 	threadRemainVector=threadCountVector;
+
 	//vector <int> ::iterator s=find(IPVector.begin(),IPVector.end(),getLocalIP());
 	selfIPRank=0;
 	for(unsigned int i=0;i<IPVector.size();i++){
@@ -189,7 +191,22 @@ int vectorFind(vector<string>& v, string value){
 	}
 	return index;
 }
+vector<int> vectorFindAll(vector<string>& v, string value){
+	vector<int>  indexVector;
+	//int index=-1;
+	int vs=v.size();
+	for( int i=0;i<vs;i++){
+		if(v[i]==value){
+			//ndex=i;
+            indexVector.push_back(i);
+		}
+	}
+	if(indexVector.size()==0){
+		indexVector.push_back(-1);
+	}
 
+	return indexVector;
+}
 int vectorNonZero(vector<int>& v){
 	int index=-1;
 	int vs=v.size();
@@ -215,77 +232,92 @@ int vectorIntMax(vector<int>& v){
 	return index;
 }
 
+int vectorSum(vector<int>& v){
+	int sum=0;
+	int vs=v.size();
+	for( int i=0;i<vs;i++){
+		sum+=v[i];
+	}
+	return sum;
+}
+
+vector<int> vectorTimes(vector<int>& v,float m){
+	vector<int> uv;
+	int vs=v.size();
+	for( int i=0;i<vs;i++){
+		uv.push_back(ceil(v[i]*m));
+	}
+	return uv;
+}
+
 template <class T>
 vector< TaskResult<T>* > Scheduler::runTasks(vector<Task<T>*> &tasks){
 	int taskNum=tasks.size();
 	string selfIP=getLocalIP();
+
+	vector<int> needReDistributing(taskNum,1);
+
+	int diff=taskNum-vectorSum(threadCountVector);
+	float res=float(taskNum)/vectorSum(threadCountVector);
+	if(diff>0){//need enlarge to keep every task has resources 
+        threadRemainVector=vectorTimes(threadCountVector,res);
+	}
+
 	int taskLauched=0;
 	vector< TaskResult<T>* > resultsArray;
 	vector< Task<T>* > taskDeal;
 
 	int taskFinished=0;
 
-    //create thread pool with maximum- thread
-	ThreadPool<T> tp(taskNum);
-
-	//keep threadRemianVector locally
+	//keep threadRemianVector and remainWaitNum locally
 	for( int i=0;i<taskNum;i++){
-		if(tasks[i]->preferredLocations().size()==0){
-			continue;
-		}
-		else{
-			preferredIPVector[i]=tasks[i]->preferredLocations()[0];
-			int index=vectorFind(IPVector,tasks[i]->preferredLocations()[0]);
+		if(tasks[i]->preferredLocations().size()>0){
+			int index=-1;
 
-			//resources file does not contain target ip-> send message to master to update resource file
-			if(index==-1){
-                 //re-distribution
-				index=vectorIntMax(threadCountVector);
-				preferredIPVector[i]=IPVector[index];
-			}
-			//resources file contains target ip -> keep threadRemainVector to record the thread use situation
+			int j;
+            int plSize=tasks[i]->preferredLocations().size();
+			for( j=0;j<plSize;j++){
+				index=vectorFind(IPVector,tasks[i]->preferredLocations()[i]);
 
-				if(threadRemainVector[index]>0){
+				if(index!=-1 && threadRemainVector[index]>0){
 					threadRemainVector[index]--;
+					preferredIPVector[i]=IPVector[index];
+					needReDistributing[i]=0;
+					break;
 				}
-				else{
-					//when running, it need waiting.
-
-				}
+			}
+			if(j<plSize){
+				continue;
+			}
 		}
 	}
 
-	//set preferred locations for which is not set before.
-	for (int i=0;i<taskNum;i++){
-        //no preferred locations -> set it for this task
-        if(tasks[i]->preferredLocations().size()==0){
-        	int indexNZ=vectorNonZero(threadRemainVector);
+	//re-distribution:
+	//1.preferred localtions do not meet with resources demand
+	//2.no preferred locations
 
-        	//no thread remained for this task
-        	if(indexNZ==-1){
-        		////when running, it need waiting.or send message to master.or record by log.
-        		indexNZ=vectorIntMax(threadCountVector);
-        		preferredIPVector[i]=IPVector[indexNZ];
-        	}
-        	//there exists thread resource for this task
-        	else{
-        		//tasks[i].preferredLocations().push_back(IPVector[indexNZ]);
-        		preferredIPVector[i]=IPVector[indexNZ];
-        	}
-        }
+	for( int i=0;i<taskNum;i++){
+		if(needReDistributing[i]==1){
+			int index=vectorNonZero(threadRemainVector);
+			threadRemainVector[index]--;
+			preferredIPVector[i]=IPVector[index];
+		}
 	}
+
+    //create thread pool with maximum- thread
+	ThreadPool <T> tp(taskNum);
 
 	//add to thread pool
     for (int i=0;i<taskNum;i++){
-        //preferredLocation[0] refer to self -> add task to thread pool
+        //preferredIPVector refer to self -> add task to thread pool
         if( preferredIPVector[i]==selfIP){
 			tp.addToThreadPool(*tasks[i], i);
 			taskDeal.push_back(tasks[i]);
 			taskLauched++;
 
 		}
-        //preferredLocation[0] refer to others -> do nothing
-	    else{}
+        //preferredIPVector refer to others -> do nothing
+	    //else{}
 
 	}
 
@@ -296,7 +328,7 @@ vector< TaskResult<T>* > Scheduler::runTasks(vector<Task<T>*> &tasks){
 			smessage.taskId=tp.taskId[i];
 			std::stringstream ss;
 			T& tt=tp.taskValue[i];
-			ss << tt;
+			//ss << tt;
 			smessage.taskValue=ss.str();
 			sendMessage(smessage,client_fd);
 
