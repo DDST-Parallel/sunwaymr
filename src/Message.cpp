@@ -13,12 +13,12 @@ Message::Message(){
 	remoteIP="";
 
 	taskId=0;
-	taskValue=0;
+	taskValue="";
 
 	isComeFromMaster=-1;
 }
 
-Message::Message(string myIp,string remoteIp,int tid, int tv, int iCFM){
+Message::Message(string myIp,string remoteIp,int tid, string tv, int iCFM){
 	myIP=myIp;
 	remoteIP=remoteIp;
 	taskId=tid;

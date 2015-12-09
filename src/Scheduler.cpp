@@ -10,7 +10,6 @@
 #include "Task.h"
 #include "TaskResult.h"
 #include "ThreadPool.h"
-#include <thread>
 #include <pthread.h>
 #include <fstream>
 #include <vector>
@@ -26,6 +25,8 @@
 #include <cstring>
 #include <iomanip>
 #include <stdlib.h>
+#include <sstream>
+#include <algorithm>
 
 //#include <sys/types.h>
 #define BACKLOG 10  /*maximum connect request*/
@@ -33,15 +34,12 @@
 #define SENDPORT 3333
 
 using namespace std;
-using std::vector;
-using std::string;
 
 Scheduler::Scheduler(){
 	hostFilePath="";
 	master="";
 	appName="";
 	listenPort=0;
-	finishedCount=0;
 	isMaster=0;
 	socketfd=0;
 	client_fd=0;
@@ -87,7 +85,6 @@ Scheduler::Scheduler(string hostFP, string mas, string appN, int listenP){
 	master=mas;
 	appName=appN;
 	listenPort=listenP;
-	finishedCount=0;
 	isMaster=(mas==getLocalIP()? 1:0);
 
 	//read resource file
@@ -110,9 +107,15 @@ Scheduler::Scheduler(string hostFP, string mas, string appN, int listenP){
 	}
 	ins.close();
 
-	//start schedule
-    //start();
-    //logInfo("App "+appName+" is running");
+	threadRemainVector=threadCountVector;
+	//vector <int> ::iterator s=find(IPVector.begin(),IPVector.end(),getLocalIP());
+	selfIPRank=0;
+	for(unsigned int i=0;i<IPVector.size();i++){
+		if (IPVector[i]==getLocalIP()){
+			selfIPRank=i;
+			break;
+		}
+	}
 
 
 }
@@ -174,9 +177,33 @@ string Scheduler::getLocalIP() {
 	return localIP;
 }
 
+int vectorFind(vector<string>& v, string value){
+	int index=-1;
+	int vs=v.size();
+	for( int i=0;i<vs;i++){
+		if(v[i]==value){
+			index=i;
+			break;
+		}
+	}
+	return index;
+}
+
+int vectorNonZero(vector<int>& v){
+	int index=-1;
+	int vs=v.size();
+	for( int i=0;i<vs;i++){
+		if(v[i]!=0){
+			index=i;
+			break;
+		}
+	}
+	return index;
+}
+
 template <class T>
 vector< TaskResult<T>* > Scheduler::runTasks(vector<Task<T>*> &tasks){
-	int taskNum=tasks.length;
+	int taskNum=tasks.size();
 	string selfIP=getLocalIP();
 	int taskLauched=0;
 	vector< TaskResult<T>* > resultsArray;
@@ -187,26 +214,74 @@ vector< TaskResult<T>* > Scheduler::runTasks(vector<Task<T>*> &tasks){
     //create thread pool with maximum- thread
 	ThreadPool<T> tp(taskNum);
 
-	//add to threadPool
-	for(unsigned int i=0;i<taskNum;i++){
-		if(tasks[i].preferredLocations.first==selfIP){
-			tp.addToThreadPool(tasks[i],i);
-			taskDeal.push_back(tasks[i]);
-			taskLauched++;
+	//keep threadRemianVector locally
+	for( int i=0;i<taskNum;i++){
+		if(tasks[i]->preferredLocations().size()==0){
+			continue;
+		}
+		else{
+			int index=vectorFind(IPVector,tasks[i]->preferredLocations()[0]);
+
+			//resources file does not contain target ip-> send message to master to update resource file
+			if(index==-1){
+                 //re-distribution
+			}
+			//resources file contains target ip -> keep threadRemainVector to record the thread use situation
+			else {
+				if(threadRemainVector[index]>0){
+					threadRemainVector[index]--;
+				}
+				else{
+					//when running, it need waiting.or send message to master.or record by log.
+				}
+			}
 		}
 	}
 
-	//tp.threadFunc();
-	Message smessage(getLocalIP(),master,0,0,isMaster);
+	//set preferred locations for which is not set before.
+	for (int i=0;i<taskNum;i++){
+        //no preferred locations -> set it for this task
+        if(tasks[i]->preferredLocations().size()==0){
+        	int indexNZ=vectorNonZero(threadRemainVector);
+
+        	//no thread remained for this task
+        	if(indexNZ==-1){
+        		////when running, it need waiting.or send message to master.or record by log.
+        	}
+        	//there exists thread resource for this task
+        	else{
+        		//tasks[i].preferredLocations().push_back(IPVector[indexNZ]);
+        	}
+        }
+	}
+
+	//add to thread pool
+    for (int i=0;i<taskNum;i++){
+        //preferredLocation[0] refer to self -> add task to thread pool
+        if( tasks[i]->preferredLocations()[0]==selfIP){
+			tp.addToThreadPool(*tasks[i], i);
+			taskDeal.push_back(tasks[i]);
+			taskLauched++;
+
+		}
+        //preferredLocation[0] refer to others -> do nothing
+	    else{}
+
+	}
+
+	Message smessage(getLocalIP(),master,0,"",isMaster);
 	if(tp.taskId.size()==tp.taskValue.size()){
 		for(unsigned int i=0; i<tp.taskId.size();i++){
 			//send out taskId and the corresponding result value
 			smessage.taskId=tp.taskId[i];
-			smessage.taskValue=int(tp.taskValue[i]);
+			std::stringstream ss;
+			T& tt=tp.taskValue[i];
+			ss << tt;
+			smessage.taskValue=ss.str();
 			sendMessage(smessage,client_fd);
 
 			//generate taskResultArray
-			TaskResult<T>*  tr=new TaskResult<T>(taskDeal[i],tp.taskValue[i]);
+			TaskResult<T>* tr=new TaskResult<T>(*taskDeal[i],tp.taskValue[i]);
 			resultsArray.push_back(tr);
 			taskFinished++;
 		}
@@ -214,18 +289,6 @@ vector< TaskResult<T>* > Scheduler::runTasks(vector<Task<T>*> &tasks){
 	tp.stopAll();
 	return resultsArray;
 }
-
-
-/*template <class T>
-void Scheduler::taskFinished(TaskResult<T> &t){
-	finishedCount++;
-	taskResultArray.add(taskResult);
-
-	if(finishedCount==totalTaskCount){
-		sendOutAllTaskResults();
-	}
-}*/
-
 
 bool Scheduler::myListen(int listenPort){
 	 /*socketfd for receive message; client_fd for send message*/
@@ -277,7 +340,7 @@ bool Scheduler::myListen(int listenPort){
 		return false;
 	}
 
-	pthread_t * pthread_id1;
+	pthread_t * pthread_id1=NULL;
 	pthread_create(pthread_id1,NULL,listenReceive,this);
 
 	return true;
@@ -326,7 +389,7 @@ Message Scheduler::receiveMessage(int socketfd){
     message.myIP=temp[0];
     message.remoteIP=temp[1];
     message.taskId=atoi(temp[2].c_str());
-    message.taskValue=atoi(temp[3].c_str());
+    message.taskValue=temp[3];
     message.isComeFromMaster=atoi(temp[4].c_str());
 
     return message;
@@ -339,11 +402,11 @@ bool Scheduler::sendMessage(Message message,int client_fd){
 	//serialize
 	char icfm[20];
 	char trt[20];
-	char trv[20];
+	//char trv[20];
 	sprintf(trt,"%d",message.taskId);
-	sprintf(trv,"%d",message.taskValue);
+	//sprintf(trv,"%d",message.taskValue);
 	sprintf(icfm,"%d",message.isComeFromMaster);
-	string msg=message.myIP.append(",").append(message.remoteIP).append(",").append(trt).append(",").append(trv).append(",").append(icfm);
+	string msg=message.myIP.append(",").append(message.remoteIP).append(",").append(trt).append(",").append(message.taskValue).append(",").append(icfm);
 
 	if(send(client_fd, msg.data(), strlen(msg.data()),0)==-1){
 		flag=false;

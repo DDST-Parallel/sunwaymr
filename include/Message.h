@@ -24,7 +24,7 @@ public:
 
 	//slave send to master
 	int taskId;
-	int taskValue;
+    string taskValue;
 
 	//master send to slave
 	//none for now
@@ -34,7 +34,7 @@ public:
 
 	//construct
 	Message();
-	Message(string myIp,string remoteIp, int tid, int tv, int iCFM);
+	Message(string myIp,string remoteIp, int tid, string tv, int iCFM);
 
     virtual ~Message();
 };

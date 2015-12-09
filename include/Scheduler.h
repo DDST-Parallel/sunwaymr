@@ -8,14 +8,21 @@
 #ifndef SCHEDULER_H_
 #define SCHEDULER_H_
 
-#include <vector>
 #include "Task.h"
 #include "TaskResult.h"
 #include "Logging.h"
 #include "Message.h"
+#include <vector>
+
 using std::vector;
 
+int vectorFind(vector<string>&  v, string value);
+int vectorNonZero(vector<int>& v);
+
+/*listening for new message from listenPort*/
 void* listenReceive(void* data);
+
+/*class Scheduler declaration*/
 class Scheduler : public Logging {
 public:
 	Scheduler();
@@ -26,29 +33,29 @@ public:
 	virtual int totalThreads();
 	template <class T> vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 
-	int isMaster;
+	int isMaster;  //whether the node is master or not
 
 	int socketfd;
+	int client_fd;
+
 	Message receiveMessage(int socketfd);
+	bool sendMessage(Message message,int client_fd);
+
 private:
 	string hostFilePath, master, appName;
 	int listenPort;
 
-	int client_fd;
+	int selfIPRank;
 
-    int finishedCount;
 	vector<string> IPVector;
 	vector<int> threadCountVector;
+	vector<int> threadRemainVector;
 	vector<int> memoryVector;
 
 	//template <class T> void taskFinished(TaskResult<T> &t);
 	bool myListen(int listenPort);
 	string getLocalIP();
-	//void* listenReceive(void * data);
-	bool sendMessage(Message message,int client_fd);
 
-
-	// other new functions below...
 };
 
 

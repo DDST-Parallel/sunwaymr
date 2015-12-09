@@ -10,8 +10,11 @@
 #include "Message.h"
 
 #include <vector>
+#include <sstream>
+#include <stdlib.h>
 #include "Task.h"
 using std::vector;
+using std::stringstream;
 
 template <class T>
 ThreadPool<T>::ThreadPool(int threadNum){
@@ -31,24 +34,24 @@ void* ThreadPool<T>::threadFunc(void * threadData){
 
 		if(shutdown){
 			pthread_mutex_unlock(&m_pthreadMutex);
-			logInfo("ThreadPool: thread "+pthread_self()+" will exit");
+			stringstream ss;
+			ss << "ThreadPool: thread " << pthread_self() << " will exit";
+			logInfo(ss.str());
 			pthread_exit(NULL);
 		}
 
-		logInfo("ThreadPool: thread "+pthread_self()+" running");
-		vector< Task<T>* >::iterator iter =tasksList.begin();
-		//vector< int >::iterator iter2 =taskId.begin();
+		stringstream ss;
+		ss << "ThreadPool: thread " << pthread_self() << " running";
+		logInfo(ss.str());
+
+		typename vector< Task<T>* >::iterator iter =tasksList.begin();
 
 		//deal with one task
-
 		Task<T>* task = *iter;
-		//int * tid=*iter2;
 		if (iter != tasksList.end())
 		{
 			task = *iter;
-			//tid=*iter2;
 			tasksList.erase(iter);
-			//taskId.erase(iter2);
 		}
 
 		pthread_mutex_unlock(&m_pthreadMutex);
@@ -58,7 +61,9 @@ void* ThreadPool<T>::threadFunc(void * threadData){
 		//TaskResult<T> *tr = new TaskResult<T>(*task, v);
         taskValue.push_back(v);
 
-		logInfo("ThreadPool: thread "+tid+" is idle now");
+
+		ss << "ThreadPool: thread " << tid<< " is idle now";
+		logInfo(ss.str());
 	}
 	return (void*)0;
 }
