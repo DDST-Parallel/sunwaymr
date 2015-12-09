@@ -43,6 +43,7 @@ Scheduler::Scheduler(){
 	isMaster=0;
 	socketfd=0;
 	client_fd=0;
+	selfIPRank=0;
 }
 
 int SplitString(const std::string& str, std::vector<std::string>& ret, const std::string& sep)
