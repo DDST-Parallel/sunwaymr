@@ -201,6 +201,19 @@ int vectorNonZero(vector<int>& v){
 	return index;
 }
 
+int vectorIntMax(vector<int>& v){
+	int value=*max_element(v.begin(),v.end());
+	int index=-1;
+	int vs=v.size();
+	for( int i=0;i<vs;i++){
+		if(v[i]==value){
+			index=i;
+			break;
+		}
+	}
+	return index;
+}
+
 template <class T>
 vector< TaskResult<T>* > Scheduler::runTasks(vector<Task<T>*> &tasks){
 	int taskNum=tasks.size();
@@ -220,21 +233,24 @@ vector< TaskResult<T>* > Scheduler::runTasks(vector<Task<T>*> &tasks){
 			continue;
 		}
 		else{
+			preferredIPVector[i]=tasks[i]->preferredLocations()[0];
 			int index=vectorFind(IPVector,tasks[i]->preferredLocations()[0]);
 
 			//resources file does not contain target ip-> send message to master to update resource file
 			if(index==-1){
                  //re-distribution
+				index=vectorIntMax(threadCountVector);
+				preferredIPVector[i]=IPVector[index];
 			}
 			//resources file contains target ip -> keep threadRemainVector to record the thread use situation
-			else {
+
 				if(threadRemainVector[index]>0){
 					threadRemainVector[index]--;
 				}
 				else{
-					//when running, it need waiting.or send message to master.or record by log.
+					//when running, it need waiting.
+
 				}
-			}
 		}
 	}
 
@@ -247,10 +263,13 @@ vector< TaskResult<T>* > Scheduler::runTasks(vector<Task<T>*> &tasks){
         	//no thread remained for this task
         	if(indexNZ==-1){
         		////when running, it need waiting.or send message to master.or record by log.
+        		indexNZ=vectorIntMax(threadCountVector);
+        		preferredIPVector[i]=IPVector[indexNZ];
         	}
         	//there exists thread resource for this task
         	else{
         		//tasks[i].preferredLocations().push_back(IPVector[indexNZ]);
+        		preferredIPVector[i]=IPVector[indexNZ];
         	}
         }
 	}
@@ -258,7 +277,7 @@ vector< TaskResult<T>* > Scheduler::runTasks(vector<Task<T>*> &tasks){
 	//add to thread pool
     for (int i=0;i<taskNum;i++){
         //preferredLocation[0] refer to self -> add task to thread pool
-        if( tasks[i]->preferredLocations()[0]==selfIP){
+        if( preferredIPVector[i]==selfIP){
 			tp.addToThreadPool(*tasks[i], i);
 			taskDeal.push_back(tasks[i]);
 			taskLauched++;

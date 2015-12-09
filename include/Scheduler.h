@@ -18,6 +18,7 @@ using std::vector;
 
 int vectorFind(vector<string>&  v, string value);
 int vectorNonZero(vector<int>& v);
+int vectorIntMax(vector<int>& v);
 
 /*listening for new message from listenPort*/
 void* listenReceive(void* data);
@@ -48,6 +49,7 @@ private:
 	int selfIPRank;
 
 	vector<string> IPVector;
+	vector<string> preferredIPVector;
 	vector<int> threadCountVector;
 	vector<int> threadRemainVector;
 	vector<int> memoryVector;
