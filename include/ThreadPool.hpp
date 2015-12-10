@@ -16,6 +16,8 @@
 #include <stdlib.h>
 
 #include "Task.hpp"
+#include "Messaging.hpp"
+#include "MessageType.hpp"
 #include "Logging.hpp"
 
 using std::vector;
@@ -135,6 +137,10 @@ int ThreadPool<T>::getCurrentOccupyThreadNum()
 }
 
 
+template <class T>
+void ThreadPool<T>::messageReceived(int localListenPort, string fromHost, int msgType, string msg) {
+	// do nothing
+}
 
 
 #endif /* THREADPOOL_HPP_ */

@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 
+#include "Messaging.h"
 #include "Logging.h"
 #include "Task.h"
 
@@ -20,7 +21,7 @@ using std::vector;
 
 //thread pool
 template <class T>
-class ThreadPool:public Logging{
+class ThreadPool: public Messaging, public Logging{
 public:
 	ThreadPool(int threadNum=10);
 	int addToThreadPool(Task<T> &task,int tid);
@@ -37,13 +38,15 @@ public:
 
     static pthread_mutex_t m_pthreadMutex;   //thread sync lock
     static pthread_cond_t m_pthreadCond;     //thread sync condition variable
+
 protected:
 	static void* threadFunc(void * threadData=NULL); //new thread call func
 	int moveToIdle(pthread_t tid);       //thread finished, then return to idle thread queue
 	int moveToBusy(pthread_t tid);       //move to busy thread
 	int create();                               //create thread pool
-private:
 
+private:
+	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
 };
 
 
