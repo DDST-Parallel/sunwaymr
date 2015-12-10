@@ -30,10 +30,13 @@ ThreadPool<T>::ThreadPool(int threadNum){
 
 template <class T>
 void* ThreadPool<T>::threadFunc(void * threadData){
+
+	ThreadPool<T>* tp = (ThreadPool<T> *) threadData;
+
 	pthread_t tid=pthread_self();
 	while(1){
 		pthread_mutex_lock(&m_pthreadMutex);
-		while(tasksList.size()==0 && !shutdown){
+		while(tp->tasksList.size()==0 && ! shutdown){
 			pthread_cond_wait(&m_pthreadCond,&m_pthreadMutex);
 		}
 
@@ -49,14 +52,14 @@ void* ThreadPool<T>::threadFunc(void * threadData){
 		ss << "ThreadPool: thread " << pthread_self() << " running";
 		logInfo(ss.str());
 
-		typename vector< Task<T>* >::iterator iter =tasksList.begin();
+		typename vector< Task<T>* >::iterator iter =tp->tasksList.begin();
 
 		//deal with one task
 		Task<T>* task = *iter;
-		if (iter != tasksList.end())
+		if (iter != tp->tasksList.end())
 		{
 			task = *iter;
-			tasksList.erase(iter);
+			tp->tasksList.erase(iter);
 		}
 
 		pthread_mutex_unlock(&m_pthreadMutex);
@@ -64,7 +67,7 @@ void* ThreadPool<T>::threadFunc(void * threadData){
 		//conduct task and return generate taskResult
 		T& v = task->run();
 		//TaskResult<T> *tr = new TaskResult<T>(*task, v);
-        taskValue.push_back(v);
+        tp->taskValue.push_back(v);
 
 
 		ss << "ThreadPool: thread " << tid<< " is idle now";
@@ -90,7 +93,7 @@ int ThreadPool <T>::create(){
     pthread_id = (pthread_t*)malloc(sizeof(pthread_t) * taskLauched);
     for(int i = 0; i < taskLauched; i++)
     {
-        pthread_create(&pthread_id[i], NULL, threadFunc, NULL);
+        pthread_create(&pthread_id[i], NULL, ThreadPool<T>::threadFunc, (void *)this);
     }
     return 0;
 }

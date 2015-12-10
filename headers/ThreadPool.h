@@ -26,16 +26,10 @@ public:
 	int addToThreadPool(Task<T> &task,int tid);
 	int stopAll();
 	int getCurrentOccupyThreadNum();
-    static vector <int> taskId;
-    static vector <T> taskValue;
+    vector <int> taskId;
+    vector <T> taskValue;
 
-protected:
-	static void* threadFunc(void * threadData=NULL); //new thread call func
-	static int moveToIdle(pthread_t tid);       //thread finished, then return to idle thread queue
-	static int moveToBusy(pthread_t tid);       //move to busy thread
-	int create();                               //create thread pool
-private:
-	static vector < Task<T>* > tasksList;
+	vector < Task<T>* > tasksList;
 
     static bool shutdown;
     int taskLauched;
@@ -43,6 +37,12 @@ private:
 
     static pthread_mutex_t m_pthreadMutex;   //thread sync lock
     static pthread_cond_t m_pthreadCond;     //thread sync condition variable
+protected:
+	static void* threadFunc(void * threadData=NULL); //new thread call func
+	int moveToIdle(pthread_t tid);       //thread finished, then return to idle thread queue
+	int moveToBusy(pthread_t tid);       //move to busy thread
+	int create();                               //create thread pool
+private:
 
 };
 
