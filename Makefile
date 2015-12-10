@@ -2,15 +2,19 @@
 
 CXX = gcc
 
-INCLUDES = -Iinclude
+INCLUDES = -Iheaders -Iinclude
 
-CXXFLAGS = -lstdc++ -fPIC -O2 -g -Wall -fmessage-length=0 $(INCLUDES) 
+CXXFLAGS = -O2 -g -Wall -fmessage-length=0
+
+LDFLAGS = -shared -fPIC
 
 EXAMPLESRCS = $(wildcard examples/*.cpp)
 
 TESTSSRCS = $(wildcard tests/*.cpp)
 
-LIBSRCS = $(wildcard src/*.cpp)
+LIBHEADERS = $(wildcard headers/*.h)
+
+LIBINCLUDES = $(wildcard include/*.hpp)
 
 SRCS = $(LIBSRCS) $(EXAMPLESRCS) $(TESTSSRCS)
 
@@ -18,26 +22,24 @@ LIBOBJS = $(LIBSRCS:.cpp=.o)
 
 OBJS = $(SRCS:.cpp=.o)
 
-LIBS =
+LIBS = -pthread -lstdc++ -lm
 
 EXAMPLETARGETS = $(EXAMPLESRCS:.cpp= )
 
 TESTSTARGETS = $(TESTSSRCS:.cpp= )
 
-LIBTARGET = SunwayMR.so
+LIBNAME = sunwaymr
 
-$(LIBTARGET) : $(LIBOBJS)
-	$(CXX) $(LIBS) $(LIBOBJS) -shared -fPIC -o $(LIBTARGET)
+LIBTARGET = lib$(LIBNAME).so
 
-$(EXAMPLETARGETS):
-	$(CXX) $(addsuffix .cpp,$@) $(CXXFLAGS) $(LIBS) -o $@
+LDSONAME = -Wl,-soname=$(LIBTARGET)
 
-$(TESTSTARGETS): 
-	$(CXX) $(addsuffix .cpp,$@) $(CXXFLAGS) $(LIBS) -o $@
+$(EXAMPLETARGETS), $(TESTSTARGETS): $(LIBHEADERS) $(LIBINCLUDES)
+	$(CXX) $(CXXFLAGS) $(addsuffix .cpp,$@) -o $@ $(INCLUDES) $(LIBS)
 
-TARGETS =	$(LIBOBJS) $(LIBTARGET) $(EXAMPLETARGETS) $(TESTSTARGETS)
+TARGETS = $(EXAMPLETARGETS) $(TESTSTARGETS)
 
-all:	$(TARGETS)
+all: $(TARGETS)
 
 clean:
 	rm -f $(TARGETS)

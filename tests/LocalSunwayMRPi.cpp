@@ -1,20 +1,12 @@
-#include "../src/IteratorSeq.cpp"
-#include "../src/Partition.cpp"
-#include "../src/ParallelArrayPartition.cpp"
-#include "../src/SunwayMRContext.cpp"
-#include "../src/Scheduler.cpp"
-#include "../src/Logging.cpp"
-#include "../src/ParallelArray.cpp"
-#include "../src/RDD.cpp"
-#include "../src/MappedRDD.cpp"
-#include "../src/RDDTask.cpp"
-#include "../src/ReduceTask.cpp"
-#include "../src/TaskResult.cpp"
 
 #include <vector>
 #include <ctime>
 #include <cstdlib>
 #include <iostream>
+
+#include "ParallelArray.hpp"
+#include "MappedRDD.hpp"
+#include "SunwayMRContext.hpp"
 using namespace std;
 
 
@@ -46,7 +38,9 @@ double compute(long count, int slice)
 	ParallelArray<long> pa = sc.parallelize(1L, count, slice);
 	MappedRDD<long, long> map_rdd = pa.map(map_f);
 	int num = map_rdd.reduce(reduce_f);
-	cout<<(4.0 * num / count)<<endl;
+	double ret = (4.0 * num / count);
+	cout<<ret<<endl;
+	return ret;
 }
 
 int main()

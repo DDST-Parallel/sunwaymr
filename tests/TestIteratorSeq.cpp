@@ -6,7 +6,8 @@
  */
 
 #include <iostream>
-#include "../src/IteratorSeq.cpp"
+#include "IteratorSeq.hpp"
+
 using namespace std;
 
 int print(int x) {
