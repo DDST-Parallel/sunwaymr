@@ -50,12 +50,6 @@ private:
 	void saveLocalHostFile();
 	void saveAllHostsFile();
 
-	static long getCurrentTime();
-	static int randomValue(int start, int end);
-	static string getLocalHost();
-	static void mkdirRecursive(const char *dir);
-	static bool writeFile(string dir, string fileName,  string content);
-	static bool readFile(string path,  string &content);
 };
 
 #endif /* SRC_SUNWAYMRHELPER_H_ */
