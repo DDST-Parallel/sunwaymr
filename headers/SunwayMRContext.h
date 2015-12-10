@@ -13,7 +13,7 @@
 #include "IteratorSeq.h"
 #include "Logging.h"
 #include "ParallelArray.h"
-#include "Scheduler.h"
+#include "JobScheduler.h"
 #include "Task.h"
 #include "TaskResult.h"
 using std::string;
@@ -41,7 +41,7 @@ public:
 	template <class T> vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 
 private:
-	Scheduler scheduler;
+	JobScheduler scheduler;
 
 	string hostsFilePath, master, appName;
 	int listenPort;

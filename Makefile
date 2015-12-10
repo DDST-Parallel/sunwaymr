@@ -16,11 +16,11 @@ LIBHEADERS = $(wildcard headers/*.h)
 
 LIBINCLUDES = $(wildcard include/*.hpp)
 
-SRCS = $(LIBSRCS) $(EXAMPLESRCS) $(TESTSSRCS)
+SRCS = $(LIBINCLUDES) $(EXAMPLESRCS) $(TESTSSRCS)
 
-LIBOBJS = $(LIBSRCS:.cpp=.o)
+LIBOBJS = $(LIBINCLUDES:.hpp=.o)
 
-OBJS = $(SRCS:.cpp=.o)
+OBJS = $(LIBINCLUDES:.hpp=.o)
 
 LIBS = -pthread -lstdc++ -lm
 
@@ -36,6 +36,9 @@ LDSONAME = -Wl,-soname=$(LIBTARGET)
 
 $(EXAMPLETARGETS), $(TESTSTARGETS): $(LIBHEADERS) $(LIBINCLUDES)
 	$(CXX) $(CXXFLAGS) $(addsuffix .cpp,$@) -o $@ $(INCLUDES) $(LIBS)
+
+#$(LIBOBJS):
+#	$(CXX) $(CXXFLAGS) -c $(patsubst %.o,%.hpp, $@) -o $@ $(INCLUDES) $(LIBS)
 
 TARGETS = $(EXAMPLETARGETS) $(TESTSTARGETS)
 

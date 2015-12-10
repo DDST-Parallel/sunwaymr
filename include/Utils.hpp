@@ -3,6 +3,15 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <ifaddrs.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <algorithm>
+#include <math.h>
 using namespace std;
 
 int splitString(const std::string& str, std::vector<std::string>& ret, const std::string& sep)

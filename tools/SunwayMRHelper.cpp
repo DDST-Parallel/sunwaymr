@@ -7,16 +7,9 @@
 
 #include <iostream>
 #include <sstream>
-#include <fstream>
 #include <cstdlib>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <ifaddrs.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <pthread.h>
 #include <unistd.h>
 
@@ -326,3 +319,4 @@ void SunwayMRHelper::saveAllHostsFile() {
 		logError(ss.str());
 	}
 }
+

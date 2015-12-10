@@ -13,6 +13,7 @@
 #include "Logging.hpp"
 #include "Task.hpp"
 #include "TaskResult.hpp"
+#include "Utils.hpp"
 
 using namespace std;
 
@@ -56,10 +57,10 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 	ins.close();
 
 	//vector <int> ::iterator s=find(IPVector.begin(),IPVector.end(),getLocalIP());
-	selfIPRank=0;
+	selfIPIndex=-1;
 	for(unsigned int i=0;i<IPVector.size();i++){
 		if (IPVector[i]==getLocalIP()){
-			selfIPRank=i;
+			selfIPIndex=i;
 			break;
 		}
 	}

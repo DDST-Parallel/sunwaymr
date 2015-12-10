@@ -28,7 +28,7 @@ public:
 
 private:
 	string hostFilePath, master, appName;
-	int listenPort, isMaster, selfIPRank;
+	int listenPort, isMaster, selfIPIndex;
 
 	vector<string> IPVector;
 	vector<int> threadCountVector;

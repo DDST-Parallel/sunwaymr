@@ -4,21 +4,7 @@
 #include "TaskScheduler.h"
 
 #include <pthread.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <ifaddrs.h>
-#include <string>
-#include <stdio.h>
-#include <cstring>
-#include <iomanip>
-#include <stdlib.h>
 #include <sstream>
-#include <algorithm>
-#include <math.h>
-
 
 #include "Scheduler.hpp"
 #include "Messaging.hpp"
@@ -29,7 +15,7 @@
 #include "TaskResult.hpp"
 
 template <class T>
-TaskScheduler<T>::TaskScheduler(int id, string selfIP, vector<string> ip, vector<int> threads, vector<int> memory) {
+TaskScheduler<T>::TaskScheduler(int jobID, string selfIP, int selfIPIndex, string master, string appName, int listenPort, vector<string> ip, vector<int> threads, vector<int> memory) {
 
 
 }

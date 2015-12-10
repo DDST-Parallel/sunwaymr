@@ -20,7 +20,7 @@ using std::vector;
 
 
 template <class U, class T> class MappedRDD;
-
+class SunwayMRContext;
 
 template <class T>
 class RDD {

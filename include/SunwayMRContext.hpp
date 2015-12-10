@@ -14,7 +14,7 @@
 #include <stdlib.h>
 
 #include "IteratorSeq.hpp"
-#include "Scheduler.hpp"
+#include "JobScheduler.hpp"
 #include "Logging.hpp"
 #include "ParallelArray.hpp"
 #include "Task.hpp"
@@ -24,7 +24,7 @@ SunwayMRContext::SunwayMRContext() {
 	hostsFilePath = "";
 	master = "";
 	listenPort = 0;
-	scheduler = Scheduler();
+	scheduler = JobScheduler();
 }
 
 SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
@@ -39,7 +39,7 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 		master = string(argv[2]);
 		listenPort = atoi(argv[3]);
 
-		scheduler = Scheduler(hostsFilePath, master, appName, listenPort);
+		scheduler = JobScheduler(hostsFilePath, master, appName, listenPort);
 
 		startScheduler();
 
@@ -47,7 +47,7 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 }
 
 SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string appName, int listenPort)
-: scheduler(Scheduler(hostsFilePath, master, appName, listenPort)),
+: scheduler(JobScheduler(hostsFilePath, master, appName, listenPort)),
   hostsFilePath(hostsFilePath), master(master), appName(appName),
   listenPort(listenPort) {
 	startScheduler();
@@ -55,7 +55,7 @@ SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string app
 }
 
 void SunwayMRContext::init(string hostsFilePath, string master, string appName, int listenPort) {
-	scheduler = Scheduler(hostsFilePath, master, appName, listenPort);
+	scheduler = JobScheduler(hostsFilePath, master, appName, listenPort);
 	this->hostsFilePath = hostsFilePath;
 	this->master = master;
 	this->appName = appName;

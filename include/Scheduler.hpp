@@ -11,6 +11,13 @@
 
 #include "Scheduler.h"
 
+Scheduler::Scheduler() {
+
+}
+
+Scheduler::~Scheduler() {
+
+}
 
 #endif /* SCHEDULER_HPP_ */
 
