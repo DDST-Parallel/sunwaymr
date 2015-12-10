@@ -11,8 +11,9 @@
 
 class ThreadPool {
 public:
-	ThreadPool(int threadNum=10);
-	void run(void* (*func)(void* data));
+	ThreadPool(int threadNum = 10);
+	void run(void* (*func)(void*), void* data);
+private:
 
 };
 
