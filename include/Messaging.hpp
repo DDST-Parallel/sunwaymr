@@ -84,7 +84,8 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 	}
 
 	// send data
-	int byte = send(sockfd, send_data.c_str(), 1000, 0);
+	const char* ch = send_data.c_str();
+	int byte = send(sockfd, ch, strlen(ch), 0);
 	if (byte < 0)
 	{
 		cout << "send fail!" << endl;
@@ -167,11 +168,12 @@ void* messageHandler(void *data)
 
 	// receive
 	char msg[1024 * 1024]; // 1Mb
-	int byte = recv(client_sockfd, msg, 2000, 0);
+	int byte = recv(client_sockfd, msg, 1024 * 1024, 0);
 	if (byte < 0)
 	{
 		cout << "receive fail!" << endl;
-		exit(EXIT_FAILURE);
+		pthread_exit(NULL);
+		//exit(EXIT_FAILURE);
 	}
 
 	char *head = strtok(msg, "$");
