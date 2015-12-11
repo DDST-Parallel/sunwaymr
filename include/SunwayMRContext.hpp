@@ -31,7 +31,7 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 : appName(appName) {
 	if (argc < 4) {
 		// error
-		logError("SunwayMRContext: 3 parameters at least \nhostsFile, master, listenPort");
+		logError("SunwayMRContext: 3 parameters at least: hostsFile, master, listenPort");
 		exit(101);
 
 	} else {
@@ -39,10 +39,16 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 		master = string(argv[2]);
 		listenPort = atoi(argv[3]);
 
-		scheduler = JobScheduler();
-		scheduler.init(hostsFilePath, master, appName, listenPort);
+		scheduler = JobScheduler(hostsFilePath, master, appName, listenPort);
 
-		startScheduler();
+
+		logInfo("SunwayMRContext: starting scheduler...");
+		bool r = scheduler.start();
+		if (!r) {
+			logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
+			exit(102);
+		}
+		logInfo("SunwayMRContext: starting scheduler succeeded");
 
 	}
 }
@@ -51,10 +57,16 @@ SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string app
 : hostsFilePath(hostsFilePath), master(master), appName(appName),
   listenPort(listenPort) {
 
-	scheduler = JobScheduler();
-	scheduler.init(hostsFilePath, master, appName, listenPort);
+	scheduler = JobScheduler(hostsFilePath, master, appName, listenPort);
 
-	startScheduler();
+
+	logInfo("SunwayMRContext: starting scheduler...");
+	bool r = scheduler.start();
+	if (!r) {
+		logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
+		exit(102);
+	}
+	logInfo("SunwayMRContext: starting scheduler succeeded");
 
 }
 
@@ -64,23 +76,18 @@ void SunwayMRContext::init(string hostsFilePath, string master, string appName, 
 	this->appName = appName;
 	this->listenPort = listenPort;
 
-	scheduler = JobScheduler();
-	scheduler.init(hostsFilePath, master, appName, listenPort);
-
+	scheduler = JobScheduler(hostsFilePath, master, appName, listenPort);
 	startScheduler();
 
 }
 
 void SunwayMRContext::startScheduler() {
 	logInfo("SunwayMRContext: starting scheduler...");
-
 	bool r = scheduler.start();
-
 	if (!r) {
 		logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
 		exit(102);
 	}
-
 	logInfo("SunwayMRContext: starting scheduler succeeded");
 }
 
@@ -124,6 +131,11 @@ template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> 
 
 // actual parallelizer
 template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> &iter, int numSlices) {
+	if (numSlices < 1)
+	{
+		this->logError("ParallelArray: slice number should be positive integer!");
+		exit(104);
+	}
 	return ParallelArray<T>(*this, iter, numSlices);
 }
 

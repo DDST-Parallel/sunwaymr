@@ -31,7 +31,7 @@ JobScheduler::JobScheduler(){
 	selfIPIndex = -1;
 }
 
-void JobScheduler::init(string hostFP, string mas, string appN, int listenP){
+JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 	//initialize
 	hostFilePath=hostFP;
 	master=mas;
@@ -44,25 +44,25 @@ void JobScheduler::init(string hostFP, string mas, string appN, int listenP){
 	}
 
 	//read resource file
-	ifstream ins;
-	const char * hfp=hostFilePath.c_str();
-	ins.open(hfp,ios::in);
-
-	if(!ins){
-		logError("JobScheduler: fail to open host file");
+	//read resource file
+	string fileContent;
+	bool rd = readFile(hostFilePath, fileContent);
+	if (!rd) {
+		stringstream error;
+		error << "JobScheduler: unable to read host resource file: " << hostFilePath;
+		logError(error.str());
+		exit(1);
 	}
-	string line;
 
-	while(!ins.eof()){
-        getline(ins,line);
-        vector<string>temp;
-        splitString(line,temp," ");
-        if(temp.size() < 3) continue;
+	stringstream fileContentStream(fileContent);
+	string line;
+	while(std::getline(fileContentStream,line,'\n')){
+		vector<string> temp = splitString(line, ' ');
+        if(temp.size() < 4) continue;
         IPVector.push_back(temp[0]);
         threadCountVector.push_back(atoi(temp[1].c_str()));
         memoryVector.push_back(atoi(temp[2].c_str()));
 	}
-	ins.close();
 
 	//vector <int> ::iterator s=find(IPVector.begin(),IPVector.end(),getLocalIP());
 	selfIPIndex = -1;

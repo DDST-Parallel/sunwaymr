@@ -4,7 +4,9 @@
 
 #include "ParallelArray.h"
 
-#include<iostream>
+#include <iostream>
+#include <sstream>
+#include <stdlib.h>
 
 #include "IteratorSeq.hpp"
 #include "RDD.hpp"
@@ -19,11 +21,17 @@ template <class T>
 ParallelArray<T>::ParallelArray(SunwayMRContext &c, IteratorSeq<T> &seq, int numSlices)
 	: RDD<T>::RDD (c) , seq(seq), numSlices(numSlices)
 {
+//	this->logInfo("ParallelArray: creating partitions...");
+
 	parallelArray_id = current_id++;
 	// get partitions
 	vector<Partition*> partitions;
 
 	vector< IteratorSeq<T>* > slices = slice();
+
+	if(slices.size() == 0) {
+		exit(104);
+	}
 
 	//construct partitions
 	for (int i = 0; i < slices.size(); i++)
@@ -33,6 +41,10 @@ ParallelArray<T>::ParallelArray(SunwayMRContext &c, IteratorSeq<T> &seq, int num
 	}
 
 	RDD<T>::partitions = partitions;
+
+//	stringstream partitionsInfo;
+//	partitionsInfo << "ParallelArray: " << RDD<T>::partitions.size() << " partitions created";
+//	this->logInfo(partitionsInfo.str());
 }
 
 template <class T>
@@ -58,11 +70,11 @@ IteratorSeq<T> ParallelArray<T>::iteratorSeq(Partition &p)
 template <class T>
 vector< IteratorSeq<T>* > ParallelArray<T>::slice()
 {
-	vector< IteratorSeq<T>* > res;
+	vector< IteratorSeq<T>* > slices;
 	if (numSlices < 1)
 	{
-		cout << "slice number should be positive integer!" << endl;
-		return res;
+//		logError("ParallelArray: slice number should be positive integer!");
+		return slices;
 	}
 
 	long num_group = seq.size() / numSlices;
@@ -75,13 +87,13 @@ vector< IteratorSeq<T>* > ParallelArray<T>::slice()
 			T end = start + (num_group - 1) * seq.getStep();
 			T step = seq.getStep();
 			IteratorSeq<T> *it = new IteratorSeq<T>(start, end , step);
-			res.push_back(it);
+			slices.push_back(it);
 		}
 		T last_start = seq.getStart() + (numSlices - 1) * num_group * seq.getStep();
 		T end = seq.getEnd();
 		T step = seq.getStep();
 		IteratorSeq<T> *last = new IteratorSeq<T>(last_start, end, step);
-		res.push_back(last);
+		slices.push_back(last);
 	}
 	else
 	{
@@ -95,7 +107,7 @@ vector< IteratorSeq<T>* > ParallelArray<T>::slice()
 				group.push_back(data[i * num_group + j]);
 			}
 			IteratorSeq<T> *it = new IteratorSeq<T>(group);
-			res.push_back(it);
+			slices.push_back(it);
 		}
 		vector<T> last;
 		for (long i = (numSlices - 1) * num_group; i < seq.size(); i++)
@@ -103,10 +115,10 @@ vector< IteratorSeq<T>* > ParallelArray<T>::slice()
 			last.push_back(data[i]);
 		}
 		IteratorSeq<T> *it = new IteratorSeq<T>(last);
-		res.push_back(it);
+		slices.push_back(it);
 	}
 
-	return res;
+	return slices;
 }
 
 

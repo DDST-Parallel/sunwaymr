@@ -36,7 +36,12 @@ RDD<T>::~RDD()
 template <class T> template <class U>
 MappedRDD<U, T> RDD<T>::map(U (*f)(T))
 {
+	logDebug("RDD: mapping");
+
 	MappedRDD<U, T> map_rdd(*this, f);
+
+	logDebug("RDD: mapped");
+
 	return map_rdd;
 }
 

@@ -18,7 +18,6 @@
 #include "TaskResult.h"
 using std::string;
 
-
 template <class T> class ParallelArray;
 
 

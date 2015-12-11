@@ -9,6 +9,7 @@
 #define SUNWAYMRHELPER_HPP_
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <cstdlib>
 #include <stdlib.h>
@@ -55,6 +56,42 @@ SunwayMRHelper::SunwayMRHelper() {
 	listenPort = 0;
 	listening = false;
 	sendResourceInfoThread = 0;
+
+	localAddr = getLocalHost();
+	if (localAddr == "") {
+		logError("SunwayMRHelper: failed to obtain local IP address.");
+		exit(1);
+	} else {
+		stringstream ipinfo;
+		ipinfo << "SunwayMRHelper: local IP is " << localAddr;
+		logInfo(ipinfo.str());
+	}
+
+	// find master in host resource file
+	masterAddr = localAddr;
+	stringstream hostFilePath;
+	hostFilePath << fileSaveDir << allHostsFileName;
+	//read resource file
+	string fileContent;
+	bool rd = readFile(hostFilePath.str(), fileContent);
+	if (!rd) {
+		stringstream error;
+		error << "SunwayMRHelper: unable to read host resource file: " << hostFilePath.str();
+		logError(error.str());
+		exit(1);
+	}
+
+	stringstream fileContentStream(fileContent);
+	string line;
+	while(std::getline(fileContentStream,line,'\n')){
+		vector<string> temp = splitString(line, ' ');
+		if(temp.size() < 5) continue;
+		if(temp[4] == "master") {
+			masterAddr = temp[0];
+			break;
+		}
+	}
+
 }
 
 // for listening
@@ -65,13 +102,13 @@ void SunwayMRHelper::start(string masterAddr, int masterListenPort, int threads,
 	this->memory = memory;
 	this->localAddr = getLocalHost();
 
-	stringstream ipinfo;
-	ipinfo << "SunwayMRHelper: local IP is " << localAddr;
-	logInfo(ipinfo.str());
-
 	if (localAddr == "") {
 		logError("SunwayMRHelper: failed to obtain local IP address.");
 		exit(1);
+	} else {
+		stringstream ipinfo;
+		ipinfo << "SunwayMRHelper: local IP is " << localAddr;
+		logInfo(ipinfo.str());
 	}
 
 	logInfo("SunwayMRHelper: starting listening");
@@ -166,7 +203,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	bool sendWithFailure = false;
 	while(std::getline(ss,line,'\n')){
 		vector<string> v = splitString(line, ' ');
-		if (v.size() == 4) {
+		if (v.size() >= 4) {
 			string host = v[0];
 			int threads = atoi(v[1].c_str());
 			int memory = atoi(v[2].c_str());
@@ -225,15 +262,23 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 
 	string masterValue = masterAddr;
 	if (localMode) masterValue = localAddr;
+	stringstream masterInfo;
+	masterInfo << "SunwayMRHelper: master is on: " << masterValue;
+	logInfo(masterInfo.str());
 
 	int appListenPort = randomValue(30001, 39999);
 
+	stringstream appDirStream;
+	appDirStream << fileSaveDir << appUID << "/";
+	string appDir = appDirStream.str();
 	stringstream startAppCmd;
 	startAppCmd << CXX << " -O2 -g -Wall -fmessage-length=0 "
-			<< fileSaveDir << appUID << "/" << appFileName
-			<< " -o " << fileSaveDir << appUID << "/" << appExecutableName
+			<< appDir << appFileName
+			<< " -o " << appDir << appExecutableName
 			<< " -Itools -Iinclude -Iheaders -pthread -lstdc++ -lm " << endl;
-	startAppCmd << fileSaveDir << appUID  << "/" <<  appExecutableName << " " << hostsFileName << " " << masterValue << " " << appListenPort << endl;
+	startAppCmd << appDir <<  appExecutableName << " "
+			<< appDir << hostsFileName << " "
+			<< masterValue << " " << appListenPort << endl;
 
 	for(unsigned int i=0; i<tmp.size(); i++) {
 		sendMessage(tmp[i].host, tmp[i].listenPort, SHELL_COMMAND, startAppCmd.str());
@@ -391,7 +436,12 @@ void SunwayMRHelper::saveLocalHostFile() {
 void SunwayMRHelper::saveAllHostsFile() {
 	stringstream ss;
 	for(unsigned int i=0; i<allResources.size(); i++) {
-		ss << allResources[i].host << " " << allResources[i].threads << " " << allResources[i].memory << " " << allResources[i].listenPort << endl;
+		ss << allResources[i].host << " " << allResources[i].threads << " " << allResources[i].memory << " " << allResources[i].listenPort;
+		if (allResources[i].host == masterAddr) {
+			ss << " master";
+		}
+		ss << endl;
+
 	}
 	bool ret = writeFile(fileSaveDir, allHostsFileName, ss.str());
 	if (!ret) {
