@@ -121,9 +121,11 @@ bool Messaging::listenMessage(int listenPort)
 	//listen
 	int n = listen(server_sockfd, 10);
 	if (n < 0)
+	{
 		listenStatus = FAILURE;
 		return false;
-
+	}
+		
 	listenStatus = SUCCESS;
 	cout << "waiting for connect......" << endl;
 	while (1) {
