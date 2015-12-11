@@ -125,9 +125,9 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	string targetHostsFileName = allHostsFileName;
 	if (localMode) targetHostsFileName = localHostFileName;
 
-	int appUID = getCurrentTime();
-	int fileUID1 = appUID;
-	int fileUID2 = appUID + 1;
+	long appUID = getCurrentTime();
+	long fileUID1 = appUID;
+	long fileUID2 = appUID + 1;
 
 	string appFileName = fileNameFromPath(filePath);
 	string hostsFileName = "hostsFile.lst";

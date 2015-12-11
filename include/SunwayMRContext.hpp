@@ -29,7 +29,7 @@ SunwayMRContext::SunwayMRContext() {
 
 SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 : appName(appName) {
-	if (argc < 3) {
+	if (argc < 4) {
 		// error
 		logError("SunwayMRContext: 3 parameters at least \nhostsFile, master, listenPort");
 		exit(101);
@@ -39,7 +39,8 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 		master = string(argv[2]);
 		listenPort = atoi(argv[3]);
 
-		scheduler = JobScheduler(hostsFilePath, master, appName, listenPort);
+		scheduler = JobScheduler();
+		scheduler.init(hostsFilePath, master, appName, listenPort);
 
 		startScheduler();
 
@@ -47,30 +48,40 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 }
 
 SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string appName, int listenPort)
-: scheduler(JobScheduler(hostsFilePath, master, appName, listenPort)),
-  hostsFilePath(hostsFilePath), master(master), appName(appName),
+: hostsFilePath(hostsFilePath), master(master), appName(appName),
   listenPort(listenPort) {
+
+	scheduler = JobScheduler();
+	scheduler.init(hostsFilePath, master, appName, listenPort);
+
 	startScheduler();
 
 }
 
 void SunwayMRContext::init(string hostsFilePath, string master, string appName, int listenPort) {
-	scheduler = JobScheduler(hostsFilePath, master, appName, listenPort);
 	this->hostsFilePath = hostsFilePath;
 	this->master = master;
 	this->appName = appName;
 	this->listenPort = listenPort;
+
+	scheduler = JobScheduler();
+	scheduler.init(hostsFilePath, master, appName, listenPort);
+
 	startScheduler();
 
 }
 
 void SunwayMRContext::startScheduler() {
+	logInfo("SunwayMRContext: starting scheduler...");
+
 	bool r = scheduler.start();
 
 	if (!r) {
 		logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
 		exit(102);
 	}
+
+	logInfo("SunwayMRContext: starting scheduler succeeded");
 }
 
 ParallelArray<int> SunwayMRContext::parallelize(int start, int end) {

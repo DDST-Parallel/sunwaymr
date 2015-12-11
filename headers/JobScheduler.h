@@ -19,7 +19,7 @@ using std::vector;
 class JobScheduler : public Scheduler {
 public:
 	JobScheduler();
-	JobScheduler(string hostFilePath, string master, string appName, int listenPort);
+	void init(string hostFilePath, string master, string appName, int listenPort);
 
 	virtual bool start(); // may fail to start if listenPort is in use
 	int getListenPort();

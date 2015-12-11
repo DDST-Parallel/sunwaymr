@@ -12,6 +12,7 @@
 #include "Logging.h"
 
 #include <iostream>
+#include "Utils.hpp"
 using std::cout;
 using std::endl;
 
@@ -21,22 +22,22 @@ using std::endl;
 
 void Logging::logDebug(string msg) {
 	if (LOGING_MASK < 1)
-		cout << "debug: " << msg << endl;
+		cout << "[" << currentDateTime() << "] debug: " << msg << endl;
 }
 
 void Logging::logInfo(string msg) {
 	if (LOGING_MASK < 2)
-		cout << "info: " << msg << endl;
+		cout << "[" << currentDateTime() << "] info: " << msg << endl;
 }
 
 void Logging::logWarning(string msg) {
 	if (LOGING_MASK < 3)
-		cout << "warning: " << msg << endl;
+		cout << "[" << currentDateTime() << "] warning: " << msg << endl;
 }
 
 void Logging::logError(string msg) {
 	if (LOGING_MASK < 4)
-		cout << "error: " << msg << endl;
+		cout << "[" << currentDateTime() << "] error: " << msg << endl;
 }
 
 

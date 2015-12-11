@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 using namespace std;
 
 int splitString(const std::string& str, std::vector<std::string>& ret, const std::string& sep)
@@ -180,6 +181,20 @@ long getCurrentTime()
    gettimeofday(&tv,NULL);
    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
+
+// Get current date/time, format is YYYY-MM-DD.HH:mm:ss
+const std::string currentDateTime() {
+    time_t     now = time(0);
+    struct tm  tstruct;
+    char       buf[80];
+    tstruct = *localtime(&now);
+    // Visit http://en.cppreference.com/w/cpp/chrono/c/strftime
+    // for more information about date/time format
+    strftime(buf, sizeof(buf), "%Y-%m-%d %X", &tstruct);
+
+    return buf;
+}
+
 
 int randomValue(int start, int end) {
 	int ret = start;

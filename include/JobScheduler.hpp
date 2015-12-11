@@ -31,7 +31,7 @@ JobScheduler::JobScheduler(){
 	selfIPIndex = -1;
 }
 
-JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
+void JobScheduler::init(string hostFP, string mas, string appN, int listenP){
 	//initialize
 	hostFilePath=hostFP;
 	master=mas;
@@ -57,6 +57,7 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
         getline(ins,line);
         vector<string>temp;
         splitString(line,temp," ");
+        if(temp.size() < 3) continue;
         IPVector.push_back(temp[0]);
         threadCountVector.push_back(atoi(temp[1].c_str()));
         memoryVector.push_back(atoi(temp[2].c_str()));
