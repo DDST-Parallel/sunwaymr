@@ -230,9 +230,10 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 
 	stringstream startAppCmd;
 	startAppCmd << CXX << " -O2 -g -Wall -fmessage-length=0 "
-			<< fileSaveDir << appUID << appFileName << " -o " << fileSaveDir << appUID << appExecutableName
+			<< fileSaveDir << appUID << "/" << appFileName
+			<< " -o " << fileSaveDir << "/" << appUID << appExecutableName
 			<< " -Itools -Iinclude -Iheaders -pthread -lstdc++ -lm " << endl;
-	startAppCmd << fileSaveDir << appUID  << appExecutableName << " " << hostsFileName << " " << masterValue << " " << appListenPort << endl;
+	startAppCmd << fileSaveDir << appUID  << "/" <<  appExecutableName << " " << hostsFileName << " " << masterValue << " " << appListenPort << endl;
 
 	for(unsigned int i=0; i<tmp.size(); i++) {
 		sendMessage(tmp[i].host, tmp[i].listenPort, SHELL_COMMAND, startAppCmd.str());
