@@ -15,9 +15,16 @@
 #include "TaskResult.hpp"
 
 template <class T>
-TaskScheduler<T>::TaskScheduler(int jobID, string selfIP, int selfIPIndex, string master, string appName, int listenPort, vector<string> ip, vector<int> threads, vector<int> memory) {
-
-
+TaskScheduler<T>::TaskScheduler(int jobID, string selfIP,
+		int selfIPIndex, string master, string appName,
+		int listenPort, vector<string> ip,
+		vector<int> threads, vector<int> memory)
+: jobID(jobID), selfIP(selfIP), selfIPIndex(selfIPIndex), master(master), appName(appName),
+  listenPort(listenPort), IPVector(ip), threadCountVector(threads), memoryVector(memory), isMaster(0) {
+	if (master == "local" || master == selfIP) {
+		isMaster = 1;
+	}
+	allTaskResultsReceived = false;
 }
 
 template <class T>
@@ -25,20 +32,15 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 	allTaskResultsReceived = false;
 
 	int taskNum=tasks.size();
-
+	taskOnIPVector = vector<string>(taskNum); // TODO
 	vector<int> needReDistributing(taskNum,1);
 
-	int diff=taskNum-vectorSum(threadsVector);
-	float res=float(taskNum)/vectorSum(threadsVector);
-	if(diff>0){//need enlarge to keep every task has resources
-        threadRemainVector=vectorTimes(threadsVector,res); // TODO need a right one...
-	}
+    threadRemainVector=vectorExpandNonNegativeSum(threadCountVector,taskNum);
+    vectorFillNegative(threadRemainVector);
 
 	int taskLauched=0;
 	vector< TaskResult<T>* > resultsArray;
 	vector< Task<T>* > taskDeal;
-
-	int taskFinished=0;
 
 	//keep threadRemianVector and remainWaitNum locally
 	for( int i=0;i<taskNum;i++){
@@ -52,14 +54,14 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 
 				if(index!=-1 && threadRemainVector[index]>0){
 					threadRemainVector[index]--;
-					preferredIPVector[i]=IPVector[index];
+					taskOnIPVector[i]=IPVector[index];
 					needReDistributing[i]=0;
 					break;
 				}
 			}
-			if(j<plSize){
-				continue;
-			}
+//			if(j<plSize){
+//				continue;
+//			}
 		}
 	}
 
@@ -71,7 +73,7 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 		if(needReDistributing[i]==1){
 			int index=vectorNonZero(threadRemainVector);
 			threadRemainVector[index]--;
-			preferredIPVector[i]=IPVector[index];
+			taskOnIPVector[i]=IPVector[index];
 		}
 	}
 
@@ -81,7 +83,7 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 	//add to thread pool
     for (int i=0;i<taskNum;i++){
         //preferredIPVector refer to self -> add task to thread pool
-        if( preferredIPVector[i]==selfIP){
+        if( taskOnIPVector[i]==selfIP){
 			tp.addToThreadPool(*tasks[i], i);
 			taskDeal.push_back(tasks[i]);
 			taskLauched++;

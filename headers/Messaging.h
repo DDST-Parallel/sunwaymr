@@ -13,6 +13,12 @@
 #include "MessageType.h"
 using std::string;
 
+enum ListenStatus {
+	NA,
+	SUCCESS,
+	FAILURE
+};
+
 class Messaging;
 struct ThreadData {
 	int *fd;
@@ -45,11 +51,12 @@ public:
 	 return: true or false(port in use).
 	*/
 	bool listenMessage(int listenPort);
+	int getListenStatus();
 
 	virtual void messageReceived(int localListenPort, string fromHost, int msgType, string msg) = 0;
 
 private:
-	
+	int listenStatus;
 
 };
 

@@ -102,15 +102,15 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	string fileContent1, fileContent2;
 	bool rd1 = readFile(filePath, fileContent1);
 	if (!rd1) {
-		stringstream ss;
-		ss << "unable to read file: " << filePath;
-		logError(ss.str());
+		stringstream error1;
+		error1 << "unable to read file: " << filePath;
+		logError(error1.str());
 	}
 	bool rd2 = readFile(filePath2.str(), fileContent2);
 	if (!rd2) {
-		stringstream ss;
-		ss << "unable to read file: " << filePath2.str();
-		logError(ss.str());
+		stringstream error2;
+		error2 << "unable to read file: " << filePath2.str();
+		logError(error2.str());
 	}
 
 
@@ -261,14 +261,14 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 	{
 		if(fileInfoMap.find(msgType) != fileInfoMap.end()) {
 			string file_info = fileInfoMap[msgType];
-			vector<string> ss = splitString(file_info, ' ');
+			vector<string> vs = splitString(file_info, ' ');
 			stringstream sstr;
-			sstr << fileSaveDir << ss[1] << "/";
-			bool ret = writeFile(sstr.str(), ss[2], msg);
+			sstr << fileSaveDir << vs[1] << "/";
+			bool ret = writeFile(sstr.str(), vs[2], msg);
 			if (!ret) {
-				stringstream ss;
-				ss << "unable to write file: " << sstr.str() << ss[2];
-				logError(ss.str());
+				stringstream error;
+				error << "unable to write file: " << sstr.str() << vs[2];
+				logError(error.str());
 			}
 			fileInfoMap.erase(msgType);
 		}
@@ -301,9 +301,9 @@ void SunwayMRHelper::saveLocalHostFile() {
 	ss << localAddr << " " << threads << " " << memory << " " << listenPort;
 	bool ret = writeFile(fileSaveDir, localHostFileName, ss.str());
 	if (!ret) {
-		stringstream ss;
-		ss << "unable to write file: " << fileSaveDir << localHostFileName;
-		logError(ss.str());
+		stringstream error;
+		error << "unable to write file: " << fileSaveDir << localHostFileName;
+		logError(error.str());
 	}
 }
 
@@ -314,9 +314,9 @@ void SunwayMRHelper::saveAllHostsFile() {
 	}
 	bool ret = writeFile(fileSaveDir, allHostsFileName, ss.str());
 	if (!ret) {
-		stringstream ss;
-		ss << "unable to write file: " << fileSaveDir << allHostsFileName;
-		logError(ss.str());
+		stringstream error;
+		error << "unable to write file: " << fileSaveDir << allHostsFileName;
+		logError(error.str());
 	}
 }
 

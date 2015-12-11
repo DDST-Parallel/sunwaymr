@@ -22,19 +22,20 @@ public:
 	JobScheduler(string hostFilePath, string master, string appName, int listenPort);
 
 	virtual bool start(); // may fail to start if listenPort is in use
+	int getListenPort();
 	virtual int totalThreads();
 
 	template <class T> vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 
 private:
-	string hostFilePath, master, appName;
+	string hostFilePath, master, appName, selfIP;
 	int listenPort, isMaster, selfIPIndex;
 
 	vector<string> IPVector;
 	vector<int> threadCountVector;
 	vector<int> memoryVector;
+	vector<Scheduler*> taskSchedulers;
 
-	string getLocalIP();
 	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
 };
 

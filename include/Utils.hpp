@@ -2,6 +2,8 @@
 #define UTILS_HPP_
 
 #include <string>
+#include <sstream>
+#include <cstring>
 #include <vector>
 #include <fstream>
 #include <sys/time.h>
@@ -12,6 +14,7 @@
 #include <arpa/inet.h>
 #include <algorithm>
 #include <math.h>
+#include <string.h>
 using namespace std;
 
 int splitString(const std::string& str, std::vector<std::string>& ret, const std::string& sep)
@@ -69,7 +72,7 @@ string fileNameFromPath(string const& pathname )
 	return pathname.substr(pathname.find_last_of("/\\") + 1);
 }
 
-int vectorFind(vector<string>& v, string value){
+int vectorFind(const vector<string>& v, string value){
 	int index=-1;
 	int vs=v.size();
 	for( int i=0;i<vs;i++){
@@ -82,7 +85,7 @@ int vectorFind(vector<string>& v, string value){
 }
 
 
-vector<int> vectorFindAll(vector<string>& v, string value){
+vector<int> vectorFindAll(const vector<string>& v, string value){
 	vector<int>  indexVector;
 	//int index=-1;
 	int vs=v.size();
@@ -99,7 +102,7 @@ vector<int> vectorFindAll(vector<string>& v, string value){
 	return indexVector;
 }
 
-int vectorNonZero(vector<int>& v){
+int vectorNonZero(const vector<int>& v){
 	int index=-1;
 	int vs=v.size();
 	for( int i=0;i<vs;i++){
@@ -111,7 +114,7 @@ int vectorNonZero(vector<int>& v){
 	return index;
 }
 
-int vectorIntMax(vector<int>& v){
+int vectorIntMax(const vector<int>& v){
 	int value=*max_element(v.begin(),v.end());
 	int index=-1;
 	int vs=v.size();
@@ -124,7 +127,7 @@ int vectorIntMax(vector<int>& v){
 	return index;
 }
 
-int vectorSum(vector<int>& v){
+int vectorSum(const vector<int>& v){
 	int sum=0;
 	int vs=v.size();
 	for( int i=0;i<vs;i++){
@@ -133,12 +136,40 @@ int vectorSum(vector<int>& v){
 	return sum;
 }
 
-vector<int> vectorTimes(vector<int>& v,float m){
-	vector<int> uv;
+void vectorFillNegative(vector<int>& v) {
 	int vs=v.size();
 	for( int i=0;i<vs;i++){
-		uv.push_back(ceil(v[i]*m));
+		if (v[i] < 0)
+			v[i] = 0;
 	}
+}
+
+int vectorNonNegativeSum(const vector<int>& v){
+	int sum=0;
+	int vs=v.size();
+	for( int i=0;i<vs;i++){
+		if (v[i] >= 0)
+			sum+=v[i];
+	}
+	return sum;
+}
+
+vector<int> vectorExpandNonNegativeSum(const vector<int>& v,int total){
+	vector<int> uv = v;
+
+	if(uv.size() == 0) uv.push_back(total);
+	else {
+		int prevSum = vectorNonNegativeSum(v);
+		if (total > prevSum) {
+			float scale = (float)(total) / prevSum;
+			for (unsigned int i=0; i<uv.size(); i++) {
+				if (uv[i] >=0 ) {
+					uv[i] = ceil(uv[i] * scale);
+				}
+			}
+		}
+	}
+
 	return uv;
 }
 

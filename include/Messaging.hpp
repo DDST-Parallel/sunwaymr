@@ -99,6 +99,8 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 
 bool Messaging::listenMessage(int listenPort)
 {
+	listenStatus = NA;
+
 	// init socket
 	int *client_sockfd;
 	int server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -120,8 +122,10 @@ bool Messaging::listenMessage(int listenPort)
 	//listen
 	int n = listen(server_sockfd, 10);
 	if (n < 0)
+		listenStatus = FAILURE;
 		return false;
 
+	listenStatus = SUCCESS;
 	cout << "waiting for connect......" << endl;
 	while (1) {
 		pthread_t worker;
@@ -155,6 +159,10 @@ bool Messaging::listenMessage(int listenPort)
 	shutdown(*client_sockfd, 2);
 	shutdown(server_sockfd, 2);
 	return true;
+}
+
+int Messaging::getListenStatus() {
+	return listenStatus;
 }
 
 // run of the thread
