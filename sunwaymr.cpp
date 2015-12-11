@@ -5,7 +5,7 @@
  *      Author: yupeng
  */
 
-#define LOGING_MASK 1
+#define LOGING_MASK 0
 
 #include <iostream>
 #include <string>
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 					int threads = atoi(argv[4]);
 					int memory = atoi(argv[5]);
 
-					SunwayMRHelper helper = SunwayMRHelper();
+					SunwayMRHelper helper = SunwayMRHelper(false);
 					helper.start(master, masterListenPort, threads, memory);
 
 
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 						if (argv4 == "-local") localMode = true;
 					}
 
-					SunwayMRHelper helper;
+					SunwayMRHelper helper = SunwayMRHelper(true);
 					helper.runApplication(filePath, localMode);
 
 				} else {

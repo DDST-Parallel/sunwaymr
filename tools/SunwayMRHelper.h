@@ -30,7 +30,7 @@ const string CXX = "gcc";
 
 class SunwayMRHelper : public Messaging, public Logging {
 public:
-	SunwayMRHelper();
+	SunwayMRHelper(bool forUserApp);
 	void start(string masterAddr, int masterListenPort, int threads, int memory);
 	virtual ~SunwayMRHelper();
 	void setLocalResouce(int threads, int memory);

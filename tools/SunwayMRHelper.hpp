@@ -49,7 +49,7 @@ void *sendHostResourceInfoToMasterRepeatedly(void *data) {
 }
 
 // for starting user applications
-SunwayMRHelper::SunwayMRHelper() {
+SunwayMRHelper::SunwayMRHelper(bool forUserApp) {
 	masterListenPort = 0;
 	threads = 0;
 	memory = 0;
@@ -57,38 +57,42 @@ SunwayMRHelper::SunwayMRHelper() {
 	listening = false;
 	sendResourceInfoThread = 0;
 
-	localAddr = getLocalHost();
-	if (localAddr == "") {
-		logError("SunwayMRHelper: failed to obtain local IP address.");
-		exit(1);
-	} else {
-		stringstream ipinfo;
-		ipinfo << "SunwayMRHelper: local IP is " << localAddr;
-		logInfo(ipinfo.str());
-	}
+	// -a mode
+	if (forUserApp)
+	{
+		localAddr = getLocalHost();
+		if (localAddr == "") {
+			logError("SunwayMRHelper: failed to obtain local IP address.");
+			exit(1);
+		} else {
+			stringstream ipinfo;
+			ipinfo << "SunwayMRHelper: local IP is " << localAddr;
+			logInfo(ipinfo.str());
+		}
 
-	// find master in host resource file
-	masterAddr = localAddr;
-	stringstream hostFilePath;
-	hostFilePath << fileSaveDir << allHostsFileName;
-	//read resource file
-	string fileContent;
-	bool rd = readFile(hostFilePath.str(), fileContent);
-	if (!rd) {
-		stringstream error;
-		error << "SunwayMRHelper: unable to read host resource file: " << hostFilePath.str();
-		logError(error.str());
-		exit(1);
-	}
+		// find master in host resource file
+		masterAddr = localAddr;
+		stringstream hostFilePath;
+		hostFilePath << fileSaveDir << allHostsFileName;
+		//read resource file
+		string fileContent;
+		bool rd = readFile(hostFilePath.str(), fileContent);
+		if (!rd) {
+			stringstream error;
+			error << "SunwayMRHelper: unable to read host resource file: " << hostFilePath.str();
+			logError(error.str());
+			exit(1);
+		}
 
-	stringstream fileContentStream(fileContent);
-	string line;
-	while(std::getline(fileContentStream,line,'\n')){
-		vector<string> temp = splitString(line, ' ');
-		if(temp.size() < 5) continue;
-		if(temp[4] == "master") {
-			masterAddr = temp[0];
-			break;
+		stringstream fileContentStream(fileContent);
+		string line;
+		while(std::getline(fileContentStream,line,'\n')){
+			vector<string> temp = splitString(line, ' ');
+			if(temp.size() < 5) continue;
+			if(temp[4] == "master") {
+				masterAddr = temp[0];
+				break;
+			}
 		}
 	}
 
@@ -163,8 +167,8 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	if (localMode) targetHostsFileName = localHostFileName;
 
 	long appUID = getCurrentTime();
-	long fileUID1 = appUID;
-	long fileUID2 = appUID + 1;
+	int fileUID1 = appUID;
+	int fileUID2 = appUID + 1;
 
 	string appFileName = fileNameFromPath(filePath);
 	string hostsFileName = "hostsFile.lst";
