@@ -221,7 +221,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	logInfo("SunwayMRHelper: sending files succeeded.");
 	logInfo("SunwayMRHelper: starting...");
 
-	string appExecutableName = splitString(appFileName, ',')[0];
+	string appExecutableName = splitString(appFileName, '.')[0];
 
 	string masterValue = masterAddr;
 	if (localMode) masterValue = localAddr;
@@ -231,7 +231,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	stringstream startAppCmd;
 	startAppCmd << CXX << " -O2 -g -Wall -fmessage-length=0 "
 			<< fileSaveDir << appUID << "/" << appFileName
-			<< " -o " << fileSaveDir << "/" << appUID << appExecutableName
+			<< " -o " << fileSaveDir << appUID << "/" << appExecutableName
 			<< " -Itools -Iinclude -Iheaders -pthread -lstdc++ -lm " << endl;
 	startAppCmd << fileSaveDir << appUID  << "/" <<  appExecutableName << " " << hostsFileName << " " << masterValue << " " << appListenPort << endl;
 
