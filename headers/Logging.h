@@ -15,8 +15,8 @@ using std::exception;
 
 class Logging {
 public:
-	static void logInfo(string msg);
 	static void logDebug(string msg);
+	static void logInfo(string msg);
 	static void logWarning(string msg);
 	static void logError(string msg);
 

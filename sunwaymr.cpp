@@ -5,6 +5,8 @@
  *      Author: yupeng
  */
 
+#define LOGING_MASK 0
+
 #include <iostream>
 #include <string>
 #include <stdlib.h>
@@ -32,7 +34,8 @@ int main(int argc, char *argv[]) {
 					int threads = atoi(argv[4]);
 					int memory = atoi(argv[5]);
 
-					SunwayMRHelper(master, masterListenPort, threads, memory);
+					SunwayMRHelper helper = SunwayMRHelper();
+					helper.start(master, masterListenPort, threads, memory);
 
 
 				} else {

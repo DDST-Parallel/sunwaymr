@@ -24,11 +24,19 @@ using namespace std;
 struct thread_data{
    SunwayMRHelper *helper;
    const char *msg;
-   int *v;
+   int v;
 };
 
+void *startListening(void *data) {
+	struct thread_data *my_data;
+	my_data = (struct thread_data *)data;
+	my_data->helper->listenMessage(my_data->v);
+
+	pthread_exit(NULL);
+}
+
 void *sendHostResourceInfoToMasterRepeatedly(void *data) {
-	thread_data *my_data;
+	struct thread_data *my_data;
 	my_data = (struct thread_data *)data;
 
 	while(true) {
@@ -50,16 +58,23 @@ SunwayMRHelper::SunwayMRHelper() {
 }
 
 // for listening
-SunwayMRHelper::SunwayMRHelper(string masterAddr, int masterListenPort, int threads, int memory)
-:masterAddr(masterAddr), masterListenPort(masterListenPort), threads(threads), memory(memory) {
-	localAddr = getLocalHost();
+void SunwayMRHelper::start(string masterAddr, int masterListenPort, int threads, int memory) {
+	this->masterAddr = masterAddr;
+	this->masterListenPort = masterListenPort;
+	this->threads = threads;
+	this->memory = memory;
+	this->localAddr = getLocalHost();
+
+	stringstream ipinfo;
+	ipinfo << "SunwayMRHelper: local IP is " << localAddr;
+	logInfo(ipinfo.str());
+
 	if (localAddr == "") {
 		logError("SunwayMRHelper: failed to obtain local IP address.");
 		exit(1);
 	}
 
-	setLocalResouce(threads, memory);
-
+	logInfo("SunwayMRHelper: starting listening");
 	listening = init();
 	if (!listening) {
 		logError("SunwayMRHelper: failed to start listening.");
@@ -72,18 +87,21 @@ SunwayMRHelper::~SunwayMRHelper() {
 }
 
 void SunwayMRHelper::setLocalResouce(int threads, int memory) {
-	this->threads = threads;
-	this->memory = memory;
 
 	// send repeatedly
 	stringstream ss;
 	ss << threads << " " << memory << " " << listenPort;
+	stringstream info;
+	info << "SunwayMRHelper: set local resource: thread: "
+			<< threads << " memory: " << memory
+			<< " listenPort: " << listenPort;
+	logInfo(info.str());
 
 	int v = 0;
-	thread_data data = {
+	struct thread_data data = {
 			this,
 			ss.str().c_str(),
-			&v
+			v
 	};
 
 	pthread_cancel(sendResourceInfoThread);
@@ -95,6 +113,10 @@ void SunwayMRHelper::setLocalResouce(int threads, int memory) {
 }
 
 void SunwayMRHelper::sendHostResourceInfoToMaster(string msg) {
+	stringstream ss;
+	ss << "SunwayMRHelper: send resource info to master: " << masterAddr << ":"
+			<< masterListenPort << ", message: " << msg;
+	logDebug(ss.str());
 	Messaging::sendMessage(masterAddr, masterListenPort, HOST_RESOURCE_INFO, msg);
 }
 
@@ -218,23 +240,50 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 
 }
 
+bool SunwayMRHelper::initListening(int port) {
+	string msg;
+	int listenPort = port;
+	struct thread_data data = {
+			this,
+			"",
+			listenPort
+	};
+	pthread_t thread;
+	int rc = pthread_create(&thread, NULL, startListening, (void *)&data);
+	if (rc){
+		logError("JobScheduler: failed to create thread to listen");
+	}
+	while(getListenStatus() == NA);
+
+	if(getListenStatus() == FAILURE) {
+		return false;
+	} else {
+		setLocalResouce(this->threads, this->memory);
+		void *status;
+		pthread_join(thread, &status); // always listen
+
+		return true;
+	}
+}
+
 bool SunwayMRHelper::init() {
 	bool ret = false;
 
 	if (localAddr == masterAddr) {
+		logInfo("SunwayMRHelper: master is self");
 		listenPort = masterListenPort;
-		ret = listenMessage(listenPort);
+		ret = initListening(listenPort);
 
 	} else {
 		listenPort = randomValue(20001, 29999);
-		ret = listenMessage(listenPort);
+		ret = initListening(listenPort);
 
 		int try_time = 0;
 		while (!ret && try_time < 100) {
 			try_time++;
 			listenPort += 3;
 
-			ret = listenMessage(listenPort);
+			ret = initListening(listenPort);
 		}
 	}
 
@@ -243,6 +292,13 @@ bool SunwayMRHelper::init() {
 
 void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int msgType, string msg) {
 	if (localListenPort != this->listenPort || fromHost == "" || msg == "") return;
+
+	stringstream received;
+	received << "SunwayMRHelper: listening port: " << localListenPort
+			<< ", message received from: " << fromHost
+			<< ", message type: " << msgType
+			<< ", message content: " << msg;
+	logDebug(received.str());
 
 	switch(msgType) {
 	case HOST_RESOURCE_INFO:

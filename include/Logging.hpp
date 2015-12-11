@@ -15,20 +15,28 @@
 using std::cout;
 using std::endl;
 
-void Logging::logInfo(string msg) {
-	cout << "info: " << msg << endl;
-}
+#ifndef LOGING_MASK
+#define LOGING_MASK 1
+#endif
 
 void Logging::logDebug(string msg) {
-	cout << "debug: " << msg << endl;
+	if (LOGING_MASK < 1)
+		cout << "debug: " << msg << endl;
+}
+
+void Logging::logInfo(string msg) {
+	if (LOGING_MASK < 2)
+		cout << "info: " << msg << endl;
 }
 
 void Logging::logWarning(string msg) {
-	cout << "warning: " << msg << endl;
+	if (LOGING_MASK < 3)
+		cout << "warning: " << msg << endl;
 }
 
 void Logging::logError(string msg) {
-	cout << "error: " << msg << endl;
+	if (LOGING_MASK < 4)
+		cout << "error: " << msg << endl;
 }
 
 

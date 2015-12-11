@@ -43,7 +43,7 @@ struct thread_data {
 
 template <class T>
 void *runTask(void *d) {
-	thread_data<T> *data = (thread_data<T> *)d;
+	struct thread_data<T> *data = (struct thread_data<T> *)d;
 	TaskScheduler<T> *ts = data->taskScheduler;
 	Task<T>* task = data->task;
 	T& value = task->run();

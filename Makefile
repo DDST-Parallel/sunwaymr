@@ -44,11 +44,11 @@ $(APPTARGETS) $(EXAMPLETARGETS) $(TESTSTARGETS): $(LIBHEADERS) $(LIBINCLUDES)
 #$(LIBOBJS):
 #	$(CXX) $(CXXFLAGS) -c $(patsubst %.o,%.hpp, $@) -o $@ $(INCLUDES) $(LIBS)
 
-TARGETS = $(APPTARGETS) $(EXAMPLETARGETS) $(TESTSTARGETS)
+TARGETS = $(APPTARGETS)
 
 all: $(TARGETS)
 
 clean:
 	rm -f $(TARGETS)
 
-.PHONY: all clean
+.PHONY: all clean app

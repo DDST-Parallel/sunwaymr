@@ -21,6 +21,11 @@
 							<builder id="cdt.managedbuild.target.gnu.builder.base.82017596" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.865594998" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.2053730609" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
+								<option id="gnu.cpp.compiler.option.include.paths.953666235" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/SunwayMR/headers}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/SunwayMR/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/SunwayMR/tools}&quot;"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.368924857" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.922708245" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
@@ -50,9 +55,19 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="SunwayMR.null.1158728249" name="SunwayMR"/>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Default">
+			<resource resourceType="PROJECT" workspacePath="/SunwayMR"/>
+		</configuration>
+	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1226629205;cdt.managedbuild.toolchain.gnu.base.1226629205.1899747384;cdt.managedbuild.tool.gnu.c.compiler.base.922708245;cdt.managedbuild.tool.gnu.c.compiler.input.404145866">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1226629205;cdt.managedbuild.toolchain.gnu.base.1226629205.1899747384;cdt.managedbuild.tool.gnu.cpp.compiler.base.2053730609;cdt.managedbuild.tool.gnu.cpp.compiler.input.368924857">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
-	<storageModule moduleId="refreshScope"/>
 </cproject>
