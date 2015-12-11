@@ -54,7 +54,7 @@ int main()
 	vector<Partition*> p3 = parallel_array3.getPartitions();
 	vector<Partition*> p4 = range.getPartitions();
 
-	for (int i = 0; i < p1.size(); i++)
+	for (unsigned int i = 0; i < p1.size(); i++)
 	{
 		ParallelArrayPartition<int> *pp = dynamic_cast< ParallelArrayPartition<int> * >(p1[i]);
 		cout << pp->rddID << "	" << pp->partitionID << "	" << endl;
@@ -65,7 +65,7 @@ int main()
 	}
 	cout << "\n------------------------------------------------------------" << endl;
 	
-	for (int i = 0; i < p2.size(); i++)
+	for (unsigned int i = 0; i < p2.size(); i++)
 	{
 		ParallelArrayPartition<int> *pp = dynamic_cast< ParallelArrayPartition<int> * >(p2[i]);
 		cout << pp->rddID << "	" << pp->partitionID << "	" << endl;
@@ -76,7 +76,7 @@ int main()
 	}
 	cout << "\n------------------------------------------------------------" << endl;
 
-	for (int i = 0; i < p3.size(); i++)
+	for (unsigned int i = 0; i < p3.size(); i++)
 	{
 		ParallelArrayPartition<int> *pp = dynamic_cast< ParallelArrayPartition<int> * >(p3[i]);
 		cout << pp->rddID << "	" << pp->partitionID << "	" << endl;
@@ -87,7 +87,7 @@ int main()
 	}
 	cout << "\n------------------------------------------------------------" << endl;
 
-	for (int i = 0; i < p4.size(); i++)
+	for (unsigned int i = 0; i < p4.size(); i++)
 	{
 		ParallelArrayPartition<int> *pp = dynamic_cast< ParallelArrayPartition<int> * >(p4[i]);
 		cout << pp->rddID << "	" << pp->partitionID << "	" << endl;

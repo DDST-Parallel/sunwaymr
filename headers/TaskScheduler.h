@@ -28,9 +28,11 @@ private:
 	vector<int> threadCountVector, memoryVector, threadRemainVector;
 	vector<string>  taskOnIPVector;
 	int isMaster;
+	int receivedTaskResultNum;
 	bool allTaskResultsReceived;
+	vector< Task<T>* > tasks;
+    vector< TaskResult<T>* > taskResults;
 
-	vector< TaskResult<T>* > waitForTaskResults(vector< TaskResult<T>* > &taskResults);
 	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
 };
 

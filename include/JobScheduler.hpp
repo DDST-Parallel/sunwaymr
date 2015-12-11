@@ -49,7 +49,7 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 	ins.open(hfp,ios::in);
 
 	if(!ins){
-		logError("fail to open host file");
+		logError("JobScheduler: fail to open host file");
 	}
 	string line;
 

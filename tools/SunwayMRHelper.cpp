@@ -40,12 +40,12 @@ SunwayMRHelper::SunwayMRHelper(string masterAddr, int masterListenPort, int thre
 :masterAddr(masterAddr), masterListenPort(masterListenPort), threads(threads), memory(memory) {
 	localAddr = getLocalHost();
 	if (localAddr == "") {
-		logError("failed to obtain local IP address.");
+		logError("SunwayMRHelper: failed to obtain local IP address.");
 		exit(1);
 	}
 	listening = init();
 	if (!listening) {
-		logError("failed to start listening.");
+		logError("SunwayMRHelper: failed to start listening.");
 		exit(1);
 	}
 }
@@ -71,7 +71,7 @@ void SunwayMRHelper::setLocalResouce(int threads, int memory) {
 	};
 	int rc = pthread_create(&thread, NULL, sendHostResourceInfoToMasterRepeatedly, (void *)&data);
 	if (rc){
-		logError("failed to create thread to send host resource info.");
+		logError("SunwayMRHelper: SunwayMRHelper: failed to create thread to send host resource info.");
 		exit(1);
 	}
 }
@@ -103,13 +103,13 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	bool rd1 = readFile(filePath, fileContent1);
 	if (!rd1) {
 		stringstream error1;
-		error1 << "unable to read file: " << filePath;
+		error1 << "SunwayMRHelper: unable to read file: " << filePath;
 		logError(error1.str());
 	}
 	bool rd2 = readFile(filePath2.str(), fileContent2);
 	if (!rd2) {
 		stringstream error2;
-		error2 << "unable to read file: " << filePath2.str();
+		error2 << "SunwayMRHelper: unable to read file: " << filePath2.str();
 		logError(error2.str());
 	}
 
@@ -144,7 +144,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
-				err << "failed to send file info[1] to host: " << host << ", " << port << "; info:" << fileInfo1.str();
+				err << "SunwayMRHelper: failed to send file info[1] to host: " << host << ", " << port << "; info:" << fileInfo1.str();
 				logError(err.str());
 			}
 			// send file info 2
@@ -152,7 +152,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
-				err << "failed to send file info[2] to host: " << host << ", " << port << "; info:" << fileInfo2.str();
+				err << "SunwayMRHelper: failed to send file info[2] to host: " << host << ", " << port << "; info:" << fileInfo2.str();
 				logError(err.str());
 			}
 
@@ -161,7 +161,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
-				err << "failed to send file content[1] to host: " << host << ", " << port;
+				err << "SunwayMRHelper: failed to send file content[1] to host: " << host << ", " << port;
 				logError(err.str());
 			}
 
@@ -170,7 +170,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
-				err << "failed to send file content[2] to host: " << host << ", " << port;
+				err << "SunwayMRHelper: failed to send file content[2] to host: " << host << ", " << port;
 				logError(err.str());
 			}
 		}
@@ -178,8 +178,8 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 
 	if(sendWithFailure) exit(1);
 
-	logInfo("sending files succeeded.");
-	logInfo("starting...");
+	logInfo("SunwayMRHelper: sending files succeeded.");
+	logInfo("SunwayMRHelper: starting...");
 
 	string appExecutableName = splitString(appFileName, ',')[0];
 
@@ -189,9 +189,10 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	int appListenPort = randomValue(30001, 39999);
 
 	stringstream startAppCmd;
-	startAppCmd << "cd " << fileSaveDir << appUID << endl;
-	startAppCmd << CXX << " -lstdc++ -pthread -fPIC -O2 -g -Wall -fmessage-length=0 -I../include -L../lib " << appFileName << " -o " << appExecutableName << endl;
-	startAppCmd << "./" << appExecutableName << " " << hostsFileName << " " << masterValue << " " << appListenPort << endl;
+	startAppCmd << CXX << " -O2 -g -Wall -fmessage-length=0 "
+			<< fileSaveDir << appUID << appFileName << " -o " << fileSaveDir << appUID << appExecutableName
+			<< " -Iinclude -Iheaders -pthread -lstdc++ -lm " << endl;
+	startAppCmd << fileSaveDir << appUID  << appExecutableName << " " << hostsFileName << " " << masterValue << " " << appListenPort << endl;
 
 	for(unsigned int i=0; i<tmp.size(); i++) {
 		sendMessage(tmp[i].host, tmp[i].listenPort, SHELL_COMMAND, startAppCmd.str());
@@ -267,7 +268,7 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 			bool ret = writeFile(sstr.str(), vs[2], msg);
 			if (!ret) {
 				stringstream error;
-				error << "unable to write file: " << sstr.str() << vs[2];
+				error << "SunwayMRHelper: unable to write file: " << sstr.str() << vs[2];
 				logError(error.str());
 			}
 			fileInfoMap.erase(msgType);
@@ -302,7 +303,7 @@ void SunwayMRHelper::saveLocalHostFile() {
 	bool ret = writeFile(fileSaveDir, localHostFileName, ss.str());
 	if (!ret) {
 		stringstream error;
-		error << "unable to write file: " << fileSaveDir << localHostFileName;
+		error << "SunwayMRHelper: unable to write file: " << fileSaveDir << localHostFileName;
 		logError(error.str());
 	}
 }
@@ -315,7 +316,7 @@ void SunwayMRHelper::saveAllHostsFile() {
 	bool ret = writeFile(fileSaveDir, allHostsFileName, ss.str());
 	if (!ret) {
 		stringstream error;
-		error << "unable to write file: " << fileSaveDir << allHostsFileName;
+		error << "SunwayMRHelper: unable to write file: " << fileSaveDir << allHostsFileName;
 		logError(error.str());
 	}
 }

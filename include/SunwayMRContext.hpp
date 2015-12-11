@@ -31,7 +31,7 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 : appName(appName) {
 	if (argc < 3) {
 		// error
-		logError("3 parameters at least \nhostsFile, master, listenPort");
+		logError("SunwayMRContext: 3 parameters at least \nhostsFile, master, listenPort");
 		exit(101);
 
 	} else {
@@ -68,7 +68,7 @@ void SunwayMRContext::startScheduler() {
 	bool r = scheduler.start();
 
 	if (!r) {
-		logError("failed to start scheduler, send port or listen port may be in use.");
+		logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
 		exit(102);
 	}
 }

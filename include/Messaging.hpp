@@ -117,7 +117,6 @@ bool Messaging::listenMessage(int listenPort)
 
 	// bind
 	bind(server_sockfd, (struct sockaddr *)&server_address, server_len);
-	socklen_t templen = sizeof(struct sockaddr);
 
 	//listen
 	int n = listen(server_sockfd, 10);
