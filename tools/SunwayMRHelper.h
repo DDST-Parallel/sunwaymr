@@ -5,8 +5,8 @@
  *      Author: yupeng
  */
 
-#ifndef SRC_SUNWAYMRHELPER_H_
-#define SRC_SUNWAYMRHELPER_H_
+#ifndef SUNWAYMRHELPER_H_
+#define SUNWAYMRHELPER_H_
 
 #include <vector>
 #include <map>
@@ -30,6 +30,7 @@ const string CXX = "gcc";
 
 class SunwayMRHelper : public Messaging, public Logging {
 public:
+	SunwayMRHelper();
 	SunwayMRHelper(string masterAddr, int masterListenPort, int threads, int memory);
 	virtual ~SunwayMRHelper();
 	void setLocalResouce(int threads, int memory);
@@ -43,6 +44,7 @@ private:
 	vector<HostResource> allResources;
 	map<int,string> fileInfoMap;
 	bool listening;
+	pthread_t sendResourceInfoThread;
 
 	bool init(); // start listening
 	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
@@ -52,4 +54,4 @@ private:
 
 };
 
-#endif /* SRC_SUNWAYMRHELPER_H_ */
+#endif /* SUNWAYMRHELPER_H_ */

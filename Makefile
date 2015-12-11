@@ -2,11 +2,13 @@
 
 CXX = gcc
 
-INCLUDES = -Iheaders -Iinclude
+INCLUDES = -Itools -Iheaders -Iinclude
 
 CXXFLAGS = -O2 -g -Wall -fmessage-length=0
 
 LDFLAGS = -shared -fPIC
+
+APPSRCS = $(wildcard *.cpp)
 
 EXAMPLESRCS = $(wildcard examples/*.cpp)
 
@@ -28,19 +30,21 @@ EXAMPLETARGETS = $(EXAMPLESRCS:.cpp= )
 
 TESTSTARGETS = $(TESTSSRCS:.cpp= )
 
+APPTARGETS = $(APPSRCS:.cpp= )
+
 LIBNAME = sunwaymr
 
 LIBTARGET = lib$(LIBNAME).so
 
 LDSONAME = -Wl,-soname=$(LIBTARGET)
 
-$(EXAMPLETARGETS), $(TESTSTARGETS): $(LIBHEADERS) $(LIBINCLUDES)
+$(APPTARGETS) $(EXAMPLETARGETS) $(TESTSTARGETS): $(LIBHEADERS) $(LIBINCLUDES)
 	$(CXX) $(CXXFLAGS) $(addsuffix .cpp,$@) -o $@ $(INCLUDES) $(LIBS)
 
 #$(LIBOBJS):
 #	$(CXX) $(CXXFLAGS) -c $(patsubst %.o,%.hpp, $@) -o $@ $(INCLUDES) $(LIBS)
 
-TARGETS = $(EXAMPLETARGETS) $(TESTSTARGETS)
+TARGETS = $(APPTARGETS) $(EXAMPLETARGETS) $(TESTSTARGETS)
 
 all: $(TARGETS)
 

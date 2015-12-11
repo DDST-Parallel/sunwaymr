@@ -1,9 +1,12 @@
 /*
- * SunwayMRHelper.h
+ * SunwayMRHelper.hpp
  *
  *  Created on: Dec 8, 2015
  *      Author: yupeng
  */
+
+#ifndef SUNWAYMRHELPER_HPP_
+#define SUNWAYMRHELPER_HPP_
 
 #include <iostream>
 #include <sstream>
@@ -36,6 +39,17 @@ void *sendHostResourceInfoToMasterRepeatedly(void *data) {
 	pthread_exit(NULL);
 }
 
+// for starting user applications
+SunwayMRHelper::SunwayMRHelper() {
+	masterListenPort = 0;
+	threads = 0;
+	memory = 0;
+	listenPort = 0;
+	listening = false;
+	sendResourceInfoThread = 0;
+}
+
+// for listening
 SunwayMRHelper::SunwayMRHelper(string masterAddr, int masterListenPort, int threads, int memory)
 :masterAddr(masterAddr), masterListenPort(masterListenPort), threads(threads), memory(memory) {
 	localAddr = getLocalHost();
@@ -43,6 +57,9 @@ SunwayMRHelper::SunwayMRHelper(string masterAddr, int masterListenPort, int thre
 		logError("SunwayMRHelper: failed to obtain local IP address.");
 		exit(1);
 	}
+
+	setLocalResouce(threads, memory);
+
 	listening = init();
 	if (!listening) {
 		logError("SunwayMRHelper: failed to start listening.");
@@ -62,14 +79,15 @@ void SunwayMRHelper::setLocalResouce(int threads, int memory) {
 	stringstream ss;
 	ss << threads << " " << memory << " " << listenPort;
 
-	pthread_t thread;
 	int v = 0;
 	thread_data data = {
 			this,
 			ss.str().c_str(),
 			&v
 	};
-	int rc = pthread_create(&thread, NULL, sendHostResourceInfoToMasterRepeatedly, (void *)&data);
+
+	pthread_cancel(sendResourceInfoThread);
+	int rc = pthread_create(&sendResourceInfoThread, NULL, sendHostResourceInfoToMasterRepeatedly, (void *)&data);
 	if (rc){
 		logError("SunwayMRHelper: SunwayMRHelper: failed to create thread to send host resource info.");
 		exit(1);
@@ -191,7 +209,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	stringstream startAppCmd;
 	startAppCmd << CXX << " -O2 -g -Wall -fmessage-length=0 "
 			<< fileSaveDir << appUID << appFileName << " -o " << fileSaveDir << appUID << appExecutableName
-			<< " -Iinclude -Iheaders -pthread -lstdc++ -lm " << endl;
+			<< " -Itools -Iinclude -Iheaders -pthread -lstdc++ -lm " << endl;
 	startAppCmd << fileSaveDir << appUID  << appExecutableName << " " << hostsFileName << " " << masterValue << " " << appListenPort << endl;
 
 	for(unsigned int i=0; i<tmp.size(); i++) {
@@ -255,6 +273,11 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 	case SHELL_COMMAND:
 	{
 		int ret = system(msg.c_str());
+		if (ret == -1) {
+			stringstream error;
+			error << "SunwayMRHelper:: failed to execute shell: " << endl << msg.c_str() << endl;
+			logError(error.str());
+		}
 		break;
 	}
 
@@ -321,3 +344,4 @@ void SunwayMRHelper::saveAllHostsFile() {
 	}
 }
 
+#endif /* SUNWAYMRHELPER_HPP_ */
