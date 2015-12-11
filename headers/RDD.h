@@ -15,7 +15,6 @@
 #include "MappedRDD.h"
 #include "Partition.h"
 #include "SunwayMRContext.h"
-#include "Logging.h"
 using std::string;
 using std::vector;
 
@@ -26,7 +25,6 @@ class SunwayMRContext;
 template <class T>
 class RDD: public Logging {
 public:
-	RDD();
 	RDD(SunwayMRContext &c);
 	virtual ~RDD();
 	virtual vector<Partition*> getPartitions()=0;

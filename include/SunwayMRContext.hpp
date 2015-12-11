@@ -94,39 +94,39 @@ void SunwayMRContext::startScheduler() {
 ParallelArray<int> SunwayMRContext::parallelize(int start, int end) {
 	int step = (start > end) ? -1 : 1;
 	IteratorSeq<int> *iter = new IteratorSeq<int>(start, end, step);
-	return parallelize(*iter, scheduler.totalThreads());
+	return parallelize<int>(*iter, scheduler.totalThreads());
 }
 
 ParallelArray<int> SunwayMRContext::parallelize(int start, int end, int numSlices) {
 	int step = (start > end) ? -1 : 1;
 	IteratorSeq<int> *iter = new IteratorSeq<int>(start, end, step);
-	return parallelize(*iter, numSlices);
+	return parallelize<int>(*iter, numSlices);
 }
 
 ParallelArray<long> SunwayMRContext::parallelize(long start, long end) {
 	long step = (start > end) ? -1l : 1l;
 	IteratorSeq<long> *iter = new IteratorSeq<long>(start, end, step);
-	return parallelize(*iter, scheduler.totalThreads());
+	return parallelize<long>(*iter, scheduler.totalThreads());
 }
 
 ParallelArray<long> SunwayMRContext::parallelize(long start, long end, int numSlices) {
 	long step = (start > end) ? -1l : 1l;
 	IteratorSeq<long> *iter = new IteratorSeq<long>(start, end, step);
-	return parallelize(*iter, numSlices);
+	return parallelize<long>(*iter, numSlices);
 }
 
 template <class T> ParallelArray<T> SunwayMRContext::parallelize(vector<T> &v) {
 	IteratorSeq<T> *iter = new IteratorSeq<T>(v);
-	return parallelize(*iter, scheduler.totalThreads());
+	return parallelize<T>(*iter, scheduler.totalThreads());
 }
 
 template <class T> ParallelArray<T> SunwayMRContext::parallelize(vector<T> &v, int numSlices){
 	IteratorSeq<T> *iter = new IteratorSeq<T>(v);
-	return parallelize(*iter, numSlices);
+	return parallelize<T>(*iter, numSlices);
 }
 
 template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> &iter) {
-	return parallelize(iter, scheduler.totalThreads());
+	return parallelize<T>(iter, scheduler.totalThreads());
 }
 
 // actual parallelizer

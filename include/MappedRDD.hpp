@@ -12,7 +12,7 @@ using namespace std;
 
 template <class U, class T>
 MappedRDD<U, T>::MappedRDD(RDD<T> &prev, U (*f)(T))
-	: prevRDD(prev)
+:RDD<U>::RDD(prev.context), prevRDD(prev)
 {
 	mappedFunction = f;
 }

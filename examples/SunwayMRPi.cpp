@@ -40,15 +40,10 @@ int main(int argc, char *argv[]) {
 
 	SunwayMRContext sc("SunwayMRPi", argc, argv);
 
-	long times = 1000l;
-	ParallelArray<long> p = sc.parallelize(1l, times, 5);
-	long d = p.reduce(reduce_f);
-
-	cout << "Array size: " << p.partitions.size() << endl;
-
-	cout << "d: " << d;
-
-	cout << "done." << endl;
+	long times = 100000000l;
+	int num = sc.parallelize(1l, times, 5).map(map_f).reduce(reduce_f);
+	double ret = (4.0 * num / times);
+	cout << "Pi: " << ret << endl;
 
 	return 0;
 }
