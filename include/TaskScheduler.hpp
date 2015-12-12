@@ -139,9 +139,9 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 	}
 	vector<int> launchedTask = vector<int>(taskNum);
 
-	cout << "staring tasks... ["
+	cout << "staring tasks... "
 			<< runOnThisNodeTaskNum
-			<< "] will run on this node" << endl;
+			<< "tasks will run on this node" << endl;
 
 	int threadsNum = 10; // 10 threads at most
 	pthread_t threads[threadsNum];
@@ -218,8 +218,6 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 
 			// check if all task results received
 			if (receivedTaskResultNum == tasks.size()) {
-				allTaskResultsReceived = true;
-
 				logger.logInfo("TaskScheduler: master: all task results received, now send out task result list...");
 
 				// send out to other nodes
@@ -235,6 +233,8 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 				}
 
 				logger.logInfo("TaskScheduler:  result list sent");
+
+				allTaskResultsReceived = true;
 			}
 
 		}
