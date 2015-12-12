@@ -83,6 +83,8 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
     threadRemainVector=vectorExpandNonNegativeSum(threadCountVector,taskNum);
     vectorFillNegative(threadRemainVector);
 
+    cout <<  "scheduling..." << endl;
+
 	//keep threadRemianVector and remainWaitNum locally
 	for( int i=0;i<taskNum;i++){
 		if(tasks[i]->preferredLocations().size()>0){
@@ -137,7 +139,9 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 	}
 	vector<int> launchedTask = vector<int>(taskNum);
 
-	cout << "staring tasks..." << endl; // TODO
+	cout << "staring tasks... ["
+			<< runOnThisNodeTaskNum
+			<< "] will run on this node" << endl;
 
 	int threadsNum = 10; // 10 threads at most
 	pthread_t threads[threadsNum];
