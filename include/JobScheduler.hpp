@@ -77,24 +77,27 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 
 struct JobSchedulerThreadData {
 	JobScheduler &js;
-	JobSchedulerThreadData(JobScheduler &js) : js(js) { }
+	int port;
+	JobSchedulerThreadData(JobScheduler &js, int port) : js(js), port(port) { }
 };
 
-void *startListening(void *data) {
+void *startSchedulerListening(void *data) {
 	JobSchedulerThreadData *d = (JobSchedulerThreadData *)data;
-	d->js.listenMessage(d->js.getListenPort());
+	d->js.listenMessage(d->port);
 
 	pthread_exit(NULL);
 }
 
 bool JobScheduler::start(){
 	pthread_t thread;
-	struct JobSchedulerThreadData *data = new JobSchedulerThreadData(*this);
-	int rc = pthread_create(&thread, NULL, startListening, (void *)data);
+	struct JobSchedulerThreadData *data = new JobSchedulerThreadData(*this, listenPort);
+	int rc = pthread_create(&thread, NULL, startSchedulerListening, (void *)data);
 	if (rc){
 		logger.logError("JobScheduler: failed to create thread to listen");
 	}
-	while(getListenStatus() == NA);
+	while(getListenStatus() == NA) {
+		pthread_yield();
+	}
 
 	if(getListenStatus() == FAILURE) {
 		return false;
@@ -151,13 +154,13 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 	switch (msgType) {
 		case A_TASK_RESULT:
 			if (taskSchedulers.size() > 0) {
-				taskSchedulers[taskSchedulers.size()-1]->messageReceived(localListenPort, fromHost, msgType, msg);
+				taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg);
 			}
 			break;
 
 		case TASK_RESULT_LIST:
 			if (taskSchedulers.size() > 0) {
-				taskSchedulers[taskSchedulers.size()-1]->messageReceived(localListenPort, fromHost, msgType, msg);
+				taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg);
 			}
 			break;
 

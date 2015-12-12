@@ -8,19 +8,16 @@
 #ifndef SCHEDULER_H_
 #define SCHEDULER_H_
 
-#include <vector>
+#include <string>
 
-#include "Messaging.h"
-#include "Logging.h"
-
-using std::vector;
+using std::string;
 
 
-class Scheduler : public Messaging, public Logging {
+class Scheduler {
 public:
 	Scheduler();
 	virtual ~Scheduler();
-	virtual void messageReceived(int localListenPort, string fromHost, int msgType, string msg) = 0;
+	virtual void handleMessage(int localListenPort, string fromHost, int msgType, string msg) = 0;
 
 };
 

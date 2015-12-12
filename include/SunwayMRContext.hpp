@@ -40,6 +40,7 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 		listenPort = atoi(argv[3]);
 
 		scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
+		startScheduler();
 
 	}
 }
@@ -49,6 +50,7 @@ SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string app
   listenPort(listenPort) {
 
 	scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
+	startScheduler();
 
 }
 
@@ -70,7 +72,11 @@ void SunwayMRContext::startScheduler() {
 		logger.logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
 		exit(102);
 	}
-	logger.logInfo("SunwayMRContext: starting scheduler succeeded");
+	stringstream listenInfo;
+	listenInfo << "SunwayMRContext: starting scheduler succeeded, listening port["
+			<< scheduler->getListenPort()
+			<< "]";
+	logger.logInfo(listenInfo.str());
 }
 
 ParallelArray<int> SunwayMRContext::parallelize(int start, int end) {

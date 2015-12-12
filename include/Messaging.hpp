@@ -104,11 +104,13 @@ bool Messaging::listenMessage(int listenPort)
 		return false;
 	}
 
-	stringstream listenInfo;
-	listenInfo << "Messaging: listening on port [" << listenPort << "]";
-	logger.logInfo(listenInfo.str());
-
 	listenStatus = SUCCESS;
+
+//	stringstream listenInfo;
+//	listenInfo << "Messaging: listening on port [" << listenPort << "]";
+//	logger.logInfo(listenInfo.str());
+
+	pthread_yield();
 
 	struct sockaddr_in client_address;
 	int client_len = sizeof(sockaddr_in);

@@ -140,6 +140,7 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 	int threadsNum = 10; // 10 threads at most
 	pthread_t threads[threadsNum];
 	while (!allTaskResultsReceived) { // waiting until all results received
+		pthread_yield();
 		if (lanuchedTaskNum == runOnThisNodeTaskNum) continue;
 
 		for (int i=0; i < taskNum; i++) {
@@ -176,6 +177,11 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 
 template <class T>
 void TaskScheduler<T>::messageReceived(int localListenPort, string fromHost, int msgType, string msg) {
+
+}
+
+template <class T>
+void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int msgType, string msg) {
 	switch(msgType) {
 	case A_TASK_RESULT:
 	{

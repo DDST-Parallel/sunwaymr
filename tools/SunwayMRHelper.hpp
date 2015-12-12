@@ -31,7 +31,7 @@ struct thread_data{
    : helper(h), msg(m), v(v) { }
 };
 
-void *startListening(void *data) {
+void *startHelperListening(void *data) {
 	struct thread_data *my_data;
 	my_data = (struct thread_data *)data;
 	my_data->helper.listenMessage(my_data->v);
@@ -237,8 +237,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 				logger.logError(err.str());
 			}
 
-
-			sleep(1); //TODO
+			usleep(100);
 
 			// send file content 1
 			sr = sendMessage(host, port, fileUID1, fileContent1);
@@ -298,11 +297,13 @@ bool SunwayMRHelper::initListening(int port) {
 	int listenPort = port;
 	struct thread_data *data = new thread_data (*this, "", listenPort);
 	pthread_t thread;
-	int rc = pthread_create(&thread, NULL, startListening, (void *)data);
+	int rc = pthread_create(&thread, NULL, startHelperListening, (void *)data);
 	if (rc){
 		logger.logError("JobScheduler: failed to create thread to listen");
 	}
-	while(getListenStatus() == NA);
+	while(getListenStatus() == NA) {
+		pthread_yield();
+	}
 
 	if(getListenStatus() == FAILURE) {
 		return false;

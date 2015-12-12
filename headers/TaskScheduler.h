@@ -9,16 +9,18 @@
 #define HEADERS_TASKSCHEDULER_H_
 
 #include "Messaging.h"
+#include "Scheduler.h"
 #include "Task.h"
 #include "TaskResult.h"
 
 template <class T>
-class TaskScheduler : public Messaging {
+class TaskScheduler : public Messaging, public Scheduler {
 public:
 	TaskScheduler(int jobID, string selfIP, int selfIPIndex, string master, string appName, int listenPort, vector<string> ip, vector<int> threads, vector<int> memory);
 	vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 
-	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
+	void messageReceived(int localListenPort, string fromHost, int msgType, string msg); // override Messaging
+	void handleMessage(int localListenPort, string fromHost, int msgType, string msg); // override Scheduler
 
 private:
 	int jobID;

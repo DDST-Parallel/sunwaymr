@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include "Messaging.h"
 #include "Scheduler.h"
 #include "Task.h"
 #include "TaskResult.h"
