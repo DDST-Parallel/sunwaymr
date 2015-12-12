@@ -106,15 +106,14 @@ bool Messaging::listenMessage(int listenPort)
 
 	listenStatus = SUCCESS;
 
-//	stringstream listenInfo;
-//	listenInfo << "Messaging: listening on port [" << listenPort << "]";
-//	logger.logInfo(listenInfo.str());
-
-	pthread_yield();
+	stringstream listenInfo;
+	listenInfo << "Messaging: listening on port [" << listenPort << "]";
+	logger.logInfo(listenInfo.str());
 
 	struct sockaddr_in client_address;
 	int client_len = sizeof(sockaddr_in);
 	while (1) {
+		pthread_yield();
 		int client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, (socklen_t *)&client_len);
 		if (client_sockfd < 0)
 			continue;

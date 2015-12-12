@@ -137,6 +137,8 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 	}
 	vector<int> launchedTask = vector<int>(taskNum);
 
+	cout << "staring tasks..." << endl; // TODO
+
 	int threadsNum = 10; // 10 threads at most
 	pthread_t threads[threadsNum];
 	while (!allTaskResultsReceived) { // waiting until all results received
