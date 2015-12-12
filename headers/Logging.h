@@ -15,10 +15,10 @@ using std::exception;
 
 class Logging {
 public:
-	static void logDebug(string msg);
-	static void logInfo(string msg);
-	static void logWarning(string msg);
-	static void logError(string msg);
+	void logDebug(string msg);
+	void logInfo(string msg);
+	void logWarning(string msg);
+	void logError(string msg);
 
 //	void logInfo(string msg, exception e);
 //	void logDebug(string msg, exception e);

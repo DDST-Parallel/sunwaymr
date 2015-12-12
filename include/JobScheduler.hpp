@@ -19,7 +19,6 @@
 
 using namespace std;
 
-
 /* JobScheduler member functions */
 
 JobScheduler::JobScheduler(){
@@ -50,7 +49,7 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 	if (!rd) {
 		stringstream error;
 		error << "JobScheduler: unable to read host resource file: " << hostFilePath;
-		logError(error.str());
+		logger.logError(error.str());
 		exit(1);
 	}
 
@@ -76,19 +75,24 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 
 }
 
+struct JobSchedulerThreadData {
+	JobScheduler &js;
+	JobSchedulerThreadData(JobScheduler &js) : js(js) { }
+};
 
 void *startListening(void *data) {
-	JobScheduler * js = (JobScheduler *)data;
-	js->listenMessage(js->getListenPort());
+	JobSchedulerThreadData *d = (JobSchedulerThreadData *)data;
+	d->js.listenMessage(d->js.getListenPort());
 
 	pthread_exit(NULL);
 }
 
 bool JobScheduler::start(){
 	pthread_t thread;
-	int rc = pthread_create(&thread, NULL, startListening, (void *)this);
+	struct JobSchedulerThreadData *data = new JobSchedulerThreadData(*this);
+	int rc = pthread_create(&thread, NULL, startListening, (void *)data);
 	if (rc){
-		logError("JobScheduler: failed to create thread to listen");
+		logger.logError("JobScheduler: failed to create thread to listen");
 	}
 	while(getListenStatus() == NA);
 
@@ -136,6 +140,13 @@ vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
 
 void JobScheduler::messageReceived(int localListenPort, string fromHost, int msgType, string msg) {
 	if (localListenPort != this->listenPort || fromHost == "" || msg == "") return;
+
+	stringstream received;
+	received << "JobScheduler: listening port: " << localListenPort
+			<< ", message received from: " << fromHost
+			<< ", message type: " << msgType
+			<< ", message content: " << msg;
+	logger.logDebug(received.str());
 
 	switch (msgType) {
 		case A_TASK_RESULT:

@@ -2,6 +2,7 @@
 #define UTILS_HPP_
 
 #include <string>
+#include <iostream>
 #include <sstream>
 #include <cstring>
 #include <vector>

@@ -11,7 +11,6 @@
 #include <vector>
 #include <map>
 
-#include "Logging.hpp"
 #include "Messaging.hpp"
 using std::vector;
 using std::map;
@@ -28,7 +27,7 @@ const string localHostFileName = "local.lst";
 const string allHostsFileName = "all.lst";
 const string CXX = "gcc";
 
-class SunwayMRHelper : public Messaging, public Logging {
+class SunwayMRHelper : public Messaging {
 public:
 	SunwayMRHelper(bool forUserApp);
 	void start(string masterAddr, int masterListenPort, int threads, int memory);

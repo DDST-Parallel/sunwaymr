@@ -6,16 +6,18 @@
 #include <pthread.h>
 #include <signal.h>
 #include <errno.h>
+#include <iostream>
 #include <sstream>
 #include <stdlib.h>
 
-#include "Scheduler.hpp"
 #include "Messaging.hpp"
 #include "MessageType.hpp"
 #include "Logging.hpp"
 #include "Utils.hpp"
 #include "Task.hpp"
 #include "TaskResult.hpp"
+
+using namespace std;
 
 template <class T>
 TaskScheduler<T>::TaskScheduler(int jobID, string selfIP,
@@ -33,25 +35,28 @@ TaskScheduler<T>::TaskScheduler(int jobID, string selfIP,
 
 template <class T>
 struct thread_data {
-	TaskScheduler<T> *taskScheduler;
+	TaskScheduler<T> &taskScheduler;
 	string master;
 	int masterPort;
 	int jobID;
 	int taskID;
-	Task<T> *task;
+	Task<T> &task;
+
+	thread_data(TaskScheduler<T> &t, string m, int mp, int ji, int ti, Task<T> &task)
+	: taskScheduler(t), master(m), masterPort(mp), jobID(ji), taskID(ti), task(task) {}
 };
 
 template <class T>
 void *runTask(void *d) {
 	struct thread_data<T> *data = (struct thread_data<T> *)d;
-	TaskScheduler<T> *ts = data->taskScheduler;
-	Task<T>* task = data->task;
-	T& value = task->run();
+	TaskScheduler<T> &ts = data->taskScheduler;
+	Task<T> &task = data->task;
+	T& value = task.run();
 
 	// send out task result
 	stringstream ss;
-	ss << data->jobID << " " << data->taskID << " " << task->serialize(value);
-	ts->sendMessage(data->master, data->masterPort, A_TASK_RESULT, ss.str());
+	ss << data->jobID << " " << data->taskID << " " << task.serialize(value);
+	ts.sendMessage(data->master, data->masterPort, A_TASK_RESULT, ss.str());
 
 	pthread_exit(NULL);
 }
@@ -60,18 +65,23 @@ void *runTask(void *d) {
 
 template <class T>
 vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
+
+	stringstream runTasksInfo;
+	runTasksInfo << "TaskScheduler: run tasks, job ID: [" << jobID << "], tasks size: " << tasks.size();
+	logger.logInfo(runTasksInfo.str());
+
 	int taskNum=tasks.size();
 	this->tasks = tasks;
+
 	allTaskResultsReceived = false;
 	receivedTaskResultNum = 0;
-	taskResults = vector< TaskResult<T>* >(taskNum, NULL);
+	resultReceived = vector<bool>(taskNum, false);
 
 	taskOnIPVector = vector<string>(taskNum, selfIP);
 	vector<int> needReDistributing(taskNum,1);
 
     threadRemainVector=vectorExpandNonNegativeSum(threadCountVector,taskNum);
     vectorFillNegative(threadRemainVector);
-
 
 	//keep threadRemianVector and remainWaitNum locally
 	for( int i=0;i<taskNum;i++){
@@ -87,6 +97,12 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 					threadRemainVector[index]--;
 					taskOnIPVector[i]=IPVector[index];
 					needReDistributing[i]=0;
+
+					stringstream taskOnIP;
+					taskOnIP << "TaskScheduler: task [" << i << "] of job[" << jobID << "] will run at " << taskOnIPVector[i];
+					cout << taskOnIP.str() << endl;
+					logger.logDebug(taskOnIP.str());
+
 					break;
 				}
 			}
@@ -105,9 +121,13 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 			int index=vectorNonZero(threadRemainVector);
 			threadRemainVector[index]--;
 			taskOnIPVector[i]=IPVector[index];
+			needReDistributing[i]=0;
+
+			stringstream taskOnIP;
+			taskOnIP << "TaskScheduler: task [" << i << "] of job[" << jobID << "] will run at " << taskOnIPVector[i];
+			logger.logDebug(taskOnIP.str());
 		}
 	}
-
 
 	// run tasks those been distributed to self
 	int runOnThisNodeTaskNum = 0;
@@ -128,17 +148,11 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 				for (int j=0; j<threadsNum; j++) { // pick a free thread
 					int kill_rc = pthread_kill(threads[j],0);
 					if (threads[j]==0 || kill_rc == ESRCH || kill_rc == EINVAL) {
-						thread_data<T> data = {
-							this,
-							master,
-							listenPort,
-							jobID,
-							i,
-							tasks[i]
-						};
-						int rc = pthread_create(&threads[j], NULL, runTask<T>, (void *)&data);
+						struct thread_data<T> *data = new thread_data<T> (*this, master,
+							listenPort, jobID, i, *tasks[i]);
+						int rc = pthread_create(&threads[j], NULL, runTask<T>, (void *)data);
 						if (rc){
-							logError("TaskScheduler: failed to create thread to run Task.");
+							logger.logError("TaskScheduler: failed to create thread to run task");
 							exit(-1);
 						}
 						lanuchedTaskNum ++;
@@ -150,6 +164,13 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 		}
 	}
 
+	stringstream results;
+	results << "TaskScheduler: job[" << jobID << "] task results: \n";
+	for (unsigned int i=0; i<taskResults.size(); i++) {
+		results << "[" << i << "] " << taskResults[i]->task.serialize(taskResults[i]->value) << endl;
+	}
+	logger.logInfo(results.str());
+
 	return taskResults;
 }
 
@@ -159,6 +180,7 @@ void TaskScheduler<T>::messageReceived(int localListenPort, string fromHost, int
 	case A_TASK_RESULT:
 	{
 		if (isMaster == 1 && receivedTaskResultNum < tasks.size()) {
+
 			// add task result to taskResults, if not duplicate
 			vector<string> vs = splitString(msg, ' ');
 			if (vs.size() == 3) {
@@ -167,10 +189,17 @@ void TaskScheduler<T>::messageReceived(int localListenPort, string fromHost, int
 
 				if (jobID == this->jobID
 						&& taskID < tasks.size()
-						&& taskResults[taskID] == NULL) {
+						&& !resultReceived[taskID]) {
 					T& value = tasks[taskID]->deserialize(vs[2]);
-					taskResults[taskID] = new TaskResult<T>(*tasks[taskID], value);
+					taskResults.push_back(new TaskResult<T>(*tasks[taskID], value));
+					resultReceived[taskID] = true;
 					receivedTaskResultNum ++;
+
+					stringstream receivedDebug;
+					receivedDebug << "TaskScheduler: master: a task result received, totally "
+							<< receivedTaskResultNum << "results of " << tasks.size()
+							<< "tasks received";
+					logger.logDebug(receivedDebug.str());
 				}
 			}
 
@@ -178,6 +207,8 @@ void TaskScheduler<T>::messageReceived(int localListenPort, string fromHost, int
 			// check if all task results received
 			if (receivedTaskResultNum == tasks.size()) {
 				allTaskResultsReceived = true;
+
+				logger.logInfo("TaskScheduler: master: all task results received, now send out task result list...");
 
 				// send out to other nodes
 				stringstream resultList;
@@ -191,6 +222,7 @@ void TaskScheduler<T>::messageReceived(int localListenPort, string fromHost, int
 					sendMessage(IPVector[i], listenPort, TASK_RESULT_LIST, msg);
 				}
 
+				logger.logInfo("TaskScheduler:  result list sent");
 			}
 
 		}
@@ -201,6 +233,9 @@ void TaskScheduler<T>::messageReceived(int localListenPort, string fromHost, int
 	case TASK_RESULT_LIST:
 	{
 		if (isMaster == 0) {
+
+			logger.logInfo("TaskScheduler: task result list received");
+
 			// save task results
 			// initialize taskResults
 			bool valid = true;
@@ -214,9 +249,10 @@ void TaskScheduler<T>::messageReceived(int localListenPort, string fromHost, int
 
 						if (jobID == this->jobID
 								&& taskID < tasks.size()
-								&& taskResults[taskID] == NULL) {
+								&& !resultReceived[taskID]) {
 							T& value = tasks[taskID]->deserialize(result[2]);
-							taskResults[taskID] = new TaskResult<T>(*tasks[taskID], value);
+							taskResults.push_back(new TaskResult<T>(*tasks[taskID], value));
+							resultReceived[taskID] = true;
 							receivedTaskResultNum ++;
 						} else {
 							valid = false;
@@ -233,11 +269,16 @@ void TaskScheduler<T>::messageReceived(int localListenPort, string fromHost, int
 
 			if(valid) allTaskResultsReceived = true;
 			else { // clean
+
+				logger.logWarning("TaskScheduler:  result list invalid, cleaning...");
+
 				for (unsigned int i=0; i<tasks.size(); i++) {
-					taskResults[i] = NULL;
+					taskResults.clear();
 				}
 				receivedTaskResultNum = 0;
 			}
+		} else {
+			// master had all results
 		}
 
 		break;

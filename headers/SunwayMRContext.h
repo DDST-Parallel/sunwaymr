@@ -11,7 +11,6 @@
 #include <string>
 
 #include "IteratorSeq.h"
-#include "Logging.h"
 #include "ParallelArray.h"
 #include "JobScheduler.h"
 #include "Task.h"
@@ -21,7 +20,7 @@ using std::string;
 template <class T> class ParallelArray;
 
 
-class SunwayMRContext : public Logging {
+class SunwayMRContext {
 public:
 	SunwayMRContext();
 	SunwayMRContext(string appName, int argc, char *argv[]);
@@ -40,7 +39,7 @@ public:
 	template <class T> vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 
 private:
-	JobScheduler scheduler;
+	JobScheduler *scheduler;
 
 	string hostsFilePath, master, appName;
 	int listenPort;

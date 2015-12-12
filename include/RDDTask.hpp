@@ -24,7 +24,7 @@ template <class T, class U> RDDTask<T, U>::~RDDTask () {
 }
 
 template <class T, class U> vector<string> RDDTask<T, U>::preferredLocations() {
-	return vector<string>(0);
+	return rdd.preferredLocations(partition);
 }
 
 

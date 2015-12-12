@@ -16,7 +16,7 @@
 using std::string;
 using std::vector;
 
-class JobScheduler : public Scheduler {
+class JobScheduler : public Messaging {
 public:
 	JobScheduler();
 	JobScheduler(string hostFilePath, string master, string appName, int listenPort);

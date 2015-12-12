@@ -24,14 +24,14 @@ SunwayMRContext::SunwayMRContext() {
 	hostsFilePath = "";
 	master = "";
 	listenPort = 0;
-	scheduler = JobScheduler();
+	scheduler = new JobScheduler();
 }
 
 SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 : appName(appName) {
 	if (argc < 4) {
 		// error
-		logError("SunwayMRContext: 3 parameters at least: hostsFile, master, listenPort");
+		logger.logError("SunwayMRContext: 3 parameters at least: hostsFile, master, listenPort");
 		exit(101);
 
 	} else {
@@ -39,16 +39,7 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 		master = string(argv[2]);
 		listenPort = atoi(argv[3]);
 
-		scheduler = JobScheduler(hostsFilePath, master, appName, listenPort);
-
-
-		logInfo("SunwayMRContext: starting scheduler...");
-		bool r = scheduler.start();
-		if (!r) {
-			logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
-			exit(102);
-		}
-		logInfo("SunwayMRContext: starting scheduler succeeded");
+		scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
 
 	}
 }
@@ -57,16 +48,7 @@ SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string app
 : hostsFilePath(hostsFilePath), master(master), appName(appName),
   listenPort(listenPort) {
 
-	scheduler = JobScheduler(hostsFilePath, master, appName, listenPort);
-
-
-	logInfo("SunwayMRContext: starting scheduler...");
-	bool r = scheduler.start();
-	if (!r) {
-		logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
-		exit(102);
-	}
-	logInfo("SunwayMRContext: starting scheduler succeeded");
+	scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
 
 }
 
@@ -76,25 +58,25 @@ void SunwayMRContext::init(string hostsFilePath, string master, string appName, 
 	this->appName = appName;
 	this->listenPort = listenPort;
 
-	scheduler = JobScheduler(hostsFilePath, master, appName, listenPort);
+	scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
 	startScheduler();
 
 }
 
 void SunwayMRContext::startScheduler() {
-	logInfo("SunwayMRContext: starting scheduler...");
-	bool r = scheduler.start();
+	logger.logInfo("SunwayMRContext: starting scheduler...");
+	bool r = scheduler->start();
 	if (!r) {
-		logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
+		logger.logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
 		exit(102);
 	}
-	logInfo("SunwayMRContext: starting scheduler succeeded");
+	logger.logInfo("SunwayMRContext: starting scheduler succeeded");
 }
 
 ParallelArray<int> SunwayMRContext::parallelize(int start, int end) {
 	int step = (start > end) ? -1 : 1;
 	IteratorSeq<int> *iter = new IteratorSeq<int>(start, end, step);
-	return parallelize<int>(*iter, scheduler.totalThreads());
+	return parallelize<int>(*iter, scheduler->totalThreads());
 }
 
 ParallelArray<int> SunwayMRContext::parallelize(int start, int end, int numSlices) {
@@ -106,7 +88,7 @@ ParallelArray<int> SunwayMRContext::parallelize(int start, int end, int numSlice
 ParallelArray<long> SunwayMRContext::parallelize(long start, long end) {
 	long step = (start > end) ? -1l : 1l;
 	IteratorSeq<long> *iter = new IteratorSeq<long>(start, end, step);
-	return parallelize<long>(*iter, scheduler.totalThreads());
+	return parallelize<long>(*iter, scheduler->totalThreads());
 }
 
 ParallelArray<long> SunwayMRContext::parallelize(long start, long end, int numSlices) {
@@ -117,7 +99,7 @@ ParallelArray<long> SunwayMRContext::parallelize(long start, long end, int numSl
 
 template <class T> ParallelArray<T> SunwayMRContext::parallelize(vector<T> &v) {
 	IteratorSeq<T> *iter = new IteratorSeq<T>(v);
-	return parallelize<T>(*iter, scheduler.totalThreads());
+	return parallelize<T>(*iter, scheduler->totalThreads());
 }
 
 template <class T> ParallelArray<T> SunwayMRContext::parallelize(vector<T> &v, int numSlices){
@@ -126,21 +108,21 @@ template <class T> ParallelArray<T> SunwayMRContext::parallelize(vector<T> &v, i
 }
 
 template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> &iter) {
-	return parallelize<T>(iter, scheduler.totalThreads());
+	return parallelize<T>(iter, scheduler->totalThreads());
 }
 
 // actual parallelizer
 template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> &iter, int numSlices) {
 	if (numSlices < 1)
 	{
-		this->logError("ParallelArray: slice number should be positive integer!");
+		logger.logError("ParallelArray: slice number should be positive integer!");
 		exit(104);
 	}
 	return ParallelArray<T>(*this, iter, numSlices);
 }
 
 template <class T> vector< TaskResult<T>* > SunwayMRContext::runTasks(vector< Task<T>* > &tasks) {
-	return scheduler.runTasks(tasks);
+	return scheduler->runTasks(tasks);
 }
 
 

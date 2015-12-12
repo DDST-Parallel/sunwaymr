@@ -12,8 +12,8 @@
 #include "MappedRDD.hpp"
 #include "Partition.hpp"
 #include "SunwayMRContext.hpp"
+#include "Logging.hpp"
 using namespace std;
-
 
 template <class T>
 RDD<T>::RDD(SunwayMRContext &c)
@@ -61,7 +61,7 @@ T RDD<T>::reduce(T (*g)(T, T))
 	if (values_results.size() == 0)
 	{
 		//should do logging
-		logWarning("RDD: reduce received empty results collection!!!");
+		logger.logWarning("RDD: reduce received empty results collection!!!");
 		return NULL;
 	}
 	//reduce left results

@@ -20,6 +20,8 @@ using std::endl;
 #define LOGING_MASK 1
 #endif
 
+Logging logger;
+
 void Logging::logDebug(string msg) {
 	if (LOGING_MASK < 1)
 		cout << "[" << currentDateTime() << "] debug: " << msg << endl;

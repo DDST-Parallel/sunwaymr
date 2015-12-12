@@ -13,7 +13,6 @@
 
 #include "IteratorSeq.hpp"
 #include "RDDTask.hpp"
-#include "Logging.hpp"
 using std::stringstream;
 
 template <class T> ReduceTask<T>::ReduceTask(RDD<T> &r, Partition &p, T (*g)(T, T))
@@ -46,7 +45,6 @@ template <class T> vector<T>& ReduceTask<T>::deserialize(string s) {
 	}
 	return *elems;
 }
-
 
 
 #endif /* REDUCETASK_HPP_ */

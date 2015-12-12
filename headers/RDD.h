@@ -23,7 +23,7 @@ template <class U, class T> class MappedRDD;
 class SunwayMRContext;
 
 template <class T>
-class RDD: public Logging {
+class RDD {
 public:
 	RDD(SunwayMRContext &c);
 	virtual ~RDD();
