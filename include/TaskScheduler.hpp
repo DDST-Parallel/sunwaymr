@@ -143,6 +143,8 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 
 
 	int THREADS_NUM_MAX = 10; // 10 threads at most TODO configuration out of code
+
+	pthread_mutex_init(&mutex_allTaskResultsReceived, NULL);
 	pthread_mutex_lock(&mutex_allTaskResultsReceived);
 	while (!allTaskResultsReceived) { // waiting until all results received
 		if (lanuchedTaskNum == runOnThisNodeTaskNum) {
