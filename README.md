@@ -8,9 +8,6 @@ You will need `gcc/g++` when using GNU `make`.
 
 ## Usage
 
-* You can show usage by running `./sunwaymr`
-
-
 * Download and make source on each node
 
 ```bash
