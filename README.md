@@ -8,13 +8,13 @@ You will need `gcc/g++` when using GNU `make`.
 
 ## Usage
 
-* Download and make source on each node
+* Download and make source **on each node**
 
 ```bash
     make
 ```
 
-* Start SunwayMR resource manager on each node, while specifying `master IP`, `master port`, `shared threads of node`, `shared memory of node`
+* Start SunwayMR resource manager **on each node**, while specifying `master IP`, `master port`, `shared threads of node`, `shared memory of node`
 
 ```bash
     ./sunwaymr -t 192.168.1.85 19113 4 1024

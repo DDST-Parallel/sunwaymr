@@ -5,7 +5,9 @@
  *      Author: yupeng
  */
 
-#define LOGING_MASK 1
+#ifndef LOGGING_MASK
+#define LOGGING_MASK 1
+#endif
 
 #include <iostream>
 #include <string>
