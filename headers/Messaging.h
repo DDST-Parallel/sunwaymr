@@ -9,6 +9,7 @@
 #define MESSAGING_H_
 
 #include <string>
+#include <pthread.h>
 
 #include "MessageType.h"
 using std::string;
@@ -47,10 +48,12 @@ public:
 	 call messageReceived in new threads when valid messages arrive.
 	 return: true or false(port in use).
 	*/
-	bool listenMessage(int listenPort);
+	void listenMessage(int listenPort);
 	int getListenStatus();
 
 	virtual void messageReceived(int localListenPort, string fromHost, int msgType, string msg) = 0;
+
+	pthread_mutex_t mutex_listen_status;
 
 private:
 	int listenStatus;

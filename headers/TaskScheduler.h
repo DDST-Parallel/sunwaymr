@@ -8,6 +8,8 @@
 #ifndef HEADERS_TASKSCHEDULER_H_
 #define HEADERS_TASKSCHEDULER_H_
 
+#include <pthread.h>
+
 #include "Messaging.h"
 #include "Scheduler.h"
 #include "Task.h"
@@ -21,6 +23,8 @@ public:
 
 	void messageReceived(int localListenPort, string fromHost, int msgType, string msg); // override Messaging
 	void handleMessage(int localListenPort, string fromHost, int msgType, string msg); // override Scheduler
+	void increaseRunningThreadNum();
+	void decreaseRunningThreadNum();
 
 private:
 	int jobID;
@@ -32,11 +36,16 @@ private:
 	vector<int> threadCountVector, memoryVector, threadRemainVector;
 	vector<string>  taskOnIPVector;
 	int isMaster;
+
+	int runningThreadNum;
+	vector<pthread_t> startedThreads;
 	vector<bool> resultReceived;
 	int receivedTaskResultNum;
 	bool allTaskResultsReceived;
 	vector< Task<T>* > tasks;
     vector< TaskResult<T>* > taskResults;
+
+    pthread_mutex_t mutex_allTaskResultsReceived;
 };
 
 

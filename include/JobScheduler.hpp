@@ -49,7 +49,7 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 	if (!rd) {
 		stringstream error;
 		error << "JobScheduler: unable to read host resource file: " << hostFilePath;
-		logger.logError(error.str());
+		Logging::logError(error.str());
 		exit(1);
 	}
 
@@ -91,18 +91,20 @@ void *startSchedulerListening(void *data) {
 bool JobScheduler::start(){
 	pthread_t thread;
 	struct JobSchedulerThreadData *data = new JobSchedulerThreadData(*this, listenPort);
+	pthread_mutex_init(&mutex_listen_status, NULL);
+	pthread_mutex_lock(&mutex_listen_status);
 	int rc = pthread_create(&thread, NULL, startSchedulerListening, (void *)data);
 	if (rc){
-		logger.logError("JobScheduler: failed to create thread to listen");
-	}
-	while(getListenStatus() == NA) {
-		pthread_yield();
+		Logging::logError("JobScheduler: failed to create thread to listen");
 	}
 
-	if(getListenStatus() == FAILURE) {
-		return false;
-	} else {
+	pthread_mutex_lock(&mutex_listen_status);
+	pthread_mutex_unlock(&mutex_listen_status);
+
+	if(getListenStatus() == SUCCESS) {
 		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -149,7 +151,7 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 			<< ", message received from: " << fromHost
 			<< ", message type: " << msgType
 			<< ", message content: " << msg;
-	logger.logDebug(received.str());
+	Logging::logDebug(received.str());
 
 	switch (msgType) {
 		case A_TASK_RESULT:

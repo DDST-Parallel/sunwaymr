@@ -61,8 +61,8 @@ T RDD<T>::reduce(T (*g)(T, T))
 	if (values_results.size() == 0)
 	{
 		//should do logging
-		logger.logWarning("RDD: reduce received empty results collection!!!");
-		return NULL;
+		Logging::logWarning("RDD: reduce received empty results collection!!!");
+		return 0;
 	}
 	//reduce left results
 	IteratorSeq<T> it(values_results);

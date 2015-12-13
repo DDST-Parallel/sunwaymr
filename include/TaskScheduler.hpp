@@ -29,6 +29,7 @@ TaskScheduler<T>::TaskScheduler(int jobID, string selfIP,
 	if (master == "local" || master == selfIP) {
 		isMaster = 1;
 	}
+	runningThreadNum = 0;
 	allTaskResultsReceived = false;
 	receivedTaskResultNum = 0;
 }
@@ -57,6 +58,7 @@ void *runTask(void *d) {
 	stringstream ss;
 	ss << data->jobID << " " << data->taskID << " " << task.serialize(value);
 	ts.sendMessage(data->master, data->masterPort, A_TASK_RESULT, ss.str());
+	ts.decreaseRunningThreadNum();
 
 	pthread_exit(NULL);
 }
@@ -68,11 +70,12 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 
 	stringstream runTasksInfo;
 	runTasksInfo << "TaskScheduler: run tasks, job ID: [" << jobID << "], tasks size: " << tasks.size();
-	logger.logInfo(runTasksInfo.str());
+	Logging::logInfo(runTasksInfo.str());
 
 	int taskNum=tasks.size();
 	this->tasks = tasks;
 
+	runningThreadNum = 0;
 	allTaskResultsReceived = false;
 	receivedTaskResultNum = 0;
 	resultReceived = vector<bool>(taskNum, false);
@@ -83,7 +86,6 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
     threadRemainVector=vectorExpandNonNegativeSum(threadCountVector,taskNum);
     vectorFillNegative(threadRemainVector);
 
-    cout <<  "scheduling..." << endl;
 
 	//keep threadRemianVector and remainWaitNum locally
 	for( int i=0;i<taskNum;i++){
@@ -103,7 +105,7 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 					stringstream taskOnIP;
 					taskOnIP << "TaskScheduler: task [" << i << "] of job[" << jobID << "] will run at " << taskOnIPVector[i];
 					cout << taskOnIP.str() << endl;
-					logger.logDebug(taskOnIP.str());
+					Logging::logDebug(taskOnIP.str());
 
 					break;
 				}
@@ -127,7 +129,7 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 
 			stringstream taskOnIP;
 			taskOnIP << "TaskScheduler: task [" << i << "] of job[" << jobID << "] will run at " << taskOnIPVector[i];
-			logger.logDebug(taskOnIP.str());
+			Logging::logDebug(taskOnIP.str());
 		}
 	}
 
@@ -139,36 +141,37 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 	}
 	vector<int> launchedTask = vector<int>(taskNum);
 
-	cout << "staring tasks... "
-			<< runOnThisNodeTaskNum
-			<< "tasks will run on this node" << endl;
 
-	int threadsNum = 10; // 10 threads at most
-	pthread_t threads[threadsNum];
+	int THREADS_NUM_MAX = 10; // 10 threads at most TODO configuration out of code
+	pthread_mutex_lock(&mutex_allTaskResultsReceived);
 	while (!allTaskResultsReceived) { // waiting until all results received
-		pthread_yield();
-		if (lanuchedTaskNum == runOnThisNodeTaskNum) continue;
+		if (lanuchedTaskNum == runOnThisNodeTaskNum) {
+			pthread_mutex_lock(&mutex_allTaskResultsReceived);
+			pthread_mutex_unlock(&mutex_allTaskResultsReceived);
+			pthread_mutex_destroy(&mutex_allTaskResultsReceived);
+			continue;
+		}
 
-		for (int i=0; i < taskNum; i++) {
-			if (taskOnIPVector[i]==selfIP && launchedTask[i]==0) { // pick non started task
 
-				for (int j=0; j<threadsNum; j++) { // pick a free thread
-					int kill_rc = pthread_kill(threads[j],0);
-					if (threads[j]==0 || kill_rc == ESRCH || kill_rc == EINVAL) {
-						struct thread_data<T> *data = new thread_data<T> (*this, master,
-							listenPort, jobID, i, *tasks[i]);
-						int rc = pthread_create(&threads[j], NULL, runTask<T>, (void *)data);
-						if (rc){
-							logger.logError("TaskScheduler: failed to create thread to run task");
-							exit(-1);
-						}
-						lanuchedTaskNum ++;
-
-						break;
+		while (runningThreadNum < THREADS_NUM_MAX
+				&& lanuchedTaskNum < runOnThisNodeTaskNum) {
+			for (int i=0; i < taskNum; i++) {
+				if (taskOnIPVector[i]==selfIP && launchedTask[i]==0) { // pick non started task
+					pthread_t thread;
+					struct thread_data<T> *data = new thread_data<T> (*this, master,
+						listenPort, jobID, i, *tasks[i]);
+					int rc = pthread_create(&thread, NULL, runTask<T>, (void *)data);
+					if (rc){
+						Logging::logError("TaskScheduler: failed to create thread to run task");
+						exit(-1);
 					}
+					startedThreads.push_back(thread);
+					lanuchedTaskNum ++;
+					increaseRunningThreadNum();
 				}
 			}
 		}
+
 	}
 
 	stringstream results;
@@ -176,7 +179,7 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 	for (unsigned int i=0; i<taskResults.size(); i++) {
 		results << "[" << i << "] " << taskResults[i]->task.serialize(taskResults[i]->value) << endl;
 	}
-	logger.logInfo(results.str());
+	Logging::logInfo(results.str());
 
 	return taskResults;
 }
@@ -208,17 +211,18 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 					receivedTaskResultNum ++;
 
 					stringstream receivedDebug;
-					receivedDebug << "TaskScheduler: master: a task result received, totally "
-							<< receivedTaskResultNum << "results of " << tasks.size()
-							<< "tasks received";
-					logger.logDebug(receivedDebug.str());
+					receivedDebug << "TaskScheduler: master: a task result of job["
+							<< jobID << "] received, totally "
+							<< receivedTaskResultNum << " results of " << tasks.size()
+							<< " tasks received";
+					Logging::logDebug(receivedDebug.str());
 				}
 			}
 
 
 			// check if all task results received
 			if (receivedTaskResultNum == tasks.size()) {
-				logger.logInfo("TaskScheduler: master: all task results received, now send out task result list...");
+				Logging::logInfo("TaskScheduler: master: all task results received, now send out task result list...");
 
 				// send out to other nodes
 				stringstream resultList;
@@ -232,9 +236,10 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 					sendMessage(IPVector[i], listenPort, TASK_RESULT_LIST, msg);
 				}
 
-				logger.logInfo("TaskScheduler:  result list sent");
+				Logging::logInfo("TaskScheduler:  result list sent");
 
 				allTaskResultsReceived = true;
+				pthread_mutex_unlock(&mutex_allTaskResultsReceived);
 			}
 
 		}
@@ -246,7 +251,7 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 	{
 		if (isMaster == 0) {
 
-			logger.logInfo("TaskScheduler: task result list received");
+			Logging::logInfo("TaskScheduler: task result list received");
 
 			// save task results
 			// initialize taskResults
@@ -279,10 +284,13 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 				valid = false;
 			}
 
-			if(valid) allTaskResultsReceived = true;
+			if(valid) {
+				allTaskResultsReceived = true;
+				pthread_mutex_unlock(&mutex_allTaskResultsReceived);
+			}
 			else { // clean
 
-				logger.logWarning("TaskScheduler:  result list invalid, cleaning...");
+				Logging::logWarning("TaskScheduler: result list invalid, cleaning...");
 
 				for (unsigned int i=0; i<tasks.size(); i++) {
 					taskResults.clear();
@@ -297,6 +305,16 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 	}
 
 	}
+}
+
+template <class T>
+void TaskScheduler<T>::increaseRunningThreadNum() {
+	runningThreadNum++;
+}
+
+template <class T>
+void TaskScheduler<T>::decreaseRunningThreadNum() {
+	runningThreadNum--;
 }
 
 

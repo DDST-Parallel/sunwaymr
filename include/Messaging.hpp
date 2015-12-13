@@ -32,7 +32,7 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 
 	if (sockfd < 0)
 	{
-		logger.logError("Messaging: sendMessage: failed to initialize socket");
+		Logging::logError("Messaging: sendMessage: failed to initialize socket");
 		return false;
 	}
 
@@ -48,7 +48,7 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 	int conn = connect(sockfd, (struct sockaddr *)&address, len);
 	if (conn < 0)
 	{
-		logger.logError("Messaging: sendMessage: connect fail!");
+		Logging::logError("Messaging: sendMessage: connect fail!");
 		return false;
 	}
 
@@ -63,7 +63,7 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 	int byte = send(sockfd, ch, strlen(ch), 0);
 	if (byte < 0)
 	{
-		logger.logError("Messaging: sendMessage: send fail!");
+		Logging::logError("Messaging: sendMessage: send fail!");
 		return false;
 	}
 
@@ -72,14 +72,17 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 	return true;
 }
 
-bool Messaging::listenMessage(int listenPort)
+void Messaging::listenMessage(int listenPort)
 {
 	listenStatus = NA;
 
 	// init socket
 	int server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_sockfd < 0)
-		return false;
+	if (server_sockfd < 0) {
+		listenStatus = FAILURE;
+		pthread_mutex_unlock(&mutex_listen_status);
+		return;
+	}
 
 	struct sockaddr_in server_address;
 
@@ -93,7 +96,8 @@ bool Messaging::listenMessage(int listenPort)
 	if (rb < 0)
 	{
 		listenStatus = FAILURE;
-		return false;
+		pthread_mutex_unlock(&mutex_listen_status);
+		return;
 	}
 
 	//listen
@@ -101,19 +105,20 @@ bool Messaging::listenMessage(int listenPort)
 	if (n < 0)
 	{
 		listenStatus = FAILURE;
-		return false;
+		pthread_mutex_unlock(&mutex_listen_status);
+		return;
 	}
 
 	listenStatus = SUCCESS;
+	pthread_mutex_unlock(&mutex_listen_status);
 
 	stringstream listenInfo;
 	listenInfo << "Messaging: listening on port [" << listenPort << "]";
-	logger.logInfo(listenInfo.str());
+	Logging::logInfo(listenInfo.str());
 
 	struct sockaddr_in client_address;
 	int client_len = sizeof(sockaddr_in);
 	while (1) {
-		pthread_yield();
 		int client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, (socklen_t *)&client_len);
 		if (client_sockfd < 0)
 			continue;
@@ -150,14 +155,13 @@ bool Messaging::listenMessage(int listenPort)
 			// create a thread
 			pthread_t worker;
 			if (pthread_create(&worker, NULL, messageHandler, (void *)td) != 0) {
-				logger.logError("Messaging: failed to create new thread while listening");
+				Logging::logError("Messaging: failed to create new thread while listening");
 			}
 		}
 
 		close(client_sockfd);
 	}
 
-	return true;
 }
 
 int Messaging::getListenStatus() {

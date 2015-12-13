@@ -31,7 +31,7 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 : appName(appName) {
 	if (argc < 4) {
 		// error
-		logger.logError("SunwayMRContext: 3 parameters at least: hostsFile, master, listenPort");
+		Logging::logError("SunwayMRContext: 3 parameters at least: hostsFile, master, listenPort");
 		exit(101);
 
 	} else {
@@ -66,17 +66,13 @@ void SunwayMRContext::init(string hostsFilePath, string master, string appName, 
 }
 
 void SunwayMRContext::startScheduler() {
-	logger.logInfo("SunwayMRContext: starting scheduler...");
+	Logging::logInfo("SunwayMRContext: starting scheduler...");
 	bool r = scheduler->start();
 	if (!r) {
-		logger.logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
+		Logging::logError("SunwayMRContext: failed to start scheduler, listen port may be in use.");
 		exit(102);
 	}
-	stringstream listenInfo;
-	listenInfo << "SunwayMRContext: starting scheduler succeeded, listening port["
-			<< scheduler->getListenPort()
-			<< "]";
-	logger.logInfo(listenInfo.str());
+	Logging::logInfo("SunwayMRContext: starting scheduler succeeded");
 }
 
 ParallelArray<int> SunwayMRContext::parallelize(int start, int end) {
@@ -121,13 +117,16 @@ template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> 
 template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> &iter, int numSlices) {
 	if (numSlices < 1)
 	{
-		logger.logError("ParallelArray: slice number should be positive integer!");
+		Logging::logError("SunwayMRContext: slice number should be positive integer!");
 		exit(104);
 	}
 	return ParallelArray<T>(*this, iter, numSlices);
 }
 
 template <class T> vector< TaskResult<T>* > SunwayMRContext::runTasks(vector< Task<T>* > &tasks) {
+	if (tasks.size() == 0) {
+		Logging::logError("SunwayMRContext: runTasks: tasks zero size");
+	}
 	return scheduler->runTasks(tasks);
 }
 

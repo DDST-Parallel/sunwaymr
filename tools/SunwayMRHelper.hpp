@@ -66,12 +66,12 @@ SunwayMRHelper::SunwayMRHelper(bool forUserApp) {
 	{
 		localAddr = getLocalHost();
 		if (localAddr == "") {
-			logger.logError("SunwayMRHelper: failed to obtain local IP address.");
+			Logging::logError("SunwayMRHelper: failed to obtain local IP address.");
 			exit(1);
 		} else {
 			stringstream ipinfo;
 			ipinfo << "SunwayMRHelper: local IP is " << localAddr;
-			logger.logInfo(ipinfo.str());
+			Logging::logInfo(ipinfo.str());
 		}
 
 		// find master in host resource file
@@ -84,7 +84,7 @@ SunwayMRHelper::SunwayMRHelper(bool forUserApp) {
 		if (!rd) {
 			stringstream error;
 			error << "SunwayMRHelper: unable to read host resource file: " << hostFilePath.str();
-			logger.logError(error.str());
+			Logging::logError(error.str());
 			exit(1);
 		}
 
@@ -111,18 +111,18 @@ void SunwayMRHelper::start(string masterAddr, int masterListenPort, int threads,
 	this->localAddr = getLocalHost();
 
 	if (localAddr == "") {
-		logger.logError("SunwayMRHelper: failed to obtain local IP address.");
+		Logging::logError("SunwayMRHelper: failed to obtain local IP address.");
 		exit(1);
 	} else {
 		stringstream ipinfo;
 		ipinfo << "SunwayMRHelper: local IP is " << localAddr;
-		logger.logInfo(ipinfo.str());
+		Logging::logInfo(ipinfo.str());
 	}
 
-	logger.logInfo("SunwayMRHelper: starting listening");
+	Logging::logInfo("SunwayMRHelper: starting listening");
 	listening = init();
 	if (!listening) {
-		logger.logError("SunwayMRHelper: failed to start listening.");
+		Logging::logError("SunwayMRHelper: failed to start listening.");
 		exit(1);
 	}
 }
@@ -140,7 +140,7 @@ void SunwayMRHelper::setLocalResouce(int threads, int memory) {
 	info << "SunwayMRHelper: set local resource: thread: "
 			<< threads << " memory: " << memory
 			<< " listenPort: " << listenPort;
-	logger.logInfo(info.str());
+	Logging::logInfo(info.str());
 
 	int v = 0;
 	struct thread_data *data = new thread_data (*this, ss.str().c_str(), v);
@@ -148,7 +148,7 @@ void SunwayMRHelper::setLocalResouce(int threads, int memory) {
 	pthread_cancel(sendResourceInfoThread);
 	int rc = pthread_create(&sendResourceInfoThread, NULL, sendHostResourceInfoToMasterRepeatedly, (void *)data);
 	if (rc){
-		logger.logError("SunwayMRHelper: SunwayMRHelper: failed to create thread to send host resource info.");
+		Logging::logError("SunwayMRHelper: SunwayMRHelper: failed to create thread to send host resource info.");
 		exit(1);
 	}
 }
@@ -157,7 +157,7 @@ void SunwayMRHelper::sendHostResourceInfoToMaster(string msg) {
 	stringstream ss;
 	ss << "SunwayMRHelper: send resource info to master: " << masterAddr << ":"
 			<< masterListenPort << ", message: " << msg;
-	logger.logDebug(ss.str());
+	Logging::logDebug(ss.str());
 	Messaging::sendMessage(masterAddr, masterListenPort, HOST_RESOURCE_INFO, msg);
 }
 
@@ -185,13 +185,13 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	if (!rd1) {
 		stringstream error1;
 		error1 << "SunwayMRHelper: unable to read file: " << filePath;
-		logger.logError(error1.str());
+		Logging::logError(error1.str());
 	}
 	bool rd2 = readFile(filePath2.str(), fileContent2);
 	if (!rd2) {
 		stringstream error2;
 		error2 << "SunwayMRHelper: unable to read file: " << filePath2.str();
-		logger.logError(error2.str());
+		Logging::logError(error2.str());
 	}
 
 
@@ -226,7 +226,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 				sendWithFailure = true;
 				stringstream err;
 				err << "SunwayMRHelper: failed to send file info[1] to host: " << host << ", " << port << "; info:" << fileInfo1.str();
-				logger.logError(err.str());
+				Logging::logError(err.str());
 			}
 			// send file info 2
 			sr = sendMessage(host, port, FILE_INFO, fileInfo2.str());
@@ -234,10 +234,10 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 				sendWithFailure = true;
 				stringstream err;
 				err << "SunwayMRHelper: failed to send file info[2] to host: " << host << ", " << port << "; info:" << fileInfo2.str();
-				logger.logError(err.str());
+				Logging::logError(err.str());
 			}
 
-			usleep(100);
+			usleep(1333); // TODO
 
 			// send file content 1
 			sr = sendMessage(host, port, fileUID1, fileContent1);
@@ -245,7 +245,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 				sendWithFailure = true;
 				stringstream err;
 				err << "SunwayMRHelper: failed to send file content[1] to host: " << host << ", " << port;
-				logger.logError(err.str());
+				Logging::logError(err.str());
 			}
 
 			// send file content 2
@@ -254,15 +254,15 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 				sendWithFailure = true;
 				stringstream err;
 				err << "SunwayMRHelper: failed to send file content[2] to host: " << host << ", " << port;
-				logger.logError(err.str());
+				Logging::logError(err.str());
 			}
 		}
 	}
 
 	if(sendWithFailure) exit(1);
 
-	logger.logInfo("SunwayMRHelper: sending files succeeded.");
-	logger.logInfo("SunwayMRHelper: starting...");
+	Logging::logInfo("SunwayMRHelper: sending files succeeded.");
+	Logging::logInfo("SunwayMRHelper: starting...");
 
 	string appExecutableName = splitString(appFileName, '.')[0];
 
@@ -270,7 +270,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	if (localMode) masterValue = localAddr;
 	stringstream masterInfo;
 	masterInfo << "SunwayMRHelper: master is on: " << masterValue;
-	logger.logInfo(masterInfo.str());
+	Logging::logInfo(masterInfo.str());
 
 	int appListenPort = randomValue(30001, 39999);
 
@@ -297,24 +297,26 @@ bool SunwayMRHelper::initListening(int port) {
 	int listenPort = port;
 	struct thread_data *data = new thread_data (*this, "", listenPort);
 	pthread_t thread;
+	pthread_mutex_init(&mutex_listen_status, NULL);
+	pthread_mutex_lock(&mutex_listen_status);
 	int rc = pthread_create(&thread, NULL, startHelperListening, (void *)data);
 	if (rc){
-		logger.logError("JobScheduler: failed to create thread to listen");
-	}
-	while(getListenStatus() == NA) {
-		pthread_yield();
+		Logging::logError("JobScheduler: failed to create thread to listen");
 	}
 
-	if(getListenStatus() == FAILURE) {
-		return false;
-	} else {
+	pthread_mutex_lock(&mutex_listen_status);
+	pthread_mutex_unlock(&mutex_listen_status);
+
+	if(getListenStatus() == SUCCESS) {
 		setLocalResouce(this->threads, this->memory);
 		void *status;
 		pthread_join(thread, &status); // always listen
 
-		cout << "[" << currentDateTime() << "] SunwayMRHelper: listen thread finished" << endl;
+		Logging::logInfo("SunwayMRHelper: listen thread finished");
 
 		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -322,7 +324,7 @@ bool SunwayMRHelper::init() {
 	bool ret = false;
 
 	if (localAddr == masterAddr) {
-		logger.logInfo("SunwayMRHelper: master is self");
+		Logging::logInfo("SunwayMRHelper: master is self");
 		listenPort = masterListenPort;
 		ret = initListening(listenPort);
 
@@ -350,7 +352,7 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 			<< ", message received from: " << fromHost
 			<< ", message type: " << msgType
 			<< ", message content: " << msg;
-	logger.logDebug(received.str());
+	Logging::logDebug(received.str());
 
 	switch(msgType) {
 	case HOST_RESOURCE_INFO:
@@ -384,7 +386,7 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 		if (ret == -1) {
 			stringstream error;
 			error << "SunwayMRHelper:: failed to execute shell: " << endl << msg.c_str() << endl;
-			logger.logError(error.str());
+			Logging::logError(error.str());
 		}
 		break;
 	}
@@ -400,9 +402,11 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 			if (!ret) {
 				stringstream error;
 				error << "SunwayMRHelper: unable to write file: " << sstr.str() << vs[2];
-				logger.	logError(error.str());
+				Logging::	logError(error.str());
 			}
 			fileInfoMap.erase(msgType);
+			Logging::logInfo("SunwayMRHelper: file received: "
+					+ sstr.str() + vs[2]);
 		}
 
 	}
@@ -435,7 +439,7 @@ void SunwayMRHelper::saveLocalHostFile() {
 	if (!ret) {
 		stringstream error;
 		error << "SunwayMRHelper: unable to write file: " << fileSaveDir << localHostFileName;
-		logger.logError(error.str());
+		Logging::logError(error.str());
 	}
 }
 
@@ -453,7 +457,7 @@ void SunwayMRHelper::saveAllHostsFile() {
 	if (!ret) {
 		stringstream error;
 		error << "SunwayMRHelper: unable to write file: " << fileSaveDir << allHostsFileName;
-		logger.logError(error.str());
+		Logging::logError(error.str());
 	}
 }
 
