@@ -17,7 +17,7 @@ You will need `gcc/g++` when using GNU `make`.
     make
 ```
 
-* Start SunwayMR resource manager on each node, while specifying  `master IP`  `master port`  `shared threads of node`  and  `shared memory of node`
+* Start SunwayMR resource manager on each node, while specifying `master IP`, `master port`, `shared threads of node`, `shared memory of node`
 
 ```bash
     ./sunwaymr -t 192.168.1.85 19113 4 1024
