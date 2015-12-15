@@ -237,7 +237,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 				Logging::logError(err.str());
 			}
 
-			usleep(1333); // TODO
+			usleep(100000); // TODO
 
 			// send file content 1
 			sr = sendMessage(host, port, fileUID1, fileContent1);
