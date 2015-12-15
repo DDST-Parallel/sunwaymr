@@ -7,8 +7,6 @@
 
 #include <iostream>
 #include "SunwayMRContext.hpp"
-#include "ParallelArray.hpp"
-#include "MappedRDD.hpp"
 using std::cout;
 using std::endl;
 
@@ -41,7 +39,7 @@ int main(int argc, char *argv[]) {
 	SunwayMRContext sc("SunwayMRPi", argc, argv);
 
 	long times = 100000000l;
-	int num = sc.parallelize(1l, times, 5).map(map_f).reduce(reduce_f);
+	int num = sc.parallelize(1l, times).map(map_f).reduce(reduce_f);
 	double ret = (4.0 * num / times);
 	cout << "Pi: " << ret << endl;
 

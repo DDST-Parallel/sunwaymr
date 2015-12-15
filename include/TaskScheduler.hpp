@@ -142,7 +142,7 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 	vector<int> launchedTask = vector<int>(taskNum);
 
 
-	int THREADS_NUM_MAX = 10; // 10 threads at most TODO configuration out of code
+	//int THREADS_NUM_MAX = 10; // 10 threads at most TODO configuration out of code
 
 	pthread_mutex_init(&mutex_allTaskResultsReceived, NULL);
 	pthread_mutex_lock(&mutex_allTaskResultsReceived);
@@ -154,22 +154,18 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 			continue;
 		}
 
-
-		while (runningThreadNum < THREADS_NUM_MAX
-				&& lanuchedTaskNum < runOnThisNodeTaskNum) {
+		while (lanuchedTaskNum < runOnThisNodeTaskNum) {
 			for (int i=0; i < taskNum; i++) {
 				if (taskOnIPVector[i]==selfIP && launchedTask[i]==0) { // pick non started task
-					pthread_t thread;
-					struct thread_data<T> *data = new thread_data<T> (*this, master,
-						listenPort, jobID, i, *tasks[i]);
-					int rc = pthread_create(&thread, NULL, runTask<T>, (void *)data);
-					if (rc){
-						Logging::logError("TaskScheduler: failed to create thread to run task");
-						exit(-1);
+					if (fork()==0) { // !!! keep thread safety !!! no stdio !!!
+						T& value = tasks[i]->run();
+						stringstream ss;
+						ss << jobID << " " << i << " " << tasks[i]->serialize(value);
+						sendMessage(master, listenPort, A_TASK_RESULT, ss.str());
+						exit(0);
+					} else {
+						lanuchedTaskNum ++;
 					}
-					startedThreads.push_back(thread);
-					lanuchedTaskNum ++;
-					increaseRunningThreadNum();
 				}
 			}
 		}

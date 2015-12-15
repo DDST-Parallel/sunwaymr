@@ -28,11 +28,13 @@ Messaging::~Messaging()
 
 bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg)
 {
+	// !!! logging removed since invoked in fork !!!
+
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (sockfd < 0)
 	{
-		Logging::logError("Messaging: sendMessage: failed to initialize socket");
+		//Logging::logError("Messaging: sendMessage: failed to initialize socket");
 		return false;
 	}
 
@@ -48,7 +50,7 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 	int conn = connect(sockfd, (struct sockaddr *)&address, len);
 	if (conn < 0)
 	{
-		Logging::logError("Messaging: sendMessage: connect fail!");
+		//Logging::logError("Messaging: sendMessage: connect fail!");
 		return false;
 	}
 
@@ -63,7 +65,7 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 	int byte = send(sockfd, ch, strlen(ch), 0);
 	if (byte < 0)
 	{
-		Logging::logError("Messaging: sendMessage: send fail!");
+		//Logging::logError("Messaging: sendMessage: send fail!");
 		return false;
 	}
 
