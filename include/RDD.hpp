@@ -11,6 +11,7 @@
 #include "IteratorSeq.hpp"
 #include "MappedRDD.hpp"
 #include "FlatMappedRDD.hpp"
+#include "PairRDD.hpp"
 #include "Partition.hpp"
 #include "SunwayMRContext.hpp"
 #include "Logging.hpp"
@@ -41,6 +42,13 @@ FlatMappedRDD<U, T> RDD<T>::flatMap(vector<U> (*f)(T))
 {
 	FlatMappedRDD<U, T> map_rdd(*this, f);
 	return map_rdd;
+}
+
+template <class T> template <class K, class V>
+PairRDD<K, V, T> RDD<T>::mapToPair(Pair<K, V> (*f)(T))
+{
+	PairRDD<K, V, T> pair_rdd(*this, f);
+	return pair_rdd;
 }
 
 template <class T>

@@ -36,6 +36,8 @@ public:
 	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> &iter);
 	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> &iter, int numSlices);
 
+	// TODO textFile
+
 	template <class T> vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 
 private:
