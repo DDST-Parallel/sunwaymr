@@ -10,6 +10,7 @@
 #include "TaskResult.hpp"
 #include "IteratorSeq.hpp"
 #include "MappedRDD.hpp"
+#include "FlatMappedRDD.hpp"
 #include "Partition.hpp"
 #include "SunwayMRContext.hpp"
 #include "Logging.hpp"
@@ -32,6 +33,13 @@ template <class T> template <class U>
 MappedRDD<U, T> RDD<T>::map(U (*f)(T))
 {
 	MappedRDD<U, T> map_rdd(*this, f);
+	return map_rdd;
+}
+
+template <class T> template <class U>
+FlatMappedRDD<U, T> RDD<T>::flatMap(vector<U> (*f)(T))
+{
+	FlatMappedRDD<U, T> map_rdd(*this, f);
 	return map_rdd;
 }
 

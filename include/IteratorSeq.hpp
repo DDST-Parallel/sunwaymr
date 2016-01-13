@@ -89,6 +89,29 @@ template <class T> template <class U> IteratorSeq<U> IteratorSeq<T>::map(U (*f)(
 	return IteratorSeq<U>(ret);
 }
 
+template <class T> template <class U> IteratorSeq<U> IteratorSeq<T>::flatMap(vector<U> (*f)(T)) {
+	// TODO map concurrently
+
+	vector<U> ret;
+
+	if (type == 0) {
+		for(int i = 0; i < size(); i++) {
+			T t = start + step * i;
+			vector<U> u = f(t);
+			ret.reserve(ret.size() + u.size());
+			ret.insert(ret.end(), u.begin(), u.end());
+		}
+	} else {
+		for(int i = 0; i < v.size(); i++) {
+			vector<U> u = f(v[i]);
+			ret.reserve(ret.size() + u.size());
+			ret.insert(ret.end(), u.begin(), u.end());
+		}
+	}
+
+	return IteratorSeq<U>(ret);
+}
+
 template <class T> vector<T>& IteratorSeq<T>::reduceLeft(T (*g)(T,T)) {
 	vector<T> *ret = new vector<T>;
 

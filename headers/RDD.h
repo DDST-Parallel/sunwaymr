@@ -13,6 +13,7 @@
 
 #include "IteratorSeq.h"
 #include "MappedRDD.h"
+#include "FlatMappedRDD.h"
 #include "Partition.h"
 #include "SunwayMRContext.h"
 using std::string;
@@ -20,6 +21,7 @@ using std::vector;
 
 
 template <class U, class T> class MappedRDD;
+template <class U, class T> class FlatMappedRDD;
 class SunwayMRContext;
 
 template <class T>
@@ -32,6 +34,7 @@ public:
 	virtual IteratorSeq<T> iteratorSeq(Partition &p)=0;
 
 	template <class U> MappedRDD<U, T> map(U (*f)(T));
+	template <class U> FlatMappedRDD<U, T> flatMap(vector<U> (*f)(T));
 	T reduce(T (*g)(T, T));
 
 	SunwayMRContext &context;
