@@ -41,6 +41,9 @@ public:
 	T reduce(T (*g)(T, T));
 
 	// TODO distinct collect
+	//RDD<T> distinct(int newNumSlices);
+	//RDD<T> distinct(); // by default, newNumSlices = partitions.size()
+	//vector<T> collect();
 
 	SunwayMRContext &context;
 	vector<Partition*> partitions;

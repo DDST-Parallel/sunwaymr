@@ -12,12 +12,14 @@
 
 #include "IteratorSeq.h"
 #include "ParallelArray.h"
+#include "TextFileRDD.h"
 #include "JobScheduler.h"
 #include "Task.h"
 #include "TaskResult.h"
 using std::string;
 
 template <class T> class ParallelArray;
+class TextFileRDD;
 
 
 class SunwayMRContext {
@@ -37,6 +39,8 @@ public:
 	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> &iter, int numSlices);
 
 	// TODO textFile
+	//TextFileRDD textFile(string path);
+	//TextFileRDD textFile(string path, int numSlices);
 
 	template <class T> vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 
