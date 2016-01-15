@@ -8,8 +8,22 @@
 #ifndef HEADERS_TEXTFILEPARTITION_H_
 #define HEADERS_TEXTFILEPARTITION_H_
 
-// TODO
-// IteratorSeq<T> iteratorSeq(); // will retrieve file data on invocation
+#include <vector>
+
+#include "IteratorSeq.h"
+#include "Partition.h"
+#include "TextFileBlock.h"
+using std::vector;
+
+class TextFilePartition: public Partition {
+public:
+	TextFilePartition(long rddID, int partitionID, IteratorSeq<TextFileBlock> &values);
+	IteratorSeq<TextFileBlock> iteratorSeq();
+
+	long rddID;
+	int partitionID;
+	IteratorSeq<TextFileBlock> &values;
+};
 
 
 #endif /* HEADERS_TEXTFILEPARTITION_H_ */

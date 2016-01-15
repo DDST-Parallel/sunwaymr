@@ -47,6 +47,7 @@ public:
 
 	SunwayMRContext &context;
 	vector<Partition*> partitions;
+	static long current_id;
 };
 
 

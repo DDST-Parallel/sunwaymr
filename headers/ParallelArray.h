@@ -34,7 +34,8 @@ public:
 	IteratorSeq<T> &seq;
 	int numSlices;
 	long parallelArray_id; 
-	static long current_id;
+
+//	static long current_id; // moved to RDD
 };
 
 

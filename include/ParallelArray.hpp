@@ -15,7 +15,7 @@
 #include "ParallelArrayPartition.hpp"
 using namespace std;
 
-template <class T> long ParallelArray<T>::current_id = 1;
+//template <class T> long ParallelArray<T>::current_id = 1; // moved to RDD
 
 template <class T>
 ParallelArray<T>::ParallelArray(SunwayMRContext &c, IteratorSeq<T> &seq, int numSlices)
@@ -23,7 +23,7 @@ ParallelArray<T>::ParallelArray(SunwayMRContext &c, IteratorSeq<T> &seq, int num
 {
 //	this->logInfo("ParallelArray: creating partitions...");
 
-	parallelArray_id = current_id++;
+	parallelArray_id = RDD<T>::current_id++;
 	// get partitions
 	vector<Partition*> partitions;
 

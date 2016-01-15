@@ -123,6 +123,15 @@ template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> 
 	return ParallelArray<T>(*this, iter, numSlices);
 }
 
+// textFile
+TextFileRDD SunwayMRContext::textFile(string path, string source) {
+	return textFile(path, source, scheduler->totalThreads());
+}
+
+TextFileRDD SunwayMRContext::textFile(string path, string source, int numSlices) {
+	return TextFileRDD(path, source, numSlices);
+}
+
 template <class T> vector< TaskResult<T>* > SunwayMRContext::runTasks(vector< Task<T>* > &tasks) {
 	if (tasks.size() == 0) {
 		Logging::logError("SunwayMRContext: runTasks: tasks zero size");

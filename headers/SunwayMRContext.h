@@ -29,6 +29,7 @@ public:
 	SunwayMRContext(string hostsFilePath, string master, string appName, int listenPort);
 	void init(string hostsFilePath, string master, string appName, int listenPort);
 
+	// parallelize
 	ParallelArray<int> parallelize(int start, int end);
 	ParallelArray<int> parallelize(int start, int end, int numSlices);
 	ParallelArray<long> parallelize(long start, long end);
@@ -38,9 +39,9 @@ public:
 	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> &iter);
 	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> &iter, int numSlices);
 
-	// TODO textFile
-	//TextFileRDD textFile(string path);
-	//TextFileRDD textFile(string path, int numSlices);
+	// textFile
+	TextFileRDD textFile(string path, string source);
+	TextFileRDD textFile(string path, string source, int numSlices);
 
 	template <class T> vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 

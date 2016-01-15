@@ -17,6 +17,8 @@
 #include "Logging.hpp"
 using namespace std;
 
+template <class T> long RDD<T>::current_id = 1;
+
 template <class T>
 RDD<T>::RDD(SunwayMRContext &c)
 : context(c)
