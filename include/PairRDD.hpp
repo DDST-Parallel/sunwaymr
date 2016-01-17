@@ -43,7 +43,13 @@ IteratorSeq< Pair<K, V> >  PairRDD<K, V, T>::iteratorSeq(Partition &p)
 	return seq1.map(mapToPairFunction);
 }
 
-
+template <class K, class V, class T>
+template <class U>
+PairRDD<K, U, T> PairRDD<K, V, T>::mapValues(Pair<K, U> (*f)(Pair<K, V>))
+{
+	PairRDD<K, U, T> pair_rdd(*this, f);
+	return pair_rdd;
+}
 #endif /* PIARRDD_HPP_ */
 
 

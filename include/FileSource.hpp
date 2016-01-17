@@ -10,7 +10,7 @@
 
 #include "FileSource.h"
 
-#include <stringstream>
+#include <sstream>
 #include "Utils.hpp"
 using std::stringstream;
 

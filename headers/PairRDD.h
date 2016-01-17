@@ -29,7 +29,8 @@ public:
 	IteratorSeq< Pair<K, V> > iteratorSeq(Partition &p);
 
 	// TODO join reduceByKey groupByKey mapValues
-
+	template <class U>
+	PairRDD<K, U, T> mapValues(Pair<K, U> (*f)(Pair<K, V>));
 
 private:
 	RDD<T> &prevRDD;
