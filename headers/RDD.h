@@ -43,7 +43,7 @@ public:
 	// TODO distinct collect
 	//RDD<T> distinct(int newNumSlices);
 	//RDD<T> distinct(); // by default, newNumSlices = partitions.size()
-	//vector<T> collect();
+	vector<T>& collect();
 
 	SunwayMRContext &context;
 	vector<Partition*> partitions;

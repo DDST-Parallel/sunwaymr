@@ -15,6 +15,7 @@
 #include "Partition.hpp"
 #include "SunwayMRContext.hpp"
 #include "Logging.hpp"
+#include "CollectTask.hpp"
 using namespace std;
 
 template <class T> long RDD<T>::current_id = 1;
@@ -87,5 +88,30 @@ T RDD<T>::reduce(T (*g)(T, T))
 	return it.reduceLeft(g)[0];
 }
 
+template <class T>
+vector<T>& RDD<T>::collect()
+{
+	vector<T> *ret = new vector<T>;
+	// construct tasks
+	vector< Task< vector<T> >* > tasks;
+	vector<Partition*> pars = this->getPartitions();
+	for(int i=0; i<pars.size(); i++)
+	{
+		Task< vector<T> > *task = new CollectTask<T>(*this, *(pars[i]));
+		tasks.push_back(task);
+	}
+
+	// run tasks via context
+	vector< TaskResult< vector<T> >* > results = this->context.runTasks(tasks);
+	//get results
+	for(int i=0; i<results.size(); i++)
+	{
+		for(int j=0; j<(results[i]->value).size(); j++)
+		{
+			ret->push_back((results[i]->value)[j]);
+		}
+	}
+	return *ret;
+}
 
 #endif /* RDD_HPP_ */
