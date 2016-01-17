@@ -74,6 +74,77 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 	return true;
 }
 
+string readSocket(int socketfd) {
+	int MAX_MESSAGE_SIZE = 1024 * 1024 * 100; // TODO configuration out of code
+	int BUFFER_SIZE = 1024 * 1024; // TODO configuration out of code
+
+	char buffer[BUFFER_SIZE];
+	int total = 0;
+	stringstream msgStream;
+	memset(buffer, 0, BUFFER_SIZE);
+	int received = read(socketfd, buffer, BUFFER_SIZE);
+	while (total < MAX_MESSAGE_SIZE && received > 0) {
+		total += received;
+		msgStream << buffer;
+
+		memset(buffer, 0, BUFFER_SIZE);
+		received = read(socketfd, buffer, BUFFER_SIZE);
+	}
+
+	return msgStream.str();
+}
+
+bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, string msg, string &reply)
+{
+	// !!! logging removed since invoked in fork !!!
+
+	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if (sockfd < 0)
+	{
+		//Logging::logError("Messaging: sendMessage: failed to initialize socket");
+		return false;
+	}
+
+	struct sockaddr_in address;
+	bzero(&address, sizeof(address));
+	address.sin_family = AF_INET;
+	address.sin_port = htons(targetPort);  // set port no.
+
+	inet_pton(AF_INET, addr.c_str(), &address.sin_addr);  // translate IP Address
+	int len = sizeof(address);
+
+	// connect
+	int conn = connect(sockfd, (struct sockaddr *)&address, len);
+	if (conn < 0)
+	{
+		//Logging::logError("Messaging: sendMessage: connect fail!");
+		return false;
+	}
+
+	// reorganize packet
+	string send_data = "";
+	stringstream stream;
+	stream << msgType;
+	send_data += stream.str() + "$" + msg;
+
+	// send data
+	const char* ch = send_data.c_str();
+	int byte = send(sockfd, ch, strlen(ch), 0);
+	if (byte < 0)
+	{
+		//Logging::logError("Messaging: sendMessage: send fail!");
+		return false;
+	}
+
+	// read replied data
+	reply = readSocket(sockfd);
+
+	// release socket
+	close(sockfd);
+	return true;
+}
+
 void Messaging::listenMessage(int listenPort)
 {
 	listenStatus = NA;
@@ -127,23 +198,8 @@ void Messaging::listenMessage(int listenPort)
 
 		string ip = inet_ntoa(client_address.sin_addr);
 
-		int MAX_MESSAGE_SIZE = 1024 * 1024 * 100; // TODO configuration out of code
-		int BUFFER_SIZE = 1024 * 1024; // TODO configuration out of code
+		string msg = readSocket(client_sockfd);
 
-		char buffer[BUFFER_SIZE];
-		int total = 0;
-		stringstream msgStream;
-		memset(buffer, 0, BUFFER_SIZE);
-		int received = read(client_sockfd, buffer, BUFFER_SIZE);
-		while (total < MAX_MESSAGE_SIZE && received > 0) {
-			total += received;
-			msgStream << buffer;
-
-			memset(buffer, 0, BUFFER_SIZE);
-			received = read(client_sockfd, buffer, BUFFER_SIZE);
-		}
-
-		string msg = msgStream.str();
 		string::size_type pos;
 		pos=msg.find('$', 0);
 		if (pos !=  string::npos) {
@@ -152,16 +208,18 @@ void Messaging::listenMessage(int listenPort)
 			string content=msg.substr(pos+1);
 
 			// thread data encapsulation
-			struct ThreadData *td = new ThreadData(*this, listenPort, ip, type, content);
+			struct ThreadData *td = new ThreadData(*this, listenPort, ip, type, content, client_sockfd);
 
 			// create a thread
 			pthread_t worker;
 			if (pthread_create(&worker, NULL, messageHandler, (void *)td) != 0) {
 				Logging::logError("Messaging: failed to create new thread while listening");
+				close(client_sockfd);
 			}
+		} else {
+			close(client_sockfd);
 		}
 
-		close(client_sockfd);
 	}
 
 }
@@ -175,8 +233,27 @@ void* messageHandler(void *data)
 {
 	// parse data
 	struct ThreadData *td = (struct ThreadData *)data;
-	Messaging &m = td->mess;
-	m.messageReceived(td->local_port, td->ip, td->msgType, td->msgContent);
+	if(td->msgType == FILE_BLOCK_REQUEST) { // reply file block
+		vector<string> vs = splitString(td->msgContent, '|');
+		if(vs.size() == 3) {
+			string ret;
+			string path = vs[0];
+			int offset = atoi(vs[1].c_str());
+			int length = atoi(vs[2].c_str());
+
+			readFile(path, offset, length, ret);
+			int byte = send(td->client_sockfd, ret.c_str(), ret.length(), 0);
+			if (byte < 0) {
+				// send failed
+			}
+		}
+		close(td->client_sockfd);
+	} else {
+		close(td->client_sockfd); // close socket
+
+		Messaging &m = td->mess;
+		m.messageReceived(td->local_port, td->ip, td->msgType, td->msgContent);
+	}
 
 	pthread_exit(NULL);
 }

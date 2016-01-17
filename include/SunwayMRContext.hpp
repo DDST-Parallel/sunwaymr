@@ -136,6 +136,11 @@ TextFileRDD SunwayMRContext::textFile(vector<FileSource> files) {
 }
 
 TextFileRDD SunwayMRContext::textFile(vector<FileSource> files, int numSlices) {
+	if (numSlices < 1)
+	{
+		Logging::logError("SunwayMRContext: slice number should be positive integer!");
+		exit(104);
+	}
 	return TextFileRDD(*this, files, numSlices);
 }
 

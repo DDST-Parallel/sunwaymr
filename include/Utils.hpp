@@ -281,12 +281,41 @@ bool writeFile(string dir, string fileName, string content) {
 	}
 }
 
-bool readFile(string path,  string &content) {
+bool readFile(string path, string &content) {
 	std::ifstream file(path.c_str(), std::ifstream::in);
 	if (file.is_open()) {
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		content = buffer.str();
+		file.close();
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool readFile(string path, int offset, int length, string &content) {
+	std::ifstream file(path.c_str(), std::ifstream::in);
+	if (file.is_open()) {
+		char *buffer = new char [length];
+		file.seekg(offset);
+		file.read (buffer,length);
+
+		std::stringstream ss;
+		ss << buffer;
+		content = ss.str();
+
+		file.close();
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool getFileLength(string path,  long &size) {
+	std::ifstream file(path.c_str(), std::ifstream::ate | std::ifstream::binary);
+	if (file.is_open()) {
+		size = file.tellg();
 		file.close();
 		return true;
 	} else {

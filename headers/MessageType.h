@@ -13,7 +13,8 @@ enum MessageType {
 	FILE_INFO, // appUID fileUID fileName
 	SHELL_COMMAND, // command
 	A_TASK_RESULT, // jobID taskID valueString
-	TASK_RESULT_LIST // jobID taskID1 valueString1,jobID taskID2 valueString2,jobID taskID3 valueString3
+	TASK_RESULT_LIST, // jobID taskID1 valueString1,jobID taskID2 valueString2,jobID taskID3 valueString3
+	FILE_BLOCK_REQUEST // path|offset|length
 };
 
 #endif /* MESSAGETYPE_H_ */

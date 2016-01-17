@@ -27,9 +27,12 @@ struct ThreadData {
 	string ip;
 	int msgType;
 	string msgContent;
+	int client_sockfd;
 
-	ThreadData(Messaging &mess, int port, string ip, int msgType, string msgContent)
-	: mess(mess), local_port(port), ip(ip), msgType(msgType), msgContent(msgContent) { }
+	ThreadData(Messaging &mess, int port, string ip,
+			int msgType, string msgContent, int client_sockfd)
+	: mess(mess), local_port(port), ip(ip), msgType(msgType),
+	  msgContent(msgContent), client_sockfd(client_sockfd) { }
 };
 
 void* messageHandler(void *fd);
@@ -42,6 +45,8 @@ public:
 	 send message in a new thread.
 	*/
 	bool sendMessage(string addr, int targetPort, int msgType, string msg);
+
+	bool sendMessageForReply(string addr, int targetPort, int msgType, string msg, string &reply);
 
 	/*
 	 listen a port.
