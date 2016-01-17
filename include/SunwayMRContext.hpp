@@ -16,14 +16,18 @@
 #include "IteratorSeq.hpp"
 #include "JobScheduler.hpp"
 #include "Logging.hpp"
+#include "AllNodesRDD.hpp"
 #include "ParallelArray.hpp"
+#include "TextFileRDD.hpp"
 #include "Task.hpp"
 #include "TaskResult.hpp"
+#include "FileSource.hpp"
 
 SunwayMRContext::SunwayMRContext() {
 	hostsFilePath = "";
 	master = "";
 	listenPort = 0;
+	hosts = vector<string>;
 	scheduler = new JobScheduler();
 }
 
@@ -38,6 +42,7 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 		hostsFilePath = string(argv[1]);
 		master = string(argv[2]);
 		listenPort = atoi(argv[3]);
+		hosts = vector<string>;
 
 		scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
 		startScheduler();
@@ -49,6 +54,7 @@ SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string app
 : hostsFilePath(hostsFilePath), master(master), appName(appName),
   listenPort(listenPort) {
 
+	hosts = vector<string>;
 	scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
 	startScheduler();
 
@@ -60,6 +66,7 @@ void SunwayMRContext::init(string hostsFilePath, string master, string appName, 
 	this->appName = appName;
 	this->listenPort = listenPort;
 
+	this->hosts = vector<string>;
 	scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
 	startScheduler();
 
@@ -124,12 +131,17 @@ template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> 
 }
 
 // textFile
-TextFileRDD SunwayMRContext::textFile(string path, string source) {
-	return textFile(path, source, scheduler->totalThreads());
+TextFileRDD SunwayMRContext::textFile(vector<FileSource> files) {
+	return textFile(files, scheduler->totalThreads());
 }
 
-TextFileRDD SunwayMRContext::textFile(string path, string source, int numSlices) {
-	return TextFileRDD(path, source, numSlices);
+TextFileRDD SunwayMRContext::textFile(vector<FileSource> files, int numSlices) {
+	return TextFileRDD(*this, files, numSlices);
+}
+
+// allNodes
+AllNodesRDD SunwayMRContext::allNodes(IteratorSeq<void *> seq) {
+	return AllNodesRDD(*this, seq);
 }
 
 template <class T> vector< TaskResult<T>* > SunwayMRContext::runTasks(vector< Task<T>* > &tasks) {
@@ -139,6 +151,9 @@ template <class T> vector< TaskResult<T>* > SunwayMRContext::runTasks(vector< Ta
 	return scheduler->runTasks(tasks);
 }
 
-
+vector<string> SunwayMRContext::getHosts() {
+	if (hosts.size() > 0) return hosts;
+	return scheduler->IPVector;
+}
 
 #endif /* SUNWAYMRCONTEXT_HPP_ */

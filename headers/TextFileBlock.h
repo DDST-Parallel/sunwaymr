@@ -8,13 +8,20 @@
 #ifndef HEADERS_TEXTFILEBLOCK_H_
 #define HEADERS_TEXTFILEBLOCK_H_
 
+#include <string>
+#include "FileSource.h"
+using std::string;
+
+
 class TextFileBlock {
 public:
-	TextFileBlock(string path, string source, int offset, int length);
+	TextFileBlock(FileSource file, string location, int offset, int length);
 	string blockData(); // retrieve file data
 
-	string path, source;
+	FileSource file;
+	string location;
 	int offset, length;
+
 
 };
 

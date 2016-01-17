@@ -20,10 +20,12 @@
 #include "SunwayMRContext.hpp"
 #include "TextFilePartition.hpp"
 #include "TextFileBlock.hpp"
+#include "FileSource.hpp"
+#include "AllNodesRDD.hpp"
 using namespace std;
 
-TextFileRDD::TextFileRDD(SunwayMRContext &c, string path, string source, int numSlices)
-: RDD<TextFileBlock>::RDD (c), path(path), source(source), numSlices(numSlices) {
+TextFileRDD::TextFileRDD(SunwayMRContext &c, vector<FileSource> files, int numSlices)
+: RDD<TextFileBlock>::RDD (c), files(files), numSlices(numSlices) {
 	textFileRDD_id = RDD<TextFileBlock>::current_id++;
 
 	// calculate partitions
@@ -50,10 +52,8 @@ vector<Partition*> TextFileRDD::getPartitions() {
 }
 
 vector<string> TextFileRDD::preferredLocations(Partition &p) {
-	vector<string> ret;
-	// TODO
-
-	return ret;
+	TextFilePartition &partition = dynamic_cast<TextFilePartition&>(p);
+	return partition.blockLocations;
 }
 
 IteratorSeq<TextFileBlock> TextFileRDD::iteratorSeq(Partition &p) {

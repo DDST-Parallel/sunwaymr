@@ -9,11 +9,13 @@
 #define HEADERS_TEXTFILEPARTITION_H_
 
 #include <vector>
+#include <string>
 
 #include "IteratorSeq.h"
 #include "Partition.h"
 #include "TextFileBlock.h"
 using std::vector;
+using std::string;
 
 class TextFilePartition: public Partition {
 public:
@@ -23,6 +25,7 @@ public:
 	long rddID;
 	int partitionID;
 	IteratorSeq<TextFileBlock> &values;
+	vector<string> blockLocations;
 };
 
 

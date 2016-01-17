@@ -16,6 +16,7 @@
 #include "SunwayMRContext.h"
 #include "TextFilePartition.h"
 #include "TextFileBlock.h"
+#include "FileSource.h"
 using std::vector;
 using std::string;
 
@@ -23,14 +24,14 @@ template <class T> class RDD;
 class SunwayMRContext;
 
 class TextFileRDD : public RDD<string> {
-	TextFileRDD(SunwayMRContext &c, string path, string source, int numSlices);
+	TextFileRDD(SunwayMRContext &c, vector<FileSource> files, int numSlices);
 	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq<TextFileBlock> iteratorSeq(Partition &p);
 	vector< IteratorSeq<TextFileBlock>* > slice();
 	//data
 	IteratorSeq<TextFileBlock> &seq;
-	string path, source;
+	vector<FileSource> files;
 	int numSlices;
 	long textFileRDD_id;
 

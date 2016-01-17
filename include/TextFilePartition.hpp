@@ -20,6 +20,10 @@ using namespace std;
 TextFilePartition::TextFilePartition(long _rddID, int _partitionID, IteratorSeq<TextFileBlock> &_values)
 : rddID(_rddID), partitionID(_partitionID), values(_values)
 {
+	for(unsigned int i=0; i<values.size(); i++) {
+		TextFileBlock block = values[i];
+		blockLocations.push_back(block.location);
+	}
 }
 
 IteratorSeq<TextFileBlock> TextFilePartition::iteratorSeq()

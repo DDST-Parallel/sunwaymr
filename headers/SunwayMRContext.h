@@ -11,11 +11,13 @@
 #include <string>
 
 #include "IteratorSeq.h"
+#include "AllNodesRDD.h"
 #include "ParallelArray.h"
 #include "TextFileRDD.h"
 #include "JobScheduler.h"
 #include "Task.h"
 #include "TaskResult.h"
+#include "FileSource.h"
 using std::string;
 
 template <class T> class ParallelArray;
@@ -40,16 +42,22 @@ public:
 	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> &iter, int numSlices);
 
 	// textFile
-	TextFileRDD textFile(string path, string source);
-	TextFileRDD textFile(string path, string source, int numSlices);
+	TextFileRDD textFile(vector<FileSource> files);
+	TextFileRDD textFile(vector<FileSource> files, int numSlices);
+
+	// allNodes
+	AllNodesRDD allNodes(IteratorSeq<void *> seq); // all partitions will have the save seq
 
 	template <class T> vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
+
+	vector<string> getHosts();
 
 private:
 	JobScheduler *scheduler;
 
 	string hostsFilePath, master, appName;
 	int listenPort;
+	vector<string> hosts;
 
 	void startScheduler();
 };
