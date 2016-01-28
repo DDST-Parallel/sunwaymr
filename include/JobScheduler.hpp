@@ -133,6 +133,10 @@ int JobScheduler::totalThreads(){
 	return totalThreadNum;
 }
 
+vector<string> JobScheduler::getHosts() {
+	return IPVector;
+}
+
 
 template <class T>
 vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){

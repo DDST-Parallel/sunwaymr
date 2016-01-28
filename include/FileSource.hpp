@@ -29,7 +29,7 @@ FileSource::FileSource(string source, string path)
 	location = " ";
 }
 
-FileSource::FileSource(FileSource &f)
+FileSource::FileSource(const FileSource &f)
 : source(f.source), path(f.path) {
 	length = 0;
 	listenPort = 0;

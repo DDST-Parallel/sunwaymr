@@ -17,8 +17,9 @@ int MAX_TEXT_FILE_BLOCK_SIZE = 3 * 1024 * 1024; // TODO configuration out of cod
 
 class TextFileBlock : public Messaging {
 public:
+	TextFileBlock();
 	TextFileBlock(FileSource file, string location, int offset, int length);
-	TextFileBlock(TextFileBlock &tfb);
+	TextFileBlock(const TextFileBlock &tfb);
 	virtual void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
 	string blockData(); // retrieve file data
 

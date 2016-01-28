@@ -50,6 +50,8 @@ public:
 
 	template <class T> vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 
+	string getMaster();
+	int getListenPort();
 	vector<string> getHosts();
 
 private:

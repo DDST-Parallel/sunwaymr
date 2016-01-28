@@ -23,14 +23,16 @@ using std::string;
 template <class T> class RDD;
 class SunwayMRContext;
 
-class TextFileRDD : public RDD<string> {
+class TextFileRDD : public RDD<TextFileBlock> {
+public:
 	TextFileRDD(SunwayMRContext &c, vector<FileSource> files, int numSlices);
 	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq<TextFileBlock> iteratorSeq(Partition &p);
 	vector< IteratorSeq<TextFileBlock>* > slice();
+
 	//data
-	IteratorSeq<TextFileBlock> &seq;
+	//IteratorSeq<TextFileBlock> &seq;
 	vector<FileSource> files;
 	int numSlices;
 	long textFileRDD_id;

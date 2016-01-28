@@ -23,8 +23,8 @@ TextFilePartition::TextFilePartition(long _rddID, int _partitionID, IteratorSeq<
 {
 	// map block locations
 	map<string, int> locationMap;
-	for(unsigned int i=0; i<values.size(); i++) {
-		TextFileBlock block = values[i];
+	for(int i=0; i<values.size(); i++) {
+		TextFileBlock block = values.at(i);
 		if(locationMap.find(block.location) != locationMap.end()) {
 			locationMap[block.location] = locationMap[block.location] + 1;
 		} else {

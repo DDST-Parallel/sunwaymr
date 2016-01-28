@@ -33,12 +33,12 @@ TextFileRDD::TextFileRDD(SunwayMRContext &c, vector<FileSource> files, int numSl
 	vector<Partition*> partitions;
 	vector< IteratorSeq<TextFileBlock>* > slices = slice();
 
-	if(slices.size() == 0) {
+	if(slices.size() < 1) {
 		exit(104);
 	}
 
 	//construct partitions
-	for (int i = 0; i < slices.size(); i++)
+	for (unsigned int i = 0; i < slices.size(); i++)
 	{
 		Partition* partition = new TextFilePartition(textFileRDD_id, i, *slices[i]);
 		partitions.push_back(partition);
@@ -90,10 +90,10 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 	for(unsigned int i=0; i<files.size(); i++) {
 		seq.push_back(&files[i]);
 	}
-	master_ip = RDD<TextFileBlock>::context.master;
-	scheduler_listen_port = RDD<TextFileBlock>::context.listenPort;
+	master_ip = RDD<TextFileBlock>::context.getMaster();
+	scheduler_listen_port = RDD<TextFileBlock>::context.getListenPort();
 	// collect all file sizes
-	vector<FileSource> fileSources = RDD<TextFileBlock>::context.allNodes(seq).map(getFileSize)).collect();
+	vector<FileSource> fileSources = RDD<TextFileBlock>::context.allNodes(seq).map(getFileSize).collect();
 
 	long total_length = 0;
 	for(unsigned int i=0; i<fileSources.size(); i++) {
@@ -108,8 +108,7 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 		if (b == 0) b = 1;
 		else if (b > MAX_TEXT_FILE_BLOCK_SIZE) b = MAX_TEXT_FILE_BLOCK_SIZE;
 
-		int allBlocksCountApprox = total_length / b + 1 + fileSources.size();
-		int partitionBlocksCountApprox = allBlocksCountApprox / numSlices + 1;
+		int allBlocksCount = 0;
 
 		// get all blocks
 		vector< vector<TextFileBlock> > allBlocks;
@@ -133,14 +132,78 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 					}
 				}
 				allBlocks.push_back(fileBlocks);
+				allBlocksCount += fileBlocks.size();
 			}
 		}
 
-		// TODO
 		// slice blocks
+		unsigned int partitionBlocksCount = allBlocksCount / numSlices;
+		unsigned int partitionBlocksCountMax = partitionBlocksCount;
+		if (partitionBlocksCount == 0) partitionBlocksCount = 1;
+		else if (allBlocksCount % numSlices > 0) partitionBlocksCountMax++;
 
+		// 1. remove extra
+		for (unsigned int i=numSlices; i<allBlocks.size(); i++) {
+			unsigned int smallest = INT32_MAX, smallestIndex = 0;
+			for (int j=0; j<numSlices; j++) {
+				if (allBlocks[j].size() < smallest) {
+					smallest = allBlocks[j].size();
+					smallestIndex = j;
+				}
+			}
 
+			allBlocks[i].insert(allBlocks[i].end(),
+					allBlocks[smallestIndex].begin(),
+					allBlocks[smallestIndex].end());
+		}
+		allBlocks.erase(allBlocks.begin()+numSlices, allBlocks.end());
 
+		// 2. add to numSlices
+		if(allBlocks.size() < (unsigned)numSlices) {
+			for (unsigned int i=0; i<numSlices-allBlocks.size(); i++) {
+				vector<TextFileBlock> emptyFileBlocks;
+				allBlocks.push_back(emptyFileBlocks);
+			}
+		}
+
+		// 3. balancing
+		while (true) {
+			unsigned int smallest = INT32_MAX, smallestIndex = 0, biggest = 0, biggestIndex = 0;
+			for (int j=0; j<numSlices; j++) {
+				if (allBlocks[j].size() < smallest) {
+					smallest = allBlocks[j].size();
+					smallestIndex = j;
+				}
+
+				if (allBlocks[j].size() > biggest) {
+					biggest = allBlocks[j].size();
+					biggestIndex = j;
+				}
+			}
+
+			if (biggest <= partitionBlocksCountMax
+					|| smallestIndex==biggestIndex
+					|| biggest - smallest <= 1) {
+				break;
+			} else {
+				// move blocks
+				int a = biggest - partitionBlocksCountMax;
+				int b = partitionBlocksCountMax -smallest;
+				int c = a < b ? a : b;
+				allBlocks[smallestIndex].insert(allBlocks[smallestIndex].end(),
+						allBlocks[biggestIndex].end()-c,
+						allBlocks[biggestIndex].end());
+				allBlocks[biggestIndex].erase(allBlocks[biggestIndex].end()-c,
+						allBlocks[biggestIndex].end());
+
+			}
+		}
+
+		// done
+		for (unsigned int i=0; i<allBlocks.size(); i++) {
+			IteratorSeq<TextFileBlock> *it = new IteratorSeq<TextFileBlock>(allBlocks[i]);
+			ret.push_back(it);
+		}
 
 	} else {
 		Logging::logWarning("TextFileRDD: total file length is 0.");

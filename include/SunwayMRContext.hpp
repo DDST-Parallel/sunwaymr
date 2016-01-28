@@ -27,7 +27,7 @@ SunwayMRContext::SunwayMRContext() {
 	hostsFilePath = "";
 	master = "";
 	listenPort = 0;
-	hosts = vector<string>;
+	hosts = vector<string>();
 	scheduler = new JobScheduler();
 }
 
@@ -42,7 +42,7 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 		hostsFilePath = string(argv[1]);
 		master = string(argv[2]);
 		listenPort = atoi(argv[3]);
-		hosts = vector<string>;
+		hosts = vector<string>();
 
 		scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
 		startScheduler();
@@ -54,7 +54,7 @@ SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string app
 : hostsFilePath(hostsFilePath), master(master), appName(appName),
   listenPort(listenPort) {
 
-	hosts = vector<string>;
+	hosts = vector<string>();
 	scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
 	startScheduler();
 
@@ -66,7 +66,7 @@ void SunwayMRContext::init(string hostsFilePath, string master, string appName, 
 	this->appName = appName;
 	this->listenPort = listenPort;
 
-	this->hosts = vector<string>;
+	this->hosts = vector<string>();
 	scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
 	startScheduler();
 
@@ -156,9 +156,17 @@ template <class T> vector< TaskResult<T>* > SunwayMRContext::runTasks(vector< Ta
 	return scheduler->runTasks(tasks);
 }
 
+string SunwayMRContext::getMaster() {
+	return master;
+}
+
+int SunwayMRContext::getListenPort() {
+	return listenPort;
+}
+
 vector<string> SunwayMRContext::getHosts() {
 	if (hosts.size() > 0) return hosts;
-	return scheduler->IPVector;
+	return scheduler->getHosts();
 }
 
 #endif /* SUNWAYMRCONTEXT_HPP_ */

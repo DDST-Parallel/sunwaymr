@@ -18,7 +18,7 @@ class FileSource {
 public:
 	FileSource();
 	FileSource(string source, string path); // source: */[IP]/[DFS server]
-	FileSource(FileSource &f);
+	FileSource(const FileSource &f);
 	string serialize(char delim);
 	void deserialize(string s, char delim);
 	friend ostream& operator<< (ostream &out, FileSource &fs);

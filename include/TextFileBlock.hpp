@@ -14,12 +14,17 @@
 #include "Messaging.hpp"
 #include "Utils.hpp"
 
+TextFileBlock::TextFileBlock()
+: file(FileSource()), location(""), offset(0), length(0){
+
+}
+
 TextFileBlock::TextFileBlock(FileSource file, string location, int offset, int length)
 : file(file), location(location), offset(offset), length(length){
 
 }
 
-TextFileBlock::TextFileBlock(TextFileBlock &tfb)
+TextFileBlock::TextFileBlock(const TextFileBlock &tfb)
 : file(tfb.file), location(tfb.location), offset(tfb.offset), length(tfb.length){
 
 }
@@ -30,6 +35,8 @@ void TextFileBlock::messageReceived(int localListenPort, string fromHost, int ms
 
 string TextFileBlock::blockData() {
 	// retrieve data
+	// TODO check local file system
+
 	string ret;
 	if (file.source == "[DFS server]") {
 		// TODO DFS file
@@ -44,6 +51,8 @@ string TextFileBlock::blockData() {
 					FILE_BLOCK_REQUEST, request.str(), ret);
 		}
 	}
+
+	// TODO save ret to local file system
 
 	return ret;
 }
