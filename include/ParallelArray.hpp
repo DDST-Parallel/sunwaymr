@@ -77,34 +77,33 @@ vector< IteratorSeq<T>* > ParallelArray<T>::slice()
 		return slices;
 	}
 
-	long num_group = seq.size() / numSlices;
+	long seqSize = seq.size();
+	long num_group = seqSize / numSlices;
 
 	if (seq.type == 0)
 	{
+		T step = seq.at(1) - seq.at(0);
 		for (int i = 0; i < numSlices - 1; i++)
 		{
-			T start = seq.getStart() + i * num_group * seq.getStep();
-			T end = start + (num_group - 1) * seq.getStep();
-			T step = seq.getStep();
+			T start = seq.at(0) + i * num_group * step;
+			T end = start + (num_group - 1) * step;
 			IteratorSeq<T> *it = new IteratorSeq<T>(start, end , step);
 			slices.push_back(it);
 		}
-		T last_start = seq.getStart() + (numSlices - 1) * num_group * seq.getStep();
-		T end = seq.getEnd();
-		T step = seq.getStep();
+		T last_start = seq.at(0) + (numSlices - 1) * num_group * step;
+		T end = seq.at(seqSize-1);
 		IteratorSeq<T> *last = new IteratorSeq<T>(last_start, end, step);
 		slices.push_back(last);
 	}
 	else
 	{
 		// type == 1
-		vector<T> data = seq.getVector();
 		for (int i = 0; i < numSlices - 1; i++)
 		{
 			vector<T> group;
 			for (long j = 0; j < num_group; j++)
 			{
-				group.push_back(data[i * num_group + j]);
+				group.push_back(seq.at(i * num_group + j));
 			}
 			IteratorSeq<T> *it = new IteratorSeq<T>(group);
 			slices.push_back(it);
@@ -112,7 +111,7 @@ vector< IteratorSeq<T>* > ParallelArray<T>::slice()
 		vector<T> last;
 		for (long i = (numSlices - 1) * num_group; i < seq.size(); i++)
 		{
-			last.push_back(data[i]);
+			last.push_back(seq.at(i));
 		}
 		IteratorSeq<T> *it = new IteratorSeq<T>(last);
 		slices.push_back(it);

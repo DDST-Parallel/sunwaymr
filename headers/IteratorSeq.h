@@ -9,6 +9,9 @@
 #define ITERATORSEQ_H_
 
 #include <vector>
+#include "AbstractIteratorSeq.h"
+#include "RangeIteratorSeq.h"
+#include "VectorIteratorSeq.h"
 using std::vector;
 
 template <class T>
@@ -17,24 +20,19 @@ public:
 	IteratorSeq(T start, T end, T step);
 	IteratorSeq(T start, T end, T step, bool inclusive);
 	IteratorSeq(vector<T> &v);
+	IteratorSeq(RangeIteratorSeq<T> *r);
+	IteratorSeq(VectorIteratorSeq<T> *v);
 	int type; // 0: range, 1: vector
+
 	long size();
-	T getStart();
-	T getEnd();
-	T getStep();
-	bool isInclusive();
+	T at(long index);
 	vector<T> getVector();
 	template <class U> IteratorSeq<U> map(U (*f)(T));
 	template <class U> IteratorSeq<U> flatMap(vector<U> (*f)(T));
 	vector<T>& reduceLeft(T (*g)(T,T));
 
 private:
-	T start;
-	T end;
-	T step;
-	bool inclusive;
-	vector<T> v;
-
+	AbstractIteratorSeq<T> *iterator;
 };
 
 #endif /* ITERATORSEQ_H_ */

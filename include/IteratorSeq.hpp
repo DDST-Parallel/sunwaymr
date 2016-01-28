@@ -11,136 +11,59 @@
 #include "IteratorSeq.h"
 
 #include <assert.h>
+#include "AbstractIteratorSeq.hpp"
+#include "RangeIteratorSeq.hpp"
+#include "VectorIteratorSeq.hpp"
 
 template <class T> IteratorSeq<T>::IteratorSeq(T start, T end, T step)
-: start(start), end(end), step(step), inclusive(true) {
+{
+	iterator = new RangeIteratorSeq<T>(start, end, step);
 	type = 0;
 }
 
 template <class T> IteratorSeq<T>::IteratorSeq(T start, T end, T step, bool inclusive)
-: start(start), end(end), step(step), inclusive(inclusive) {
+{
+	iterator = new RangeIteratorSeq<T>(start, end, step, inclusive);
 	type = 0;
 }
 
 template <class T> IteratorSeq<T>::IteratorSeq(vector<T> &v)
-		:v(v){
+{
+	iterator = new VectorIteratorSeq<T>(v);
 	type = 1;
-	inclusive = false;
+}
+
+template <class T> IteratorSeq<T>::IteratorSeq(RangeIteratorSeq<T> *r) {
+	iterator = r;
+	type = 0;
+}
+template <class T> IteratorSeq<T>::IteratorSeq(VectorIteratorSeq<T> *v) {
+	iterator = v;
+	type = 1;
 }
 
 template <class T> long IteratorSeq<T>::size() {
-	if (type == 0) {
-		if (start == end) {
-			if (inclusive) return 1;
-			else return 0;
-		}
-		else {
-			assert(step != 0);
-
-			long ret = 1;
-			ret += (end - start) / step;
-			if ((end - start) % step == 0 && !inclusive) ret --;
-			return ret;
-		}
-	}
-	else {
-		return v.size();
-	}
+	return iterator->size();
 }
 
-template <class T> T IteratorSeq<T>::getStart() {
-	return start;
-}
-
-template <class T> T IteratorSeq<T>::getEnd() {
-	return end;
-}
-
-template <class T> T IteratorSeq<T>::getStep() {
-	return step;
-}
-
-template <class T> bool IteratorSeq<T>::isInclusive() {
-	return inclusive;
+template <class T> T IteratorSeq<T>::at(long index) {
+	return iterator->at(index);
 }
 
 template <class T> vector<T> IteratorSeq<T>::getVector() {
-	return v;
+	return iterator->getVector();
 }
 
 template <class T> template <class U> IteratorSeq<U> IteratorSeq<T>::map(U (*f)(T)) {
-	// TODO map concurrently
-
-	vector<U> ret;
-
-	if (type == 0) {
-		for(int i = 0; i < size(); i++) {
-			T t = start + step * i;
-			U u = f(t);
-			ret.push_back(u);
-		}
-	} else {
-		for(int i = 0; i < v.size(); i++) {
-			U u = f(v[i]);
-			ret.push_back(u);
-		}
-	}
-
-	return IteratorSeq<U>(ret);
+	return IteratorSeq<U>(iterator->map(f));
 }
 
 template <class T> template <class U> IteratorSeq<U> IteratorSeq<T>::flatMap(vector<U> (*f)(T)) {
-	// TODO map concurrently
-
-	vector<U> ret;
-
-	if (type == 0) {
-		for(int i = 0; i < size(); i++) {
-			T t = start + step * i;
-			vector<U> u = f(t);
-			ret.reserve(ret.size() + u.size());
-			ret.insert(ret.end(), u.begin(), u.end());
-		}
-	} else {
-		for(int i = 0; i < v.size(); i++) {
-			vector<U> u = f(v[i]);
-			ret.reserve(ret.size() + u.size());
-			ret.insert(ret.end(), u.begin(), u.end());
-		}
-	}
-
-	return IteratorSeq<U>(ret);
+	return IteratorSeq<U>(iterator->flatMap(f));
 }
 
 template <class T> vector<T>& IteratorSeq<T>::reduceLeft(T (*g)(T,T)) {
-	vector<T> *ret = new vector<T>;
-
-	if(type == 0) {
-		if (size() > 0) {
-			if (size() == 1) ret->push_back(start);
-			else {
-				T t = g(start, start + step);
-				for(int i = 2; i < size(); i++) {
-					t = g(t, start + step * i);
-				}
-				ret->push_back(t);
-			}
-		}
-
-	} else {
-		if (v.size() > 0) {
-			if (v.size() == 1) ret->push_back(v[0]);
-			else {
-				T t = g(v[0], v[1]);
-				for(int i = 2; i < v.size(); i++) {
-					t = g(t, v[i]);
-				}
-				ret->push_back(t);
-			}
-		}
-	}
-
-	return *ret;
+	return iterator->reduceLeft(g);
 }
 
 #endif /* ITERATORSEQ_HPP_ */

@@ -27,22 +27,22 @@ template <class T>
 vector<T>& CollectTask<T>::run()
 {
 	IteratorSeq<T> iter = RDDTask< T, vector<T> >::rdd.iteratorSeq(RDDTask< T, vector<T> >::partition);
-	if(iter.type == 0)
-	{
-		vector<T> *tmp = new vector<T>;
-		T start = iter.getStart();
-		T end = iter.getEnd();
-		T step = iter.getStep();
-		T i = start;
-		for(; i<end; i+=step)
-			tmp->push_back(i);
-
-		if(i == end && iter.isInclusive() == 1)
-			tmp->push_back(end);
-
-		return *tmp;
-	}
-	// type = 1
+//	if(iter.type == 0)
+//	{
+//		vector<T> *tmp = new vector<T>;
+//		T start = iter.getStart();
+//		T end = iter.getEnd();
+//		T step = iter.getStep();
+//		T i = start;
+//		for(; i<end; i+=step)
+//			tmp->push_back(i);
+//
+//		if(i == end && iter.isInclusive() == 1)
+//			tmp->push_back(end);
+//
+//		return *tmp;
+//	}
+//	// type = 1
 	vector<T> *ret = new vector<T>(iter.getVector());
 	return *ret;
 }
