@@ -25,7 +25,7 @@ template <class T>
 RDD<T>::RDD(SunwayMRContext &c)
 : context(c)
 {
-
+	rddID = current_id++;
 }
 
 template <class T>

@@ -23,7 +23,8 @@ using namespace std;
 
 AllNodesRDD::AllNodesRDD(SunwayMRContext &c, IteratorSeq<void *> &seq)
 : RDD<void *>::RDD (c) , seq(seq){
-	rdd_id = RDD<void *>::current_id++;
+	//rdd_id = RDD<void *>::current_id++;
+	rdd_id = RDD<void *>::rddID;
 
 	vector<Partition*> partitions;
 	vector<string> hosts = c.getHosts();

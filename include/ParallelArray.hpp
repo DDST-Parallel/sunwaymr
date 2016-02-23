@@ -22,8 +22,8 @@ ParallelArray<T>::ParallelArray(SunwayMRContext &c, IteratorSeq<T> &seq, int num
 	: RDD<T>::RDD (c) , seq(seq), numSlices(numSlices)
 {
 //	this->logInfo("ParallelArray: creating partitions...");
-
-	parallelArray_id = RDD<T>::current_id++;
+	parallelArray_id = RDD<T>::rddID;
+	//parallelArray_id = RDD<T>::current_id++;
 	// get partitions
 	vector<Partition*> partitions;
 

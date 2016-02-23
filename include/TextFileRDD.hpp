@@ -27,8 +27,8 @@ using namespace std;
 
 TextFileRDD::TextFileRDD(SunwayMRContext &c, vector<FileSource> files, int numSlices)
 : RDD<TextFileBlock>::RDD (c), files(files), numSlices(numSlices) {
-	textFileRDD_id = RDD<TextFileBlock>::current_id++;
-
+	//textFileRDD_id = RDD<TextFileBlock>::current_id++;
+	textFileRDD_id = RDD<TextFileBlock>::rddID;
 	// calculate partitions
 	vector<Partition*> partitions;
 	vector< IteratorSeq<TextFileBlock>* > slices = slice();

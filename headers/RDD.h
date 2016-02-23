@@ -48,7 +48,8 @@ public:
 
 	SunwayMRContext &context;
 	vector<Partition*> partitions;
-	static long current_id;
+	static long current_id; // id counter
+	long rddID;
 };
 
 
