@@ -16,6 +16,7 @@
 #include "SunwayMRContext.hpp"
 #include "Logging.hpp"
 #include "CollectTask.hpp"
+#include "ShuffleTask.hpp"
 using namespace std;
 
 template <class T> long RDD<T>::current_id = 1;
@@ -47,6 +48,12 @@ FlatMappedRDD<U, T> RDD<T>::flatMap(vector<U> (*f)(T))
 	return map_rdd;
 }
 
+template <class T>
+void RDD<T>::shuffle()
+{
+	// do nothing
+}
+
 template <class T> template <class K, class V>
 PairRDD<K, V, T> RDD<T>::mapToPair(Pair<K, V> (*f)(T))
 {
@@ -57,6 +64,7 @@ PairRDD<K, V, T> RDD<T>::mapToPair(Pair<K, V> (*f)(T))
 template <class T>
 T RDD<T>::reduce(T (*g)(T, T))
 {
+	shuffle();
 	// construct tasks
 	vector< Task< vector<T> >* > tasks;
 	vector<Partition*> pars = this->getPartitions();
@@ -91,6 +99,7 @@ T RDD<T>::reduce(T (*g)(T, T))
 template <class T>
 vector<T>& RDD<T>::collect()
 {
+	shuffle();
 	vector<T> *ret = new vector<T>;
 	// construct tasks
 	vector< Task< vector<T> >* > tasks;

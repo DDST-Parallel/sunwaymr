@@ -37,8 +37,9 @@ public:
 
 	template <class U> MappedRDD<U, T> map(U (*f)(T));
 	template <class U> FlatMappedRDD<U, T> flatMap(vector<U> (*f)(T));
-	template <class K, class V> PairRDD<K, V, T> mapToPair(Pair<K, V> (*f)(T));
+	template <class K, class V> PairRDD<K, V, T> mapToPair(Pair<K, V> (*f)(T), long (*hashFunc)(Pair<K, V>), string (*strFunc)(Pair<K, V>));
 	T reduce(T (*g)(T, T));
+	void shuffle();
 
 	// TODO distinct collect
 	//RDD<T> distinct(int newNumSlices);
