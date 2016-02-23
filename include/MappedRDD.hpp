@@ -18,6 +18,12 @@ MappedRDD<U, T>::MappedRDD(RDD<T> &prev, U (*f)(T))
 }
 
 template <class U, class T>
+void MappedRDD<U, T>::shuffle()
+{
+	prevRDD.shuffle();
+}
+
+template <class U, class T>
 vector<Partition*> MappedRDD<U, T>::getPartitions()
 {
 	return prevRDD.getPartitions();

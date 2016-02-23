@@ -25,6 +25,12 @@ PairRDD<K, V, T>::PairRDD(RDD<T> &prev, Pair<K, V> (*f)(T))
 }
 
 template <class K, class V, class T>
+void PairRDD<K, V, T>::shuffle()
+{
+	prevRDD.shuffle();
+}
+
+template <class K, class V, class T>
 vector<Partition*> PairRDD<K, V, T>::getPartitions()
 {
 	return prevRDD.getPartitions();

@@ -26,6 +26,7 @@ public:
 	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq<U> iteratorSeq(Partition &p);
+	void shuffle();
 
 private:
 	RDD<T> &prevRDD;

@@ -25,6 +25,12 @@ FlatMappedRDD<U, T>::FlatMappedRDD(RDD<T> &prev, vector<U> (*f)(T))
 }
 
 template <class U, class T>
+void FlatMappedRDD<U, T>::shuffle()
+{
+	prevRDD.shuffle();
+}
+
+template <class U, class T>
 vector<Partition*> FlatMappedRDD<U, T>::getPartitions()
 {
 	return prevRDD.getPartitions();

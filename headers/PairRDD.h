@@ -27,10 +27,15 @@ public:
 	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq< Pair<K, V> > iteratorSeq(Partition &p);
+	void shuffle();
 
 	// TODO join reduceByKey groupByKey mapValues
 	template <class U>
 	PairRDD<K, U, T> mapValues(Pair<K, U> (*f)(Pair<K, V>));
+
+	PairRDD<K, V, T> reduceByKey(V (*f)(V, V), int num_partitions);
+
+	// PairRDD<K, IteratorSeq<V>, T> groupByKey(int num_partitions);
 
 private:
 	RDD<T> &prevRDD;
