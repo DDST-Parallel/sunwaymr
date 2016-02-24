@@ -56,7 +56,7 @@ void *runTask(void *d) {
 
 	// send out task result
 	stringstream ss;
-	ss << data->jobID << " " << data->taskID << " " << task.serialize(value);
+	ss << data->jobID << TASK_RESULT_DELIMITATION << data->taskID << TASK_RESULT_DELIMITATION << task.serialize(value);
 	ts.sendMessage(data->master, data->masterPort, A_TASK_RESULT, ss.str());
 	ts.decreaseRunningThreadNum();
 
@@ -69,7 +69,7 @@ template <class T>
 vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 
 	stringstream runTasksInfo;
-	runTasksInfo << "TaskScheduler: run tasks, job ID: [" << jobID << "], tasks size: " << tasks.size();
+	runTasksInfo << "TaskScheduler: run tasks, job ID: [" << jobID << "], tasks: " << tasks.size();
 	Logging::logInfo(runTasksInfo.str());
 
 	int taskNum=tasks.size();
@@ -95,7 +95,7 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 			int j;
             int plSize=tasks[i]->preferredLocations().size();
 			for( j=0;j<plSize;j++){
-				index=vectorFind(IPVector,tasks[i]->preferredLocations()[i]);
+				index=vectorFind(IPVector,tasks[i]->preferredLocations()[j]);
 
 				if(index!=-1 && threadRemainVector[index]>0){
 					threadRemainVector[index]--;
@@ -104,7 +104,6 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 
 					stringstream taskOnIP;
 					taskOnIP << "TaskScheduler: task [" << i << "] of job[" << jobID << "] will run at " << taskOnIPVector[i];
-					cout << taskOnIP.str() << endl;
 					Logging::logDebug(taskOnIP.str());
 
 					break;
@@ -160,7 +159,7 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 					if (fork()==0) { // !!! keep thread safety !!! no stdio !!!
 						T& value = tasks[i]->run();
 						stringstream ss;
-						ss << jobID << " " << i << " " << tasks[i]->serialize(value);
+						ss << jobID << TASK_RESULT_DELIMITATION << i << TASK_RESULT_DELIMITATION << tasks[i]->serialize(value);
 						sendMessage(master, listenPort, A_TASK_RESULT, ss.str());
 						exit(0);
 					} else {
@@ -195,16 +194,22 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 		if (isMaster == 1 && receivedTaskResultNum < tasks.size()) {
 
 			// add task result to taskResults, if not duplicate
-			vector<string> vs = splitString(msg, ' ');
-			if (vs.size() == 3) {
+			vector<string> vs;
+			splitString(msg, vs, TASK_RESULT_DELIMITATION);
+			if (vs.size() >= 2) {
 				int jobID = atoi(vs[0].c_str());
 				int taskID = atoi(vs[1].c_str());
 
 				if (jobID == this->jobID
 						&& taskID < tasks.size()
 						&& !resultReceived[taskID]) {
-					T& value = tasks[taskID]->deserialize(vs[2]);
-					taskResults.push_back(new TaskResult<T>(*tasks[taskID], value));
+					if (vs.size() >=3) {
+						T& value = tasks[taskID]->deserialize(vs[2]);
+						taskResults.push_back(new TaskResult<T>(*tasks[taskID], value));
+					} else {
+						T& value = tasks[taskID]->deserialize("");
+						taskResults.push_back(new TaskResult<T>(*tasks[taskID], value));
+					}
 					resultReceived[taskID] = true;
 					receivedTaskResultNum ++;
 
@@ -226,15 +231,15 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 				stringstream resultList;
 				for (unsigned int i=0; i<tasks.size(); i++) {
 					T& value = taskResults[i]->value;
-					resultList << jobID << " " << i << " " << tasks[i]->serialize(value);
-					if (i != tasks.size()-1) resultList << ",";
+					resultList << jobID << TASK_RESULT_DELIMITATION << i << TASK_RESULT_DELIMITATION << tasks[i]->serialize(value);
+					if (i != tasks.size()-1) resultList << TASK_RESULT_LIST_DELIMITATION;
 				}
 				string msg = resultList.str();
 				for (unsigned int i=0; i<IPVector.size(); i++) {
 					sendMessage(IPVector[i], listenPort, TASK_RESULT_LIST, msg);
 				}
 
-				Logging::logInfo("TaskScheduler:  result list sent");
+				Logging::logInfo("TaskScheduler: result list sent");
 
 				allTaskResultsReceived = true;
 				pthread_mutex_unlock(&mutex_allTaskResultsReceived);
@@ -254,10 +259,12 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 			// save task results
 			// initialize taskResults
 			bool valid = true;
-			vector<string> results = splitString(msg, ',');
+			vector<string> results;
+			splitString(msg, results, TASK_RESULT_LIST_DELIMITATION);
 			if (results.size() == tasks.size()) {
 				for (unsigned int i=0; i<tasks.size(); i++) {
-					vector<string> result = splitString(results[i], ' ');
+					vector<string> result;
+					splitString(results[i], result, TASK_RESULT_DELIMITATION);
 					if (result.size() == 3) {
 						int jobID = atoi(result[0].c_str());
 						int taskID = atoi(result[1].c_str());

@@ -31,19 +31,20 @@ FileSource::FileSource(string source, string path)
 
 FileSource::FileSource(const FileSource &f)
 : source(f.source), path(f.path) {
-	length = 0;
-	listenPort = 0;
-	location = " ";
+	length = f.length;
+	listenPort = f.listenPort;
+	location = f.location;
 }
 
-string FileSource::serialize(char delim) {
+string FileSource::serialize(string delim) {
 	stringstream ss;
 	ss << source << delim << path << delim << length << delim << listenPort << delim << location;
 	return ss.str();
 }
 
-void FileSource::deserialize(string s, char delim) {
-	vector<string> vs = splitString(s, delim);
+void FileSource::deserialize(string s, string delim) {
+	vector<string> vs;
+	splitString(s, vs, delim);
 	if(vs.size()>=5) {
 		source = vs[0];
 		path = vs[1];
@@ -54,7 +55,7 @@ void FileSource::deserialize(string s, char delim) {
 }
 
 ostream& operator<< (ostream &out, FileSource &fs) {
-	string s = fs.serialize('|');
+	string s = fs.serialize(FILE_SOURCE_DELIMITATION);
 	out << s;
 	return out;
 }
@@ -62,7 +63,7 @@ ostream& operator<< (ostream &out, FileSource &fs) {
 istream& operator>> (istream &in, FileSource &fs) {
 	string s;
 	in >> s;
-	fs.deserialize(s, '|');
+	fs.deserialize(s, FILE_SOURCE_DELIMITATION);
 	return in;
 }
 

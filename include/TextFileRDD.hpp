@@ -66,7 +66,6 @@ string master_ip;
 int scheduler_listen_port;
 FileSource getFileSize(void *file) {
 	FileSource* fs = (FileSource*)file;
-	FileSource fs_ret(*fs);
 	string selfIP = getLocalHost();
 
 	if(fs->source=="*" || fs->source==selfIP) {
@@ -81,6 +80,7 @@ FileSource getFileSize(void *file) {
 
 	}
 
+	FileSource fs_ret(*fs);
 	return fs_ret;
 }
 
@@ -143,24 +143,27 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 		else if (allBlocksCount % numSlices > 0) partitionBlocksCountMax++;
 
 		// 1. remove extra
-		for (unsigned int i=numSlices; i<allBlocks.size(); i++) {
-			unsigned int smallest = INT32_MAX, smallestIndex = 0;
-			for (int j=0; j<numSlices; j++) {
-				if (allBlocks[j].size() < smallest) {
-					smallest = allBlocks[j].size();
-					smallestIndex = j;
+		if(allBlocks.size() > (unsigned)numSlices) {
+			for (unsigned int i=numSlices; i<allBlocks.size(); i++) {
+				unsigned int smallest = INT32_MAX, smallestIndex = 0;
+				for (int j=0; j<numSlices; j++) {
+					if (allBlocks[j].size() < smallest) {
+						smallest = allBlocks[j].size();
+						smallestIndex = j;
+					}
 				}
-			}
 
-			allBlocks[i].insert(allBlocks[i].end(),
-					allBlocks[smallestIndex].begin(),
-					allBlocks[smallestIndex].end());
+				allBlocks[i].insert(allBlocks[i].end(),
+						allBlocks[smallestIndex].begin(),
+						allBlocks[smallestIndex].end());
+			}
+			allBlocks.erase(allBlocks.begin()+numSlices, allBlocks.end());
 		}
-		allBlocks.erase(allBlocks.begin()+numSlices, allBlocks.end());
 
 		// 2. add to numSlices
 		if(allBlocks.size() < (unsigned)numSlices) {
-			for (unsigned int i=0; i<numSlices-allBlocks.size(); i++) {
+			unsigned int num = numSlices-allBlocks.size();
+			for (unsigned int i=0; i<num; i++) {
 				vector<TextFileBlock> emptyFileBlocks;
 				allBlocks.push_back(emptyFileBlocks);
 			}
@@ -184,7 +187,15 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 			if (biggest <= partitionBlocksCountMax
 					|| smallestIndex==biggestIndex
 					|| biggest - smallest <= 1) {
-				break;
+				if (smallest == 0 && biggest >=2) {
+					allBlocks[smallestIndex].insert(allBlocks[smallestIndex].end(),
+							allBlocks[biggestIndex].end()-1,
+							allBlocks[biggestIndex].end());
+					allBlocks[biggestIndex].erase(allBlocks[biggestIndex].end()-1,
+							allBlocks[biggestIndex].end());
+				} else {
+					break;
+				}
 			} else {
 				// move blocks
 				int a = biggest - partitionBlocksCountMax;

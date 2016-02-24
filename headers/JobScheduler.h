@@ -17,6 +17,8 @@
 using std::string;
 using std::vector;
 
+string HOST_RESOURCE_DELIMITATION = " ";
+
 class JobScheduler : public Messaging {
 public:
 	JobScheduler();

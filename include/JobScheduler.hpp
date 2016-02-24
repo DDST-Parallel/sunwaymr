@@ -56,7 +56,8 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 	stringstream fileContentStream(fileContent);
 	string line;
 	while(std::getline(fileContentStream,line,'\n')){
-		vector<string> temp = splitString(line, ' ');
+		vector<string> temp;
+		splitString(line, temp, HOST_RESOURCE_DELIMITATION);
         if(temp.size() < 4) continue;
         IPVector.push_back(temp[0]);
         threadCountVector.push_back(atoi(temp[1].c_str()));

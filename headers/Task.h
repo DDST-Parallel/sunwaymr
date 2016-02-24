@@ -13,6 +13,10 @@
 using std::vector;
 using std::string;
 
+string REDUCE_TASK_DELIMITATION = "\aREDUCE_TASK\a"; // TODO
+string COLLECT_TASK_DELIMITATION = "\aCOLLECT_TASK\a"; // TODO
+string TASK_RESULT_DELIMITATION = "\aTASK_RESULT\a"; // TODO
+string TASK_RESULT_LIST_DELIMITATION = "\aTASK_RESULT_LIST\a"; // TODO
 
 template <class T>
 class Task {

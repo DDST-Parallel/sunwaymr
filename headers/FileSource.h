@@ -14,13 +14,15 @@ using std::string;
 using std::ostream;
 using std::istream;
 
+string FILE_SOURCE_DELIMITATION = "\aFILE_SOURCE\a";
+
 class FileSource {
 public:
 	FileSource();
 	FileSource(string source, string path); // source: */[IP]/[DFS server]
 	FileSource(const FileSource &f);
-	string serialize(char delim);
-	void deserialize(string s, char delim);
+	string serialize(string delim);
+	void deserialize(string s, string delim);
 	friend ostream& operator<< (ostream &out, FileSource &fs);
 	friend istream& operator>> (istream &in, FileSource &fs);
 

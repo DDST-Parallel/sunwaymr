@@ -52,7 +52,8 @@ string CollectTask<T>::serialize(vector<T> &t)
 {
 	stringstream ss;
 	for (unsigned int i=0; i<t.size(); i++) {
-		ss << t[i] << " ";
+		ss << t[i];
+		if (i != t.size()-1) ss << COLLECT_TASK_DELIMITATION;
 	}
 	return ss.str();
 }
@@ -61,15 +62,26 @@ template <class T>
 vector<T>& CollectTask<T>::deserialize(string s)
 {
 	vector<T> *elems = new vector<T>;
-	std::stringstream ss(s);
-	std::string item;
-	while (std::getline(ss, item, ' ')) {
-		std::stringstream ss2(item);
+	vector<string> vs;
+	splitString(s, vs, COLLECT_TASK_DELIMITATION);
+
+	for(int i=0; i<vs.size(); i++) {
+		std::stringstream ss(vs[i]);
 		T t;
-		ss2 >> t;
+		ss >> t;
 		elems->push_back(t);
 	}
 	return *elems;
+
+//	std::stringstream ss(s);
+//	std::string item;
+//	while (std::getline(ss, item, ' ')) {
+//		std::stringstream ss2(item);
+//		T t;
+//		ss2 >> t;
+//		elems->push_back(t);
+//	}
+//	return *elems;
 }
 
 #endif
