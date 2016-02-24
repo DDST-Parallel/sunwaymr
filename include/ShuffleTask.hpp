@@ -21,7 +21,7 @@
 #include <fstream>
 using namespace std;
 
-template <class T> ShuffleTask<T>::ShuffleTask(RDD<T> &r, Partition &p, int shID, int nPs, HashDivider &hashDivider, Aggregator &aggregator, long (*hFunc)(T), string (*sf)(T))
+template <class T, class U> ShuffleTask<T, U>::ShuffleTask(RDD<T> &r, Partition &p, int shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U))
 :RDDTask< T, int >::RDDTask(r, p)
 {
 	shuffleID = shID;
@@ -32,11 +32,18 @@ template <class T> ShuffleTask<T>::ShuffleTask(RDD<T> &r, Partition &p, int shID
 	strFunc = sf;
 }
 
-template <class T> int&  ShuffleTask<T>::run()
+template <class T, class U> int&  ShuffleTask<T, U>::run()
 {
+	// get current RDD value
 	IteratorSeq<T> iter = RDDTask< T, int >::rdd.iteratorSeq(RDDTask< T, int >::partition);
 	vector<T> datas = iter.getVector;
 
+	// T -> U
+	vector<U> datas1;
+	for(int i=0; i<datas.size(); i++)
+		datas1.push_back(agg.createCombiner(datas[i]));
+
+	// get list
     vector< vector<string> > list; // save partitionID -> keys
     for(int i=0; i<numPartitions; i++)
     {
@@ -46,9 +53,9 @@ template <class T> int&  ShuffleTask<T>::run()
 
 	for(int i=0; i<datas.size(); i++)
 	{
-		long hashCode = hashFunc(datas[i]);
+		long hashCode = hashFunc(datas1[i]);
 		int pos = hd.getPartition(hashCode); // get the new partition index
-		list[pos].push_back(strFunc(datas[i]));
+		list[pos].push_back(strFunc(datas1[i]));
 	}
 
 	// save to file
@@ -56,7 +63,7 @@ template <class T> int&  ShuffleTask<T>::run()
 	return 1;
 }
 
-template <class T> bool ShuffleTask<T>::save2File(vector< vector<string> > list)
+template <class T, class U> bool ShuffleTask<T, U>::save2File(vector< vector<string> > list)
 {
 	ofstream ofs;
 
@@ -83,7 +90,7 @@ template <class T> bool ShuffleTask<T>::save2File(vector< vector<string> > list)
 	return true;
 }
 
-template <class T> string ShuffleTask<T>::serialize(int &t)
+template <class T, class U> string ShuffleTask<T, U>::serialize(int &t)
 {
 	strstream ss;
 	string str;
@@ -92,7 +99,7 @@ template <class T> string ShuffleTask<T>::serialize(int &t)
 	return str;
 }
 
-template <class T> int& ShuffleTask<T>::deserialize(string s)
+template <class T, class U> int& ShuffleTask<T, U>::deserialize(string s)
 {
 	int val;
 	stringstream ss;

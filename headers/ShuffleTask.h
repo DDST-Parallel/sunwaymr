@@ -16,10 +16,10 @@
 #include <string>
 using namespace std;
 
-template <class T>
+template <class T, class U>
 class ShuffleTask : public RDDTask< T, int > {
 public:
-	ShuffleTask(RDD<T> &r, Partition &p, int shID, int nPs, HashDivider &hashDivider, Aggregator &aggregator, long (*hFunc)(T), string (*sf)(T));
+	ShuffleTask(RDD<T> &r, Partition &p, int shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U));
 	int& run();
 	bool save2File(vector< vector<string> > list);
 	string serialize(int &t);
@@ -29,10 +29,9 @@ private:
 	int shuffleID;
 	int numPartitions;
 	HashDivider &hd;
-	Aggregator &agg;
-
-	long (*hashFunc)(T);
-	string (*strFunc)(T);
+	Aggregator<T, U> &agg;
+	long (*hashFunc)(U);
+	string (*strFunc)(U);
 };
 
 #endif /* HEADERS_SHUFFLETASK_H_ */

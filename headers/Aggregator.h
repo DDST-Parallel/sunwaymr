@@ -10,8 +10,7 @@
 
 #include "Pair.h"
 
-template <class K, class V, class C>
-
+template <class V, class C>
 class Aggregator
 {
 public:
