@@ -84,6 +84,15 @@ string readSocket(int socketfd) {
 	memset(buffer, 0, BUFFER_SIZE);
 	int received = read(socketfd, buffer, BUFFER_SIZE);
 	while (total < MAX_MESSAGE_SIZE && received > 0) {
+		string sb(buffer);
+		string::size_type end = sb.find(END_OF_MESSAGE);
+		if (end != string::npos) {
+			sb = sb.substr(0, end);
+			total += end;
+			msgStream << sb;
+			break;
+		}
+
 		total += received;
 		msgStream << buffer;
 
@@ -126,7 +135,7 @@ bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, st
 	string send_data = "";
 	stringstream stream;
 	stream << msgType;
-	send_data += stream.str() + "$" + msg;
+	send_data += stream.str() + "$" + msg + END_OF_MESSAGE;
 
 	// send data
 	const char* ch = send_data.c_str();
@@ -206,7 +215,6 @@ void Messaging::listenMessage(int listenPort)
 			string typeStr = msg.substr(0, pos);
 			int type = atoi(typeStr.c_str());
 			string content=msg.substr(pos+1);
-
 			// thread data encapsulation
 			struct ThreadData *td = new ThreadData(*this, listenPort, ip, type, content, client_sockfd);
 
@@ -234,7 +242,8 @@ void* messageHandler(void *data)
 	// parse data
 	struct ThreadData *td = (struct ThreadData *)data;
 	if(td->msgType == FILE_BLOCK_REQUEST) { // reply file block
-		vector<string> vs = splitString(td->msgContent, '|');
+		vector<string> vs;
+		splitString(td->msgContent, vs, FILE_BLOCK_REQUEST_DELIMITATION);
 		if(vs.size() == 3) {
 			string ret;
 			string path = vs[0];

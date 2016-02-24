@@ -46,7 +46,7 @@ string TextFileBlock::blockData() {
 		} else {
 			// send file block request
 			stringstream request;
-			request << file.path << "|" << offset << "|" << length;
+			request << file.path << FILE_BLOCK_REQUEST_DELIMITATION << offset << FILE_BLOCK_REQUEST_DELIMITATION << length;
 			sendMessageForReply(location, file.listenPort,
 					FILE_BLOCK_REQUEST, request.str(), ret);
 		}

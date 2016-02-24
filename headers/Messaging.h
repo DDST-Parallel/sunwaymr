@@ -14,6 +14,9 @@
 #include "MessageType.h"
 using std::string;
 
+string END_OF_MESSAGE = "\aEND_OF_MESSAGE\a";
+string FILE_BLOCK_REQUEST_DELIMITATION = "\aFILE_BLOCK_REQUEST\a";
+
 enum ListenStatus {
 	NA,
 	SUCCESS,

@@ -105,8 +105,10 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 	if(total_length > 0) {
 		// calculate block length
 		long b = total_length / numSlices;
-		if (b == 0) b = 1;
-		else if (b > MAX_TEXT_FILE_BLOCK_SIZE) b = MAX_TEXT_FILE_BLOCK_SIZE;
+		b += 1;
+		if (b > MAX_TEXT_FILE_BLOCK_SIZE) b = MAX_TEXT_FILE_BLOCK_SIZE;
+		//if (b == 0) b = 1;
+		//else if (b > MAX_TEXT_FILE_BLOCK_SIZE) b = MAX_TEXT_FILE_BLOCK_SIZE;
 
 		int allBlocksCount = 0;
 
