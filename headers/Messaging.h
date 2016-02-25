@@ -9,10 +9,13 @@
 #define MESSAGING_H_
 
 #include <string>
+#include <vector>
+#include <map>
 #include <pthread.h>
+using namespace std;
 
 #include "MessageType.h"
-using std::string;
+
 
 string END_OF_MESSAGE = "\aEND_OF_MESSAGE\a";
 string FILE_BLOCK_REQUEST_DELIMITATION = "\aFILE_BLOCK_REQUEST\a";
@@ -37,6 +40,8 @@ struct ThreadData {
 	: mess(mess), local_port(port), ip(ip), msgType(msgType),
 	  msgContent(msgContent), client_sockfd(client_sockfd) { }
 };
+
+map< long, vector<string> > fetch_content;
 
 void* messageHandler(void *fd);
 
@@ -65,7 +70,6 @@ public:
 
 private:
 	int listenStatus;
-
 };
 
 

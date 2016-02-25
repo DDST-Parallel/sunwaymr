@@ -257,6 +257,31 @@ void* messageHandler(void *data)
 			}
 		}
 		close(td->client_sockfd);
+	} else if(td->msgType == FETCH_REQUEST) {
+		vector<string> paras;
+		splitString(td->msgContent, paras, ",");
+		if(paras.size() == 2)
+		{
+			long shuffleID = atol(paras[0].c_str());
+			int partitionID = atoi(paras[1].c_str());
+			// send back data
+			map< long, vector<string> >::iterator it = fetch_content.find(shuffleID);
+
+			if(it == fetch_content.end())
+			{
+				// this shuffle has not  been cached
+				string path = paras[0] + "mapping";
+				string content; // all partition data of one shuffle
+				readFile(path, content);
+				vector<string> lines;
+				splitString(content, lines, "\n");
+				fetch_content[shuffleID] = lines;
+			}
+			string senMsg = fetch_content[shuffleID][partitionID];
+			send(td->client_sockfd, senMsg.c_str(), senMsg.length(), 0);
+		}
+
+		close(td->client_sockfd);
 	} else {
 		close(td->client_sockfd); // close socket
 
