@@ -50,8 +50,6 @@ ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K
 		parts.push_back(part);
 	}
 	this->partitions = parts;
-
-	srand(unsigned(time(0)));
 }
 
 template <class K, class V, class C>
@@ -94,8 +92,8 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 
 	// fetch
 	vector<string> IPs = (this->context).getHosts();
-	int port = (int)getRandom(1025, 65530 - IPs.size()); // get a target port randomly
 
+	int port = (this->context).getListenPort(); // get target
 	string str_shuffleID;
 	string str_partitionID;
 
@@ -111,7 +109,7 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 	for(int i=0; i<IPs.size(); i++)
 	{
 		string reply;
-		sendMessageForReply(IPs[i], port++, FETCH_REQUEST, sendMsg, reply);
+		sendMessageForReply(IPs[i], port, FETCH_REQUEST, sendMsg, reply);
 		replys.push_back(reply);
 	}
 
@@ -160,12 +158,6 @@ map<K, C> ShuffledRDD<K, V, C>::merge(vector<string> replys)
 	}
 
 	return combiners;
-}
-
-template <class K, class V, class C>
-double ShuffledRDD<K, V, C>::getRandom(double start, double end)
-{
-	return start+(end-start)*rand()/(RAND_MAX + 1.0);
 }
 
 template <class K, class V, class C>

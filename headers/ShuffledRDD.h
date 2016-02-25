@@ -33,7 +33,6 @@ public:
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq< Pair<K, C> > iteratorSeq(Partition &p);
 	void shuffle();
-	double getRandom(double start, double end);
 	map<K, C> merge(vector<string> replys);
 	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
 
