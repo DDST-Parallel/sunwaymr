@@ -20,6 +20,7 @@
 #include "MessageType.hpp"
 #include "Utils.hpp"
 #include "Logging.hpp"
+#include "SunwayMRContext.h"
 using namespace std;
 
 Messaging::~Messaging()
@@ -258,6 +259,9 @@ void* messageHandler(void *data)
 		}
 		close(td->client_sockfd);
 	} else if(td->msgType == FETCH_REQUEST) {
+
+		//cout << "CONTEXT ID: " << SUNWAYMR_CONTEXT_ID << endl;
+
 		vector<string> paras;
 		splitString(td->msgContent, paras, ",");
 		if(paras.size() == 2)
