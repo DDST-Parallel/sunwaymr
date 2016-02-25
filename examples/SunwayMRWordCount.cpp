@@ -24,25 +24,33 @@ vector<string> flatMap_f(TextFileBlock t) {
 	stringstream ss(data);
 	string word;
 	while (ss >> word) {
-		ret.push_back(word)
+		ret.push_back(word);
 	}
 	return ret;
 }
 
 Pair<string, int> mapToPair_f(string s) {
-	return Pair<string, int>(s, 1);
+	int i = 1;
+	return Pair<string, int>(s, i);
 }
 
 Pair<string, int> merge_f (Pair<string, int> p1, Pair<string, int> p2) {
-	return Pair<string, int>(p1.v1, p1.v2+p2.v2);
+	int i = p1.v2+p2.v2;
+	return Pair<string, int>(p1.v1, i);
 }
 
 long hash_f (Pair<string, int> p) {
-	return p.v1.length(); // TODO
+	const char *s = p.v1.c_str();
+	unsigned int seed = 0;
+	unsigned int hash = seed;
+	while (*s) {
+		hash = hash * 101  +  *s++;
+	}
+	return hash;
 }
 
 #ifndef PAIR_DELIMITATION
-#define PAIR_DELIMITATION "\aPAIR\a";
+#define PAIR_DELIMITATION "\aPAIR\a"
 #endif
 string toStr_f (Pair<string, int> p) {
 	stringstream ss;
@@ -68,11 +76,11 @@ int main(int argc, char *argv[]) {
 	vector< Pair<string, int> > wc = sc.textFile(fsv)
 			.flatMap(flatMap_f)
 			.mapToPair(mapToPair_f)
-			.reduceByKey(merge_f, hash_f, toStr_f, fromStr_f, 4)
+			.reduceByKey(merge_f, hash_f, toStr_f, fromStr_f)
 			.collect();
 
 	cout << "Result: " << endl;
-	for (int i=0; i<wc.size(); i++) {
+	for (unsigned int i=0; i<wc.size(); i++) {
 		cout << wc[i].v1 << ": " << wc[i].v2 << endl;
 	}
 
