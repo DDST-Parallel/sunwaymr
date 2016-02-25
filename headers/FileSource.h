@@ -14,7 +14,9 @@ using std::string;
 using std::ostream;
 using std::istream;
 
-string FILE_SOURCE_DELIMITATION = "\aFILE_SOURCE\a";
+#ifndef FILE_SOURCE_DELIMITATION
+#define FILE_SOURCE_DELIMITATION "\aFILE_SOURCE\a"
+#endif
 
 class FileSource {
 public:

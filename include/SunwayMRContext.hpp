@@ -29,6 +29,7 @@ SunwayMRContext::SunwayMRContext() {
 	listenPort = 0;
 	hosts = vector<string>();
 	scheduler = new JobScheduler();
+	contextID = getCurrentTime();
 }
 
 SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
@@ -45,6 +46,7 @@ SunwayMRContext::SunwayMRContext(string appName, int argc, char *argv[])
 		hosts = vector<string>();
 
 		scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
+		contextID = getCurrentTime();
 		startScheduler();
 
 	}
@@ -56,6 +58,7 @@ SunwayMRContext::SunwayMRContext(string hostsFilePath, string master, string app
 
 	hosts = vector<string>();
 	scheduler = new JobScheduler(hostsFilePath, master, appName, listenPort);
+	contextID = getCurrentTime();
 	startScheduler();
 
 }
@@ -171,6 +174,10 @@ vector<string> SunwayMRContext::getHosts() {
 
 int SunwayMRContext::getTotalThreads() {
 	return scheduler->totalThreads();
+}
+
+long SunwayMRContext::getContextID() {
+	return contextID;
 }
 
 #endif /* SUNWAYMRCONTEXT_HPP_ */

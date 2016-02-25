@@ -54,6 +54,7 @@ public:
 	int getListenPort();
 	vector<string> getHosts();
 	int getTotalThreads();
+	long getContextID();
 
 private:
 	JobScheduler *scheduler;
@@ -61,6 +62,7 @@ private:
 	string hostsFilePath, master, appName;
 	int listenPort;
 	vector<string> hosts;
+	long contextID;
 
 	void startScheduler();
 };

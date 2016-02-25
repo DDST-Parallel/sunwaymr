@@ -16,9 +16,12 @@ using namespace std;
 
 #include "MessageType.h"
 
-
-string END_OF_MESSAGE = "\aEND_OF_MESSAGE\a";
-string FILE_BLOCK_REQUEST_DELIMITATION = "\aFILE_BLOCK_REQUEST\a";
+#ifndef END_OF_MESSAGE
+#define END_OF_MESSAGE "\aEND_OF_MESSAGE\a"
+#endif
+#ifndef FILE_BLOCK_REQUEST_DELIMITATION
+#define FILE_BLOCK_REQUEST_DELIMITATION "\aFILE_BLOCK_REQUEST\a"
+#endif
 
 enum ListenStatus {
 	NA,
