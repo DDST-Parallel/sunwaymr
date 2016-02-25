@@ -69,12 +69,12 @@ void ShuffledRDD<K, V, C>::shuffle()
 
 	// construct tasks
 	vector< Task<int>* > tasks;
-	vector<Partition*> pars = preRDD.partitions; //partitions before shuffle
+	vector<Partition*> pars = preRDD.getPartitions(); //partitions before shuffle
 
 	for (int i = 0; i < pars.size(); i++)
 	{
 		//ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U));
-		Task<int> *task = new ShuffleTask< Pair<K, V>, Pair<K, C> >(*this, *(pars[i]), this->rddID, hd.getNumPartitions(), hd, agg, hashFunc, strFunc);
+		Task<int> *task = new ShuffleTask< Pair<K, V>, Pair<K, C> >(preRDD, *(pars[i]), this->shuffleID, hd.getNumPartitions(), hd, agg, hashFunc, strFunc);
 		tasks.push_back(task);
 	}
 

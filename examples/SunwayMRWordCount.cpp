@@ -67,7 +67,7 @@ Pair<string, int> fromStr_f (string s) {
 
 int main(int argc, char *argv[]) {
 
-	cout << "SunwayMR Word Count Totally" << endl;
+	cout << endl << "SunwayMR Word Count" << endl << endl;
 
 	SunwayMRContext sc("SunwayMRWordCountTotally", argc, argv);
 	vector<FileSource> fsv;
