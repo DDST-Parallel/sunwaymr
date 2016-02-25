@@ -8,17 +8,15 @@
 #ifndef HEADERS_AGGREGATOR_H_
 #define HEADERS_AGGREGATOR_H_
 
-#include "Pair.h"
-
 template <class V, class C>
 class Aggregator
 {
 public:
-	Aggregator(C (*cc)(V), C (*mv)(Pair<C, V>), C (*mc)(Pair<C, C>));
+	Aggregator(C (*cc)(V), C (*mv)(C, V), C (*mc)(C, C));
 
 	C (*createCombiner)(V);
-	C (*mergeValue)(Pair<C, V>);
-	C (*mergeCombiners)(Pair<C, C>);
+	C (*mergeValue)(C, V);
+	C (*mergeCombiners)(C, C);
 };
 
 

@@ -14,7 +14,8 @@ enum MessageType {
 	SHELL_COMMAND, // command
 	A_TASK_RESULT, // jobID taskID valueString
 	TASK_RESULT_LIST, // jobID taskID1 valueString1,jobID taskID2 valueString2,jobID taskID3 valueString3
-	FILE_BLOCK_REQUEST // path|offset|length
+	FILE_BLOCK_REQUEST, // path|offset|length
+	FETCH_REQUEST // shuffleID,partitionID
 };
 
 #endif /* MESSAGETYPE_H_ */

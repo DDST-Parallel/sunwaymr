@@ -11,6 +11,8 @@
 #include "RDDTask.h"
 #include "Aggregator.h"
 #include "HashDivider.h"
+#include "RDD.h"
+#include "Partition.h"
 
 #include <iostream>
 #include <string>
@@ -19,14 +21,14 @@ using namespace std;
 template <class T, class U>
 class ShuffleTask : public RDDTask< T, int > {
 public:
-	ShuffleTask(RDD<T> &r, Partition &p, int shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U));
+	ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U));
 	int& run();
 	bool save2File(vector< vector<string> > list);
 	string serialize(int &t);
 	int& deserialize(string s);
 
 private:
-	int shuffleID;
+	long shuffleID; // == rddID
 	int numPartitions;
 	HashDivider &hd;
 	Aggregator<T, U> &agg;

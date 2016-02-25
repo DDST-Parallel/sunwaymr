@@ -9,6 +9,9 @@
 #define INCLUDE_SHUFFLETASK_HPP_
 
 #include "ShuffleTask.h"
+
+#include "RDD.hpp"
+#include "Partition.hpp"
 #include "IteratorSeq.hpp"
 #include "RDDTask.hpp"
 #include "Aggregator.hpp"
@@ -21,7 +24,7 @@
 #include <fstream>
 using namespace std;
 
-template <class T, class U> ShuffleTask<T, U>::ShuffleTask(RDD<T> &r, Partition &p, int shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U))
+template <class T, class U> ShuffleTask<T, U>::ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U))
 :RDDTask< T, int >::RDDTask(r, p)
 {
 	shuffleID = shID;
@@ -101,7 +104,7 @@ template <class T, class U> string ShuffleTask<T, U>::serialize(int &t)
 
 template <class T, class U> int& ShuffleTask<T, U>::deserialize(string s)
 {
-	int val;
+	int val = 0;
 	stringstream ss;
 	ss<<s;
 	ss>>val;
