@@ -87,6 +87,16 @@ ShuffledRDD<K, V, C> PairRDD<K, V, T>::reduceByKey(Pair<K, C> (*merge)(Pair<K, C
 	return combineByKey(do_nothing<K, V, C>, merge, hashFunc, strFunc, recoverFunc, numPartitions);
 }
 
+template <class K, class V, class T>
+template <class C>
+ShuffledRDD<K, V, C> PairRDD<K, V, T>::reduceByKey(Pair<K, C> (*merge)(Pair<K, C>, Pair<K, C>),
+	  	  	  	  	  	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	  long (*hashFunc)(Pair<K, C>),
+																							  string (*strFunc)(Pair<K, C>),
+																							  Pair<K, C>(*recoverFunc)(string))
+{
+	return combineByKey(do_nothing<K, V, C>, merge, hashFunc, strFunc, recoverFunc, (this->context).getTotalThreads());
+}
+
 template <class K, class V, class C>
 Pair<K, C> do_nothing(Pair<K, V> p)
 {

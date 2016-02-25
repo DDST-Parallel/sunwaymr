@@ -74,7 +74,7 @@ void ShuffledRDD<K, V, C>::shuffle()
 
 	// construct tasks
 	vector< Task<int>* > tasks;
-	vector<Partition*> pars = this->getPartitions();
+	vector<Partition*> pars = preRDD.partitions; //partitions before shuffle
 
 	for (int i = 0; i < pars.size(); i++)
 	{

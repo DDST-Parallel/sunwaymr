@@ -54,6 +54,12 @@ public:
 																	   Pair<K, C>(*recoverFunc)(string),
 																	   int numPartitions);
 
+	template <class C>
+	ShuffledRDD<K, V, C> reduceByKey(Pair<K, C> (*merge)(Pair<K, C>, Pair<K, C>),
+				  	  	  	  	  	  	  	  	  	  	  	  	  	  	   long (*hashFunc)(Pair<K, C>),
+																		   string (*strFunc)(Pair<K, C>),
+																		   Pair<K, C>(*recoverFunc)(string));
+
 	// PairRDD<K, IteratorSeq<V>, T> groupByKey(int num_partitions);
 
 private:
