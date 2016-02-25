@@ -70,9 +70,9 @@ ShuffledRDD<K, V, C> PairRDD<K, V, T>::combineByKey(Pair<K, C> (*createCombiner)
 																		  Pair<K, C>(*recoverFunc)(string),
 																		  int numPartitions)
  {
-	Aggregator< Pair<K, V>, Pair<K, C> > &agg(createCombiner, mergeCombiner);
-	HashDivider &hd(numPartitions);
-	ShuffledRDD<K, V, C> shuffledRDD(*this, agg, hd, hashFunc, strFunc, this->rddID, recoverFunc);
+	Aggregator< Pair<K, V>, Pair<K, C> > *agg = new Aggregator< Pair<K, V>, Pair<K, C> >(createCombiner, mergeCombiner);
+	HashDivider *hd = new HashDivider(numPartitions);
+	ShuffledRDD<K, V, C> shuffledRDD(*this, *agg, *hd, hashFunc, strFunc, this->rddID, recoverFunc);
 	return shuffledRDD;
  }
 

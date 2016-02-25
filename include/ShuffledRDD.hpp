@@ -27,16 +27,13 @@
 #include <ctime>
 #include <cstdlib>
 #include <map>
-#include <strstream>
+#include <sstream>
 using namespace std;
 
 template <class K, class V, class C>
 ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K, V>, Pair<K, C> > &_agg, HashDivider &_hd, long (*hf)(Pair<K, C>), string (*strf)(Pair<K, C>), long _shuffleID, Pair<K, C> (*_recoverFunc)(string))
-: RDD< Pair<K, C> >::RDD(_preRDD.context)
+: RDD< Pair<K, C> >::RDD(_preRDD.context), preRDD(_preRDD), agg(_agg), hd(_hd)
 {
-	preRDD = _preRDD;
-	agg = _agg;
-	hd = _hd;
 	hashFunc = hf;
 	strFunc = strf;
 	shuffleID = _shuffleID;
@@ -44,7 +41,7 @@ ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K
 
 	// generate new partitions
 	vector<Partition*> parts;
-	for(int i=0; i<hd.numPartitions; i++)
+	for(int i=0; i<hd.getNumPartitions(); i++)
 	{
 		Partition *part = new ShuffledRDDPartition(this->rddID, i);
 		parts.push_back(part);
@@ -77,7 +74,7 @@ void ShuffledRDD<K, V, C>::shuffle()
 	for (int i = 0; i < pars.size(); i++)
 	{
 		//ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U));
-		Task<int> *task = new ShuffleTask< Pair<K, V>, Pair<K, C> >(*this, *(pars[i]), this->rddID, hd.numPartitions, hd, agg, hashFunc, strFunc);
+		Task<int> *task = new ShuffleTask< Pair<K, V>, Pair<K, C> >(*this, *(pars[i]), this->rddID, hd.getNumPartitions(), hd, agg, hashFunc, strFunc);
 		tasks.push_back(task);
 	}
 
@@ -92,13 +89,13 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 
 	// fetch
 	vector<string> IPs = (this->context).getHosts();
+	int port = (this->context).getListenPort();
 
-	int port = (this->context).getListenPort(); // get target
 	string str_shuffleID;
 	string str_partitionID;
 
-	strstream ss1;
-	strstream ss2;
+	stringstream ss1;
+	stringstream ss2;
 	ss1<<shuffleID;
 	ss1>>str_shuffleID;
 	ss2<<srp.partitionID;
@@ -119,9 +116,7 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 	typename map<K, C>::iterator it;
 	for(it=combiners.begin(); it!=combiners.end(); it++)
 	{
-		Pair<K, C> p;
-		p.v1 = it->first;
-		p.v2 = it->second;
+		Pair<K, C> p(it->first, it->second);
 		ret.push_back(p);
 	}
 	IteratorSeq< Pair<K, C> > retIt(ret);
@@ -140,13 +135,11 @@ map<K, C> ShuffledRDD<K, V, C>::merge(vector<string> replys)
 		{
 			typename map<K, C>::iterator iter;
 			Pair<K, C> p = recoverFunc(pairs[j]);
-			iter = find(p.v1);
+			iter = combiners.find(p.v1);
 			if(iter != combiners.end())
 			{
 				// the key exist
-				Pair<K, C> origin;
-				origin.v1 = p.v1;
-				origin.v2 = combiners[p.v1];
+				Pair<K, C> origin(p.v1, combiners[p.v1]);
 				Pair<K, C> newPair = agg.mergeCombiners(origin, p);
 				combiners[p.v1] = newPair.v2;
 			}

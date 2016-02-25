@@ -15,7 +15,6 @@ public:
 	Aggregator(C (*cc)(V), C (*mc)(C, C));
 
 	C (*createCombiner)(V);
-	//C (*mergeValue)(C, V);
 	C (*mergeCombiners)(C, C);
 };
 

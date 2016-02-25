@@ -19,18 +19,15 @@
 
 #include <vector>
 #include <string>
-#include <strstream>
 #include <sstream>
 #include <fstream>
 using namespace std;
 
 template <class T, class U> ShuffleTask<T, U>::ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U))
-:RDDTask< T, int >::RDDTask(r, p)
+:RDDTask< T, int >::RDDTask(r, p), hd(hashDivider), agg(aggregator)
 {
 	shuffleID = shID;
     numPartitions = nPs;
-	hd = hashDivider;
-	agg = aggregator;
 	hashFunc = hFunc;
 	strFunc = sf;
 }
@@ -39,7 +36,7 @@ template <class T, class U> int&  ShuffleTask<T, U>::run()
 {
 	// get current RDD value
 	IteratorSeq<T> iter = RDDTask< T, int >::rdd.iteratorSeq(RDDTask< T, int >::partition);
-	vector<T> datas = iter.getVector;
+	vector<T> datas = iter.getVector();
 
 	// T -> U
 	vector<U> datas1;
@@ -63,14 +60,15 @@ template <class T, class U> int&  ShuffleTask<T, U>::run()
 
 	// save to file
 	save2File(list);
-	return 1;
+	int *ret = new int(1);
+	return *ret;
 }
 
 template <class T, class U> bool ShuffleTask<T, U>::save2File(vector< vector<string> > list)
 {
 	ofstream ofs;
 
-    strstream ss;
+	stringstream ss;
     string str;
     ss<<shuffleID;
     ss>>str;
@@ -95,7 +93,7 @@ template <class T, class U> bool ShuffleTask<T, U>::save2File(vector< vector<str
 
 template <class T, class U> string ShuffleTask<T, U>::serialize(int &t)
 {
-	strstream ss;
+	stringstream ss;
 	string str;
 	ss<<t;
 	ss>>str;
@@ -108,7 +106,9 @@ template <class T, class U> int& ShuffleTask<T, U>::deserialize(string s)
 	stringstream ss;
 	ss<<s;
 	ss>>val;
-	return val;
+
+	int *ret = new int(val);
+	return *ret;
 }
 
 #endif /* INCLUDE_SHUFFLETASK_HPP_ */
