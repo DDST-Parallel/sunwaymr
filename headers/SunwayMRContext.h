@@ -53,6 +53,7 @@ public:
 	string getMaster();
 	int getListenPort();
 	vector<string> getHosts();
+	int getTotalThreads();
 
 private:
 	JobScheduler *scheduler;

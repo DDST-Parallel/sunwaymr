@@ -33,7 +33,7 @@ public:
 
 private:
 	string hostFilePath, master, appName, selfIP;
-	int listenPort, isMaster, selfIPIndex;
+	int listenPort, isMaster, selfIPIndex, threadCountSum;
 
 	vector<string> IPVector;
 	vector<int> threadCountVector;

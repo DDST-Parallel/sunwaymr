@@ -169,4 +169,8 @@ vector<string> SunwayMRContext::getHosts() {
 	return scheduler->getHosts();
 }
 
+int SunwayMRContext::getTotalThreads() {
+	return scheduler->totalThreads();
+}
+
 #endif /* SUNWAYMRCONTEXT_HPP_ */

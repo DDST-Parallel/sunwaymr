@@ -28,6 +28,7 @@ JobScheduler::JobScheduler(){
 	listenPort=0;
 	isMaster=0;
 	selfIPIndex = -1;
+	threadCountSum = 0;
 }
 
 JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
@@ -53,6 +54,7 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 		exit(1);
 	}
 
+	threadCountSum = 0;
 	stringstream fileContentStream(fileContent);
 	string line;
 	while(std::getline(fileContentStream,line,'\n')){
@@ -60,7 +62,9 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 		splitString(line, temp, HOST_RESOURCE_DELIMITATION);
         if(temp.size() < 4) continue;
         IPVector.push_back(temp[0]);
-        threadCountVector.push_back(atoi(temp[1].c_str()));
+        int tc = atoi(temp[1].c_str());
+        threadCountVector.push_back(tc);
+        threadCountSum += tc;
         memoryVector.push_back(atoi(temp[2].c_str()));
 	}
 
@@ -115,23 +119,20 @@ int JobScheduler::getListenPort() {
 
 int JobScheduler::totalThreads(){
 
-	int totalThreadNum=0;
+	int ret=0;
 
 	if (master=="local"){
         //return thread num of local
 		if(selfIPIndex >=0) {
-			totalThreadNum = threadCountVector[selfIPIndex];
+			ret = threadCountVector[selfIPIndex];
 		}
 
 	}
 	else{
         //return total thread of all node
-		int tc=threadCountVector.size();
-		for (int i=0; i<tc;i++){
-			totalThreadNum+=threadCountVector[i];
-		}
+		ret = threadCountSum;
 	}
-	return totalThreadNum;
+	return ret;
 }
 
 vector<string> JobScheduler::getHosts() {
