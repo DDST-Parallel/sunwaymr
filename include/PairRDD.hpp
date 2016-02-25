@@ -15,6 +15,10 @@
 #include "Partition.hpp"
 #include "RDD.hpp"
 #include "Pair.hpp"
+#include "ShuffledRDD.hpp"
+#include "Aggregator.hpp"
+#include "HashDivider.hpp"
+
 using namespace std;
 
 template <class K, class V, class T>
@@ -57,6 +61,37 @@ PairRDD<K, U, T> PairRDD<K, V, T>::mapValues(Pair<K, U> (*f)(Pair<K, V>))
 	return pair_rdd;
 }
 
+template <class K, class V, class T>
+template <class C>
+ShuffledRDD<K, V, C> PairRDD<K, V, T>::combineByKey(Pair<K, C> (*createCombiner)(Pair<K, V>),
+																		  Pair<K, C> (*mergeCombiner)(Pair<K, C>, Pair<K, C>),
+																		  long (*hashFunc)(Pair<K, C>),
+																		  string (*strFunc)(Pair<K, C>),
+																		  Pair<K, C>(*recoverFunc)(string),
+																		  int numPartitions)
+ {
+	Aggregator< Pair<K, V>, Pair<K, C> > &agg(createCombiner, mergeCombiner);
+	HashDivider &hd(numPartitions);
+	ShuffledRDD<K, V, C> shuffledRDD(*this, agg, hd, hashFunc, strFunc, this->rddID, recoverFunc);
+	return shuffledRDD;
+ }
+
+template <class K, class V, class T>
+template <class C>
+ShuffledRDD<K, V, C> PairRDD<K, V, T>::reduceByKey(Pair<K, C> (*merge)(Pair<K, C>, Pair<K, C>),
+	  	  	  	  	  	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	  long (*hashFunc)(Pair<K, C>),
+																							  string (*strFunc)(Pair<K, C>),
+																							  Pair<K, C>(*recoverFunc)(string),
+																							  int numPartitions)
+{
+	return combineByKey(do_nothing<K, V, C>, merge, hashFunc, strFunc, recoverFunc, numPartitions);
+}
+
+template <class K, class V, class C>
+Pair<K, C> do_nothing(Pair<K, V> p)
+{
+	return p;
+}
 #endif /* PIARRDD_HPP_ */
 
 

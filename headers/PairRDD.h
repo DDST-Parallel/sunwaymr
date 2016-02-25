@@ -15,8 +15,14 @@
 #include "Partition.h"
 #include "RDD.h"
 #include "Pair.h"
+#include "ShuffledRDD.h"
+
 using std::vector;
 using std::string;
+
+template <class K, class V, class C>
+Pair<K, C> do_nothing(Pair<K, V> p);
+
 
 template <class T> class RDD;
 
@@ -33,7 +39,20 @@ public:
 	template <class U>
 	PairRDD<K, U, T> mapValues(Pair<K, U> (*f)(Pair<K, V>));
 
-	PairRDD<K, V, T> reduceByKey(V (*f)(V, V), int num_partitions);
+	template <class C>
+	ShuffledRDD<K, V, C> combineByKey(Pair<K, C> (*createCombiner)(Pair<K, V>),
+																		  Pair<K, C> (*mergeCombiner)(Pair<K, C>, Pair<K, C>),
+																		  long (*hashFunc)(Pair<K, C>),
+																		  string (*strFunc)(Pair<K, C>),
+																		  Pair<K, C>(*recoverFunc)(string),
+																		  int numPartitions);
+
+	template <class C>
+	ShuffledRDD<K, V, C> reduceByKey(Pair<K, C> (*merge)(Pair<K, C>, Pair<K, C>),
+			  	  	  	  	  	  	  	  	  	  	  	  	  	  	   long (*hashFunc)(Pair<K, C>),
+																	   string (*strFunc)(Pair<K, C>),
+																	   Pair<K, C>(*recoverFunc)(string),
+																	   int numPartitions);
 
 	// PairRDD<K, IteratorSeq<V>, T> groupByKey(int num_partitions);
 
