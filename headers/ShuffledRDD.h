@@ -35,6 +35,7 @@ public:
 	void shuffle();
 	double getRandom(double start, double end);
 	map<K, C> merge(vector<string> replys);
+	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
 
 private:
 	RDD< Pair<K, V> > &preRDD;

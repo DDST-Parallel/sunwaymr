@@ -168,4 +168,9 @@ double ShuffledRDD<K, V, C>::getRandom(double start, double end)
 	return start+(end-start)*rand()/(RAND_MAX + 1.0);
 }
 
+template <class K, class V, class C>
+void ShuffledRDD<K, V, C>::messageReceived(int localListenPort, string fromHost, int msgType, string msg)
+{
+}
+
 #endif /* INCLUDE_SHUFFLEDRDD_HPP_ */
