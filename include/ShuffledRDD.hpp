@@ -26,6 +26,7 @@
 
 #include <ctime>
 #include <cstdlib>
+#include <map>
 #include <strstream>
 using namespace std;
 
@@ -117,11 +118,12 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 	// merge
 	vector< Pair<K, C> > ret;
 	map<K, C> combiners = merge(replys);
-	for(map<K, C>::iterator iter = combiners.begin(); iter!=combiners.end(); iter++)
+	typename map<K, C>::iterator it;
+	for(it=combiners.begin(); it!=combiners.end(); it++)
 	{
 		Pair<K, C> p;
-		p.v1 = iter->first;
-		p.v2 = iter->second;
+		p.v1 = it->first;
+		p.v2 = it->second;
 		ret.push_back(p);
 	}
 	IteratorSeq< Pair<K, C> > retIt(ret);
@@ -138,7 +140,7 @@ map<K, C> ShuffledRDD<K, V, C>::merge(vector<string> replys)
 		splitString(replys[i], pairs, " ");
 		for(int j=0; j<pairs.size(); j++)
 		{
-			map<K, C>::iterator iter;
+			typename map<K, C>::iterator iter;
 			Pair<K, C> p = recoverFunc(pairs[j]);
 			iter = find(p.v1);
 			if(iter != combiners.end())

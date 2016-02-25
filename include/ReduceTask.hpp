@@ -13,6 +13,7 @@
 
 #include "IteratorSeq.hpp"
 #include "RDDTask.hpp"
+#include "Utils.hpp"
 using std::stringstream;
 
 template <class T> ReduceTask<T>::ReduceTask(RDD<T> &r, Partition &p, T (*g)(T, T))
