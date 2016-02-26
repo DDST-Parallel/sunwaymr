@@ -91,16 +91,10 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 	vector<string> IPs = (this->context).getHosts();
 	int port = (this->context).getListenPort();
 
-	string str_shuffleID;
-	string str_partitionID;
+	string str_shuffleID = num2string(shuffleID);
+	string str_partitionID = num2string(srp.partitionID);
 
-	stringstream ss1;
-	stringstream ss2;
-	ss1<<shuffleID;
-	ss1>>str_shuffleID;
-	ss2<<srp.partitionID;
-	ss2>>str_partitionID;
-	string sendMsg = str_shuffleID+","+str_partitionID;
+	string sendMsg = str_shuffleID+","+str_partitionID; //organize request
 
 	vector<string> replys;
 	for(int i=0; i<IPs.size(); i++)
@@ -130,9 +124,12 @@ map<K, C> ShuffledRDD<K, V, C>::merge(vector<string> replys)
 	for(int i=0; i<replys.size(); i++)
 	{
 		vector<string> pairs;
-		splitString(replys[i], pairs, " ");
+		splitString(replys[i], pairs, SHUFFLETASK_KV_DELIMITATION);
 		for(int j=0; j<pairs.size(); j++)
 		{
+			if(pairs[j] == string(SHUFFLETASK_EMPTY_DELIMITATION))
+				continue;
+
 			typename map<K, C>::iterator iter;
 			Pair<K, C> p = recoverFunc(pairs[j]);
 			iter = combiners.find(p.v1);

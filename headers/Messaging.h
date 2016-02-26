@@ -44,7 +44,13 @@ struct ThreadData {
 	  msgContent(msgContent), client_sockfd(client_sockfd) { }
 };
 
-map< long, vector<string> > fetch_content;
+/*
+ * shuffleID -> data
+ * data:
+ * <shuffleTask0, shuffleTask1, ...>
+ * shuffleTask0: <partition0, partition1, ...>
+ */
+map< long, vector< vector<string> > > fetch_content;
 
 void* messageHandler(void *fd);
 

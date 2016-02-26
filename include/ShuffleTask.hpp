@@ -16,6 +16,8 @@
 #include "RDDTask.hpp"
 #include "Aggregator.hpp"
 #include "HashDivider.hpp"
+#include "Utils.hpp"
+#include "SunwayMRContext.h"
 
 #include <vector>
 #include <string>
@@ -57,39 +59,37 @@ template <class T, class U> int&  ShuffleTask<T, U>::run()
 		int pos = hd.getPartition(hashCode); // get the new partition index
 		list[pos].push_back(strFunc(datas1[i]));
 	}
+	//merge data to a string
+	string fileContent;
+	for(int i=0; i<list.size(); i++)
+	{
+		if(list[i].size() == 0)
+		{
+			fileContent += string(SHUFFLETASK_EMPTY_DELIMITATION) + string(SHUFFLETASK_PARTITION_DELIMITATION);
+			continue;
+		}
+		for(int j=0; j<list[i].size()-1; j++)
+			fileContent += list[i][j] + string(SHUFFLETASK_KV_DELIMITATION);
+
+		fileContent += list[i].back();
+		fileContent += string(SHUFFLETASK_PARTITION_DELIMITATION);
+	}
 
 	// save to file
-	save2File(list);
+	string app_id = num2string(SUNWAYMR_CONTEXT_ID);
+	string shuffle_id = num2string(shuffleID);
+	string task_id = num2string(this->taskID);
+
+	string dir = app_id.append("/shuffle-") + shuffle_id.append("/");
+	string fileName = "shuffleTaskFile";
+	fileName += task_id;
+	writeFile(dir, fileName, fileContent);
+
 	int *ret = new int(1);
 	return *ret;
 }
 
-template <class T, class U> bool ShuffleTask<T, U>::save2File(vector< vector<string> > list)
-{
-	ofstream ofs;
 
-	stringstream ss;
-    string str;
-    ss<<shuffleID;
-    ss>>str;
-	string fileName = str + "mapping";
-	ofs.open(fileName.data(), ios::app); // add mode
-
-	if(!ofs)
-		return false;
-
-	for(int i=0; i<list.size(); i++)
-	{
-		for(int j=0; j<list[i].size(); j++)
-		{
-			ofs<<list[i][j]<<" ";
-		}
-		ofs<<endl;
-	}
-
-	ofs.close();
-	return true;
-}
 
 template <class T, class U> string ShuffleTask<T, U>::serialize(int &t)
 {

@@ -17,6 +17,10 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <dirent.h>
 using namespace std;
 
 int splitString(const std::string& str, std::vector<std::string>& ret, const std::string& sep)
@@ -376,5 +380,49 @@ vector<string> splitStringByDelimitationCouple(string str, string delim_l, strin
 	}
 	return vs;
 }
+
+/**
+ * Given a directory name, list all direct file names in this directory
+ */
+ bool listAllFileNames(string dirname, vector<string> &files) {
+	DIR *dp;
+	struct dirent *dirp;
+
+	if((dp=opendir(dirname.c_str()))==NULL) {
+	    //perror("opendir error");
+	    return false;
+	}
+
+	while((dirp=readdir(dp))!=NULL) {
+	    if((strcmp(dirp->d_name,".")==0)||(strcmp(dirp->d_name,"..")==0))
+	                        continue;
+	    string _file(dirp->d_name);
+	    files.push_back(_file);
+	}
+	return true;
+}
+
+ /**
+  * Given a directory name, list all direct file names in this directory that contains ...
+  */
+ bool listAllFileNamesContain(string dirname, vector<string> &files, string contain) {
+ 	DIR *dp;
+ 	struct dirent *dirp;
+
+ 	if((dp=opendir(dirname.c_str()))==NULL) {
+ 	    perror("opendir error");
+ 	    return false;
+ 	}
+
+ 	while((dirp=readdir(dp))!=NULL) {
+ 	    if((strcmp(dirp->d_name,".")==0)||(strcmp(dirp->d_name,"..")==0))
+ 	                        continue;
+ 	    string _file(dirp->d_name);
+ 	    if(_file.find(contain) < _file.length())
+ 	    	 files.push_back(_file);
+ 	}
+ 	return true;
+ }
+
 
 #endif /* UTILS_HPP_ */

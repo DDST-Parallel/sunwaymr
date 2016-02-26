@@ -23,7 +23,6 @@ class ShuffleTask : public RDDTask< T, int > {
 public:
 	ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U));
 	int& run();
-	bool save2File(vector< vector<string> > list);
 	string serialize(int &t);
 	int& deserialize(string s);
 

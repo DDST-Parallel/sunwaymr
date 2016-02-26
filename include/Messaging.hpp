@@ -268,20 +268,36 @@ void* messageHandler(void *data)
 		{
 			long shuffleID = atol(paras[0].c_str());
 			int partitionID = atoi(paras[1].c_str());
+
 			// send back data
-			map< long, vector<string> >::iterator it = fetch_content.find(shuffleID);
+			string app_id = num2string(SUNWAYMR_CONTEXT_ID);
+		    string shuffle_id = num2string(shuffleID);
+
+		    string dir = app_id.append("/shuffle-") + shuffle_id.append("/");
+		    vector<string> allFileNames;
+			listAllFileNamesContain(dir, allFileNames, "shuffleTaskFile");
+			map< long, vector< vector<string> > >::iterator it = fetch_content.find(shuffleID);
 
 			if(it == fetch_content.end())
 			{
-				// this shuffle has not  been cached
-				string path = paras[0] + "mapping";
-				string content; // all partition data of one shuffle
-				readFile(path, content);
-				vector<string> lines;
-				splitString(content, lines, "\n");
-				fetch_content[shuffleID] = lines;
+				// this shuffle has not  been cached, read it
+				vector< vector<string> > vv;
+				fetch_content[shuffleID] = vv;
+				for(int i=0; i<allFileNames.size(); i++)
+				{
+					string content;
+					readFile(dir+allFileNames[i], content);
+					vector<string> lines;
+					splitString(content, lines, SHUFFLETASK_PARTITION_DELIMITATION);
+					fetch_content[shuffleID].push_back(lines);
+				}
 			}
-			string senMsg = fetch_content[shuffleID][partitionID];
+			//organize send message
+			string senMsg;
+			for(int i=0; i<fetch_content[shuffleID].size()-1; i++)
+				senMsg += fetch_content[shuffleID][i][partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
+			senMsg += (fetch_content[shuffleID].back())[partitionID];
+
 			send(td->client_sockfd, senMsg.c_str(), senMsg.length(), 0);
 		}
 
