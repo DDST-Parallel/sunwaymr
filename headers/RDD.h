@@ -17,6 +17,7 @@
 #include "PairRDD.h"
 #include "Partition.h"
 #include "SunwayMRContext.h"
+#include "UnionRDD.h"
 using std::string;
 using std::vector;
 
@@ -44,6 +45,8 @@ public:
 	MappedRDD<T, Pair< T, int > > distinct(int newNumSlices);
 	MappedRDD<T, Pair< T, int > > distinct(); // by default, newNumSlices = partitions.size()
 	vector<T>& collect();
+
+	UnionRDD<T> unionRDD(RDD<T> *other);
 
 	SunwayMRContext &context;
 	vector<Partition*> partitions;

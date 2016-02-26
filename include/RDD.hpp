@@ -19,6 +19,7 @@
 #include "CollectTask.hpp"
 #include "ShuffleTask.hpp"
 #include "Pair.hpp"
+#include "UnionRDD.hpp"
 using namespace std;
 
 template <class T> long RDD<T>::current_id = 1;
@@ -174,6 +175,14 @@ vector<T>& RDD<T>::collect()
 		}
 	}
 	return *ret;
+}
+
+template <class T>
+UnionRDD<T> RDD<T>::unionRDD(RDD<T> *other) {
+	vector< RDD<T>* > rdds;
+	rdds.push_back(this);
+	rdds.push_back(other);
+	return UnionRDD<T>(this->context, rdds);
 }
 
 #endif /* RDD_HPP_ */

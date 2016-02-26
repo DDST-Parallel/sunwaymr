@@ -17,6 +17,7 @@
 #include "Pair.h"
 #include "ShuffledRDD.h"
 #include "MappedRDD.h"
+#include "Either.h"
 
 using std::vector;
 using std::string;
@@ -37,7 +38,7 @@ public:
 	void shuffle();
 
 	template <class U>
-	PairRDD<K, U, T> mapValues(Pair<K, U> (*f)(Pair<K, V>));
+	PairRDD<K, U, Pair<K, V> > mapValues(Pair<K, U> (*f)(Pair<K, V>));
 
 	MappedRDD<V, Pair< K, V > > values();
 
@@ -55,6 +56,15 @@ public:
 	ShuffledRDD<K, V, IteratorSeq<V> > groupByKey(int num_partitions);
 
 	ShuffledRDD<K, V, IteratorSeq<V> > groupByKey();
+
+	template <class W>
+	FlatMappedRDD< Pair< K, Pair< V, W > >, Pair< K, IteratorSeq< Either< V, W > > > > join(
+			RDD< Pair< K, W > > &other,
+			int num_partitions);
+
+	template <class W>
+	FlatMappedRDD< Pair< K, Pair< V, W > >, Pair< K, IteratorSeq< Either< V, W > > > > join(
+			RDD< Pair< K, W > > &other);
 
 private:
 	RDD<T> &prevRDD;
