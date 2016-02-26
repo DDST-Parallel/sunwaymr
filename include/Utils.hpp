@@ -339,4 +339,42 @@ string num2string(long val) {
 	return str;
 }
 
+// return value: start position of right side delimitation
+string::size_type findDelimitationCouplePosition(string s, string delim_l, string delim_r, string::size_type pos) {
+	string::size_type pos1 = pos;
+	string::size_type pos2 = pos;
+	int c = 0, len_l = delim_l.length(), len_r = delim_r.length();
+	do {
+		pos1 = s.find(delim_l, pos1);
+		pos2 = s.find(delim_r, pos2);
+		if (pos2 == string::npos) break;
+		if (pos1 < pos2) {
+			c ++;
+			pos1 += len_l;
+		}
+		else {
+			c --;
+			if (c <= 0) break;
+			pos2 += len_r;
+		}
+	} while (true);
+	return pos2;
+}
+
+// example: split "(123(456))(789)" by "(" and ")"
+// result: vector{"123(456)", "789"}
+vector<string> splitStringByDelimitationCouple(string str, string delim_l, string delim_r) {
+	vector<string> vs;
+	string::size_type pos1 = 0;
+	string::size_type pos2 = 0;
+	int len_l = delim_l.length(), len_r = delim_r.length();
+	pos2 = findDelimitationCouplePosition(str, delim_l, delim_r, pos1);
+	while (pos2 != string::npos) {
+		vs.push_back(str.substr(pos1+len_l, pos2-pos1-len_l));
+		pos1 = pos2 + len_r;
+		pos2 = findDelimitationCouplePosition(str, delim_l, delim_r, pos1);
+	}
+	return vs;
+}
+
 #endif /* UTILS_HPP_ */

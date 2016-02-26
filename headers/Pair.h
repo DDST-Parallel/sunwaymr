@@ -11,8 +11,11 @@
 #include <iostream>
 using namespace std;
 
-#ifndef PAIR_DELIMITATION
-#define PAIR_DELIMITATION "\aPAIR\a"
+#ifndef PAIR_DELIMITATION_LEFT
+#define PAIR_DELIMITATION_LEFT "\a(\a"
+#endif
+#ifndef PAIR_DELIMITATION_RIGHT
+#define PAIR_DELIMITATION_RIGHT "\a)\a"
 #endif
 
 template <class K, class V>

@@ -11,8 +11,12 @@
 #include "FileSource.h"
 
 #include <sstream>
+#include <vector>
+#include <string>
 #include "Utils.hpp"
 using std::stringstream;
+using std::vector;
+using std::string;
 
 FileSource::FileSource() {
 	source = "";
@@ -61,8 +65,9 @@ ostream& operator<< (ostream &out, FileSource &fs) {
 }
 
 istream& operator>> (istream &in, FileSource &fs) {
-	string s;
-	in >> s;
+	std::stringstream buffer;
+	buffer << in.rdbuf();
+	string s(buffer.str());
 	fs.deserialize(s, FILE_SOURCE_DELIMITATION);
 	return in;
 }
