@@ -41,9 +41,8 @@ public:
 	T reduce(T (*g)(T, T));
 	virtual void shuffle();
 
-	// TODO distinct collect
-	//RDD<T> distinct(int newNumSlices);
-	//RDD<T> distinct(); // by default, newNumSlices = partitions.size()
+	MappedRDD<T, Pair< T, int > > distinct(int newNumSlices);
+	MappedRDD<T, Pair< T, int > > distinct(); // by default, newNumSlices = partitions.size()
 	vector<T>& collect();
 
 	SunwayMRContext &context;

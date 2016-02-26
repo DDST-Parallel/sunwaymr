@@ -270,10 +270,12 @@ void* messageHandler(void *data)
 			int partitionID = atoi(paras[1].c_str());
 
 			// send back data
+			string base_dir = "cache/shuffle/";
 			string app_id = num2string(SUNWAYMR_CONTEXT_ID);
 		    string shuffle_id = num2string(shuffleID);
 
 		    string dir = app_id.append("/shuffle-") + shuffle_id.append("/");
+		    dir = base_dir + dir;
 		    vector<string> allFileNames;
 			listAllFileNamesContain(dir, allFileNames, "shuffleTaskFile");
 			map< long, vector< vector<string> > >::iterator it = fetch_content.find(shuffleID);
@@ -283,7 +285,7 @@ void* messageHandler(void *data)
 				// this shuffle has not  been cached, read it
 				vector< vector<string> > vv;
 				fetch_content[shuffleID] = vv;
-				for(int i=0; i<allFileNames.size(); i++)
+				for(unsigned int i=0; i<allFileNames.size(); i++)
 				{
 					string content;
 					readFile(dir+allFileNames[i], content);
@@ -294,7 +296,7 @@ void* messageHandler(void *data)
 			}
 			//organize send message
 			string senMsg;
-			for(int i=0; i<fetch_content[shuffleID].size()-1; i++)
+			for(unsigned int i=0; i<fetch_content[shuffleID].size()-1; i++)
 				senMsg += fetch_content[shuffleID][i][partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
 			senMsg += (fetch_content[shuffleID].back())[partitionID];
 

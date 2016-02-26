@@ -76,11 +76,13 @@ template <class T, class U> int&  ShuffleTask<T, U>::run()
 	}
 
 	// save to file
+	string base_dir = "cache/shuffle/";
 	string app_id = num2string(SUNWAYMR_CONTEXT_ID);
 	string shuffle_id = num2string(shuffleID);
 	string task_id = num2string(this->taskID);
 
 	string dir = app_id.append("/shuffle-") + shuffle_id.append("/");
+	dir = base_dir + dir;
 	string fileName = "shuffleTaskFile";
 	fileName += task_id;
 	writeFile(dir, fileName, fileContent);

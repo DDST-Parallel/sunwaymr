@@ -424,5 +424,13 @@ vector<string> splitStringByDelimitationCouple(string str, string delim_l, strin
  	return true;
  }
 
+ unsigned int hash(string str, unsigned int seed = 0) {
+ 	unsigned int hash = seed;
+ 	const char *s = str.c_str();
+ 	while (*s) {
+ 		hash = hash * 101  +  *s++;
+ 	}
+ 	return hash;
+ }
 
 #endif /* UTILS_HPP_ */

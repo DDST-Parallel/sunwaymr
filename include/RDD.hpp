@@ -4,6 +4,7 @@
 #include "RDD.h"
 
 #include <iostream>
+#include <sstream>
 
 #include "ReduceTask.hpp"
 #include "Task.hpp"
@@ -17,6 +18,7 @@
 #include "Logging.hpp"
 #include "CollectTask.hpp"
 #include "ShuffleTask.hpp"
+#include "Pair.hpp"
 using namespace std;
 
 template <class T> long RDD<T>::current_id = 1;
@@ -94,6 +96,57 @@ T RDD<T>::reduce(T (*g)(T, T))
 	//reduce left results
 	IteratorSeq<T> it(values_results);
 	return it.reduceLeft(g)[0];
+}
+
+template <class T>
+Pair< T, int > distinct_inner_mapToPair_f (T t) {
+	return Pair< T, int >(t, 0);
+}
+
+template <class T>
+Pair< T, int> distinct_inner_reduce_f (Pair< T, int > p1, Pair< T, int > p2) {
+	return Pair< T, int >(p1.v1, 0);
+}
+
+template <class T>
+long distinct_inner_hash_f (Pair< T, int > p) {
+	stringstream ss;
+	ss << p.v1;
+	return hash(ss.str());
+}
+
+template <class T>
+string distinct_inner_toString_f (Pair< T, int > p) {
+	stringstream ss;
+	ss << p;
+	return ss.str();
+}
+
+template <class T>
+Pair< T, int > distinct_inner_fromString_f (string s) {
+	Pair< T, int > p;
+	stringstream ss(s);
+	ss >> p;
+	return p;
+}
+
+template <class T>
+T distinct_inner_map_f (Pair< T, int > p) {
+	return p.v1;
+}
+
+template <class T>
+MappedRDD<T, Pair< T, int > > RDD<T>::distinct(int newNumSlices) {
+    //map(x => (x, null)).reduceByKey((x, y) => x, numPartitions).map(_._1)
+	return this->mapToPair(distinct_inner_mapToPair_f<T>)
+			.reduceByKey(distinct_inner_reduce_f<T>, distinct_inner_hash_f<T>,
+					distinct_inner_toString_f<T>, distinct_inner_fromString_f<T>, newNumSlices)
+			.map(distinct_inner_map_f<T>);
+}
+
+template <class T>
+MappedRDD<T, Pair< T, int > > RDD<T>::distinct() {
+	return this->distinct(this->partitions.size());
 }
 
 template <class T>

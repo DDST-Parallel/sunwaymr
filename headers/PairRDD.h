@@ -16,6 +16,7 @@
 #include "RDD.h"
 #include "Pair.h"
 #include "ShuffledRDD.h"
+#include "MappedRDD.h"
 
 using std::vector;
 using std::string;
@@ -35,32 +36,25 @@ public:
 	IteratorSeq< Pair<K, V> > iteratorSeq(Partition &p);
 	void shuffle();
 
-	// TODO join reduceByKey groupByKey mapValues
 	template <class U>
 	PairRDD<K, U, T> mapValues(Pair<K, U> (*f)(Pair<K, V>));
 
+	MappedRDD<V, Pair< K, V > > values();
+
 	template <class C>
 	ShuffledRDD<K, V, C> combineByKey(Pair<K, C> (*createCombiner)(Pair<K, V>),
-																		  Pair<K, C> (*mergeCombiner)(Pair<K, C>, Pair<K, C>),
-																		  long (*hashFunc)(Pair<K, C>),
-																		  string (*strFunc)(Pair<K, C>),
-																		  Pair<K, C>(*recoverFunc)(string),
-																		  int numPartitions);
+			Pair<K, C> (*mergeCombiner)(Pair<K, C>, Pair<K, C>),
+			int numPartitions);
 
-	template <class C>
-	ShuffledRDD<K, V, C> reduceByKey(Pair<K, C> (*merge)(Pair<K, C>, Pair<K, C>),
-			  	  	  	  	  	  	  	  	  	  	  	  	  	  	   long (*hashFunc)(Pair<K, C>),
-																	   string (*strFunc)(Pair<K, C>),
-																	   Pair<K, C>(*recoverFunc)(string),
-																	   int numPartitions);
+	ShuffledRDD<K, V, V> reduceByKey(
+			Pair<K, V> (*reduce_function)(Pair<K, V>, Pair<K, V>),
+			int numPartitions);
 
-	template <class C>
-	ShuffledRDD<K, V, C> reduceByKey(Pair<K, C> (*merge)(Pair<K, C>, Pair<K, C>),
-				  	  	  	  	  	  	  	  	  	  	  	  	  	  	   long (*hashFunc)(Pair<K, C>),
-																		   string (*strFunc)(Pair<K, C>),
-																		   Pair<K, C>(*recoverFunc)(string));
+	ShuffledRDD<K, V, V> reduceByKey(Pair<K, V> (*reduce_function)(Pair<K, V>, Pair<K, V>));
 
-	// PairRDD<K, IteratorSeq<V>, T> groupByKey(int num_partitions);
+	ShuffledRDD<K, V, IteratorSeq<V> > groupByKey(int num_partitions);
+
+	ShuffledRDD<K, V, IteratorSeq<V> > groupByKey();
 
 private:
 	RDD<T> &prevRDD;
