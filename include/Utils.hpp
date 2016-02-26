@@ -323,5 +323,20 @@ bool getFileLength(string path,  long &size) {
 	}
 }
 
+string num2string(int val) {
+	string str;
+	stringstream ss;
+	ss<<val;
+	ss>>str;
+	return str;
+}
+
+string num2string(long val) {
+	string str;
+	stringstream ss;
+	ss<<val;
+	ss>>str;
+	return str;
+}
 
 #endif /* UTILS_HPP_ */

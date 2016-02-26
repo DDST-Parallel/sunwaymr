@@ -25,16 +25,28 @@ using std::string;
 #ifndef TASK_RESULT_LIST_DELIMITATION
 #define TASK_RESULT_LIST_DELIMITATION "\aTASK_RESULT_LIST\a"
 #endif
+#ifndef SHUFFLETASK_KV_DELIMITATION
+#define SHUFFLETASK_KV_DELIMITATION "\aSHUFFLETASK_KV\a"
+#endif
+#ifndef SHUFFLETASK_PARTITION_DELIMITATION
+#define SHUFFLETASK_PARTITION_DELIMITATION "\aSHUFFLETASK_PARTITION\a"
+#endif
+#ifndef SHUFFLETASK_EMPTY_DELIMITATION
+#define SHUFFLETASK_EMPTY_DELIMITATION "\aSHUFFLETASK_EMPTY\a"
+#endif
 
 template <class T>
 class Task {
 public:
-	Task(){};
+	Task();
 	virtual ~Task(){};
 	virtual T& run() = 0;
 	virtual string serialize(T &t) = 0;
 	virtual T& deserialize(string s) = 0;
 	virtual vector<string> preferredLocations() { return vector<string>(0); }
+
+	long taskID;
+	static long current_task_id; // task id counter
 };
 
 
