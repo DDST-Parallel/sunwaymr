@@ -18,7 +18,7 @@ using std::endl;
 using std::vector;
 using std::stringstream;
 
-vector<string> flatMap_f(TextFileBlock t) {
+vector<string> flat_map_f1(TextFileBlock t) {
 	vector<string> ret;
 	string data = t.blockData();
 	stringstream ss(data);
@@ -43,12 +43,12 @@ int main(int argc, char *argv[]) {
 
 	cout << endl << "SunwayMR Word Count" << endl << endl;
 
-	SunwayMRContext sc("SunwayMRWordCountTotally", argc, argv);
+	SunwayMRContext sc("SunwayMRWordCount", argc, argv);
 	vector<FileSource> fsv;
 	FileSource fs = FileSource("192.168.1.66", "/tmp/1.txt");
 	fsv.push_back(fs);
-	vector< Pair<string, int> > wc = sc.textFile(fsv)
-			.flatMap(flatMap_f)
+	vector< Pair<string, int> > wc = sc.textFile(fsv, FILE_SOURCE_FORMAT_LINE)
+			.flatMap(flat_map_f1)
 			.mapToPair(mapToPair_f)
 			.reduceByKey(reduceByKey_f)
 			.collect();

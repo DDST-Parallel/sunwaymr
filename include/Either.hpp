@@ -13,6 +13,8 @@
 template <class L, class R>
 Either<L, R>::Either() {
 	type = EITHER_TYPE_NA;
+	left = L();
+	right = R();
 }
 template <class L, class R>
 void Either<L, R>::initLeft(L l) {
@@ -27,7 +29,7 @@ void Either<L, R>::initRight(R r) {
 }
 
 template <class L, class R>
-ostream& operator<< (ostream &out, Either<L, R> &e) {
+ostream& operator<< (ostream &out, const Either<L, R> &e) {
 	if (e.type == EITHER_TYPE_LEFT || e.type == EITHER_TYPE_RIGHT) {
 		if (e.type == EITHER_TYPE_LEFT) {
 			out << EITHER_DELIMITATION_LEFT

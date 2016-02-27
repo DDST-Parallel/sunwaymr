@@ -32,6 +32,14 @@ RDD<T>::RDD(SunwayMRContext &c)
 }
 
 template <class T>
+RDD<T> & RDD<T>::operator=(RDD<T> &r) {
+	this->context = r.context;
+	this->partitions = r.partitions;
+	this->rddID = r.rddID;
+	return *this;
+}
+
+template <class T>
 RDD<T>::~RDD()
 {
 
@@ -140,8 +148,7 @@ template <class T>
 MappedRDD<T, Pair< T, int > > RDD<T>::distinct(int newNumSlices) {
     //map(x => (x, null)).reduceByKey((x, y) => x, numPartitions).map(_._1)
 	return this->mapToPair(distinct_inner_mapToPair_f<T>)
-			.reduceByKey(distinct_inner_reduce_f<T>, distinct_inner_hash_f<T>,
-					distinct_inner_toString_f<T>, distinct_inner_fromString_f<T>, newNumSlices)
+			.reduceByKey(distinct_inner_reduce_f<T>, newNumSlices)
 			.map(distinct_inner_map_f<T>);
 }
 

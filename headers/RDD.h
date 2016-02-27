@@ -31,6 +31,7 @@ template <class T>
 class RDD {
 public:
 	RDD(SunwayMRContext &c);
+	RDD<T> & operator=(RDD<T> &r);
 	virtual ~RDD();
 	virtual vector<Partition*> getPartitions()=0;
 	virtual vector<string> preferredLocations(Partition &p)=0;

@@ -16,6 +16,7 @@
 #include "AbstractIteratorSeq.hpp"
 #include "RangeIteratorSeq.hpp"
 #include "VectorIteratorSeq.hpp"
+#include "Utils.hpp"
 using std::stringstream;
 using std::string;
 
@@ -58,12 +59,12 @@ template <class T> void IteratorSeq<T>::init(vector<T> &v)
 	type = 1;
 }
 
-template <class T> long IteratorSeq<T>::size() {
+template <class T> long IteratorSeq<T>::size() const {
 	if (iterator == NULL) return 0;
 	return iterator->size();
 }
 
-template <class T> T IteratorSeq<T>::at(long index) {
+template <class T> T IteratorSeq<T>::at(long index) const {
 	return iterator->at(index);
 }
 
@@ -85,7 +86,7 @@ template <class T> vector<T>& IteratorSeq<T>::reduceLeft(T (*g)(T,T)) {
 }
 
 template <class T>
-ostream& operator<< (ostream &out, IteratorSeq<T> &s) {
+ostream& operator<< (ostream &out, const IteratorSeq<T> &s) {
 	for(long i=0; i<s.size(); i++) {
 		out << ITERATORSEQ_DELIMITATION_LEFT
 				<< s.at(i)
@@ -101,7 +102,7 @@ istream& operator>> (istream &in, IteratorSeq<T> &s) {
 	string str(buffer.str());
 	vector<string> vs;
 	vector<T> values;
-	vs = splitStringByDelimitationCouple(s, ITERATORSEQ_DELIMITATION_LEFT, ITERATORSEQ_DELIMITATION_RIGHT);
+	vs = splitStringByDelimitationCouple(str, ITERATORSEQ_DELIMITATION_LEFT, ITERATORSEQ_DELIMITATION_RIGHT);
 	for (unsigned int i=0; i<vs.size(); i++) {
 		stringstream ss(vs[i]);
 		T t;

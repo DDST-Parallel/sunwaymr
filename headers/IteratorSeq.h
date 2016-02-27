@@ -36,14 +36,14 @@ public:
 	void init(vector<T> &v);
 	int type; // 0: range, 1: vector
 
-	long size();
-	T at(long index);
+	long size() const;
+	T at(long index) const;
 	vector<T> getVector();
 	template <class U> IteratorSeq<U> map(U (*f)(T));
 	template <class U> IteratorSeq<U> flatMap(vector<U> (*f)(T));
 	vector<T>& reduceLeft(T (*g)(T,T));
 	template <class U>
-	friend ostream& operator<< (ostream &out, IteratorSeq<U> &s);
+	friend ostream& operator<< (ostream &out, const IteratorSeq<U> &s);
 	template <class U>
 	friend istream& operator>> (istream &in, IteratorSeq<U> &s);
 

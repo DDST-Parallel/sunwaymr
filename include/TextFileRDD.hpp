@@ -25,8 +25,8 @@
 #include "Utils.hpp"
 using namespace std;
 
-TextFileRDD::TextFileRDD(SunwayMRContext &c, vector<FileSource> files, int numSlices)
-: RDD<TextFileBlock>::RDD (c), files(files), numSlices(numSlices) {
+TextFileRDD::TextFileRDD(SunwayMRContext &c, vector<FileSource> files, int numSlices, FileSourceFormat format)
+: RDD<TextFileBlock>::RDD (c), files(files), numSlices(numSlices), format(format) {
 	//textFileRDD_id = RDD<TextFileBlock>::current_id++;
 	textFileRDD_id = RDD<TextFileBlock>::rddID;
 	// calculate partitions
@@ -72,8 +72,14 @@ FileSource getFileSize(void *file) {
 		fs->location = selfIP;
 		fs->listenPort = scheduler_listen_port;
 		long length;
-		if(getFileLength(fs->path, length)) {
-			fs->length = length;
+		if (fs->format == FILE_SOURCE_FORMAT_BYTE) {
+			if(getFileLength(fs->path, length)) {
+				fs->length = length;
+			}
+		} else {
+			if(getFileLineNumber(fs->path, length)) {
+				fs->length = length;
+			}
 		}
 	} else if (fs->source=="[DFS-server]" && selfIP==master_ip) {
 		// TODO DFS file
@@ -88,6 +94,7 @@ FileSource getFileSize(void *file) {
 vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 	vector<void *> seq;
 	for(unsigned int i=0; i<files.size(); i++) {
+		files[i].format = this->format;
 		seq.push_back(&files[i]);
 	}
 	master_ip = RDD<TextFileBlock>::context.getMaster();
@@ -124,11 +131,11 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 
 				while(true) {
 					if(l1+b <= fs.length) {
-						TextFileBlock block = TextFileBlock(fs, fs.location, l1, b);
+						TextFileBlock block = TextFileBlock(fs, fs.location, l1, b, fs.format);
 						fileBlocks.push_back(block);
 						l1 += b;
 					} else {
-						TextFileBlock block = TextFileBlock(fs, fs.location, l1, fs.length-l1);
+						TextFileBlock block = TextFileBlock(fs, fs.location, l1, fs.length-l1, fs.format);
 						fileBlocks.push_back(block);
 						break;
 					}

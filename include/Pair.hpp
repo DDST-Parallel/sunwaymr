@@ -38,7 +38,17 @@ Pair<K, V>::~Pair()
 }
 
 template <class K, class V>
-ostream& operator<< (ostream &out, Pair<K, V> &p) {
+bool Pair<K, V>::operator<(const Pair< K, V >& p) const {
+	stringstream ss1;
+	stringstream ss2;
+	ss1 << *this;
+	ss2 << p;
+	return (ss1.str().compare(ss2.str()) < 0);
+
+}
+
+template <class K, class V>
+ostream& operator<< (ostream &out, const Pair<K, V> &p) {
 	out << PAIR_DELIMITATION_LEFT
 			<< p.v1
 			<< PAIR_DELIMITATION_RIGHT

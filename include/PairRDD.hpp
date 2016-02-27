@@ -33,6 +33,13 @@ PairRDD<K, V, T>::PairRDD(RDD<T> &prev, Pair<K, V> (*f)(T))
 }
 
 template <class K, class V, class T>
+PairRDD<K, V, T> & PairRDD<K, V, T>::operator=(const PairRDD<K, V, T> &p) {
+	this->prevRDD = p.prevRDD;
+	this->mapToPairFunction = p.mapToPairFunction;
+	return *this;
+}
+
+template <class K, class V, class T>
 void PairRDD<K, V, T>::shuffle()
 {
 	prevRDD.shuffle();

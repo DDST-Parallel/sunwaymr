@@ -31,7 +31,7 @@ public:
 	void initLeft(L l);
 	void initRight(R r);
 	template <class T, class U>
-	friend ostream& operator<< (ostream &out, Either<T, U> &e);
+	friend ostream& operator<< (ostream &out, const Either<T, U> &e);
 	template <class T, class U>
 	friend istream& operator>> (istream &in, Either<T, U> &e);
 

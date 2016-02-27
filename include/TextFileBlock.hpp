@@ -15,17 +15,17 @@
 #include "Utils.hpp"
 
 TextFileBlock::TextFileBlock()
-: file(FileSource()), location(""), offset(0), length(0){
+: file(FileSource()), location(""), offset(0), length(0), format(FILE_SOURCE_FORMAT_BYTE) {
 
 }
 
-TextFileBlock::TextFileBlock(FileSource file, string location, int offset, int length)
-: file(file), location(location), offset(offset), length(length){
+TextFileBlock::TextFileBlock(FileSource file, string location, int offset, int length, FileSourceFormat format)
+: file(file), location(location), offset(offset), length(length), format(format) {
 
 }
 
 TextFileBlock::TextFileBlock(const TextFileBlock &tfb)
-: file(tfb.file), location(tfb.location), offset(tfb.offset), length(tfb.length){
+: file(tfb.file), location(tfb.location), offset(tfb.offset), length(tfb.length), format(tfb.format) {
 
 }
 
@@ -42,11 +42,18 @@ string TextFileBlock::blockData() {
 		// TODO DFS file
 	} else {
 		if(location == getLocalHost()) { // local file
-			readFile(file.path, offset, length, ret);
+			if (format == FILE_SOURCE_FORMAT_BYTE) {
+				readFile(file.path, offset, length, ret);
+			} else {
+				readFileByLineNumber(file.path, offset, length, ret);
+			}
 		} else {
 			// send file block request
 			stringstream request;
-			request << file.path << FILE_BLOCK_REQUEST_DELIMITATION << offset << FILE_BLOCK_REQUEST_DELIMITATION << length;
+			request << file.path << FILE_BLOCK_REQUEST_DELIMITATION
+					<< offset << FILE_BLOCK_REQUEST_DELIMITATION
+					<< length << FILE_BLOCK_REQUEST_DELIMITATION
+					<< format;
 			sendMessageForReply(location, file.listenPort,
 					FILE_BLOCK_REQUEST, request.str(), ret);
 		}

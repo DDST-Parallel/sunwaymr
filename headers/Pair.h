@@ -24,8 +24,9 @@ public:
 	Pair();
 	Pair(K k, V v);
 	~Pair();
+	bool operator<(const Pair< K, V >& p) const;
 	template <class T, class U>
-	friend ostream& operator<< (ostream &out, Pair<T, U> &p);
+	friend ostream& operator<< (ostream &out, const Pair<T, U> &p);
 	template <class T, class U>
 	friend istream& operator>> (istream &in, Pair<T, U> &p);
 

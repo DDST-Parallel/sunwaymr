@@ -75,6 +75,16 @@ void SunwayMRContext::init(string hostsFilePath, string master, string appName, 
 
 }
 
+SunwayMRContext & SunwayMRContext::operator=(const SunwayMRContext &c) {
+	this->hostsFilePath = c.hostsFilePath;
+	this->master = c.master;
+	this->appName = c.appName;
+	this->listenPort = c.listenPort;
+	this->hosts = c.hosts;
+	this->scheduler = c.scheduler;
+	return *this;
+}
+
 void SunwayMRContext::startScheduler() {
 	Logging::logInfo("SunwayMRContext: starting scheduler...");
 	bool r = scheduler->start();
@@ -134,17 +144,17 @@ template <class T> ParallelArray<T> SunwayMRContext::parallelize(IteratorSeq<T> 
 }
 
 // textFile
-TextFileRDD SunwayMRContext::textFile(vector<FileSource> files) {
-	return textFile(files, scheduler->totalThreads());
+TextFileRDD SunwayMRContext::textFile(vector<FileSource> files, FileSourceFormat format) {
+	return textFile(files, scheduler->totalThreads(), format);
 }
 
-TextFileRDD SunwayMRContext::textFile(vector<FileSource> files, int numSlices) {
+TextFileRDD SunwayMRContext::textFile(vector<FileSource> files, int numSlices, FileSourceFormat format) {
 	if (numSlices < 1)
 	{
 		Logging::logError("SunwayMRContext: slice number should be positive integer!");
 		exit(104);
 	}
-	return TextFileRDD(*this, files, numSlices);
+	return TextFileRDD(*this, files, numSlices, format);
 }
 
 // allNodes

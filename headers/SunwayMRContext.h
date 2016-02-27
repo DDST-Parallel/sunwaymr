@@ -31,6 +31,7 @@ public:
 	SunwayMRContext(string appName, int argc, char *argv[]);
 	SunwayMRContext(string hostsFilePath, string master, string appName, int listenPort);
 	void init(string hostsFilePath, string master, string appName, int listenPort);
+	SunwayMRContext & operator=(const SunwayMRContext &c);
 
 	// parallelize
 	ParallelArray<int> parallelize(int start, int end);
@@ -43,8 +44,8 @@ public:
 	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> &iter, int numSlices);
 
 	// textFile
-	TextFileRDD textFile(vector<FileSource> files);
-	TextFileRDD textFile(vector<FileSource> files, int numSlices);
+	TextFileRDD textFile(vector<FileSource> files, FileSourceFormat format = FILE_SOURCE_FORMAT_BYTE);
+	TextFileRDD textFile(vector<FileSource> files, int numSlices, FileSourceFormat format);
 
 	// allNodes
 	AllNodesRDD allNodes(IteratorSeq<void *> seq); // all partitions will have the save seq

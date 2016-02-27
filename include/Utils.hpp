@@ -316,10 +316,48 @@ bool readFile(string path, int offset, int length, string &content) {
 	}
 }
 
+
+bool readFileByLineNumber(string path, int offset, int length, string &content) {
+	std::ifstream file(path.c_str(), std::ifstream::in);
+	if (file.is_open()) {
+		int lines_count =0;
+		std::string line;
+		std::stringstream ss;
+		while (std::getline(file , line)) {
+			if (lines_count >= offset && lines_count < offset + length) {
+				ss << line << endl;
+			}
+			++lines_count;
+			if (lines_count >= offset+length) break;
+		}
+		content = ss.str();
+		file.close();
+		return true;
+	} else {
+		return false;
+	}
+}
+
 bool getFileLength(string path,  long &size) {
 	std::ifstream file(path.c_str(), std::ifstream::ate | std::ifstream::binary);
 	if (file.is_open()) {
 		size = file.tellg();
+		file.close();
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool getFileLineNumber(string path,  long &size) {
+	std::size_t lines_count =0;
+	std::string line;
+	std::ifstream file(path.c_str());
+
+	if (file.is_open()) {
+		while (std::getline(file , line))
+			++lines_count;
+		size = lines_count;
 		file.close();
 		return true;
 	} else {

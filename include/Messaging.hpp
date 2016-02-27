@@ -245,13 +245,18 @@ void* messageHandler(void *data)
 	if(td->msgType == FILE_BLOCK_REQUEST) { // reply file block
 		vector<string> vs;
 		splitString(td->msgContent, vs, FILE_BLOCK_REQUEST_DELIMITATION);
-		if(vs.size() == 3) {
+		if(vs.size() >= 4) {
 			string ret;
 			string path = vs[0];
 			int offset = atoi(vs[1].c_str());
 			int length = atoi(vs[2].c_str());
+			FileSourceFormat format = static_cast<FileSourceFormat>(atoi(vs[3].c_str()));
 
-			readFile(path, offset, length, ret);
+			if (format == FILE_SOURCE_FORMAT_BYTE) {
+				readFile(path, offset, length, ret);
+			} else {
+				readFileByLineNumber(path, offset, length, ret);
+			}
 			int byte = send(td->client_sockfd, ret.c_str(), ret.length(), 0);
 			if (byte < 0) {
 				// send failed

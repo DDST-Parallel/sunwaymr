@@ -32,6 +32,7 @@ template <class K, class V, class T>
 class PairRDD : public RDD< Pair<K, V> > {
 public:
 	PairRDD(RDD<T> &prev, Pair<K, V> (*f)(T));
+	PairRDD<K, V, T> & operator=(const PairRDD<K, V, T> &p);
 	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq< Pair<K, V> > iteratorSeq(Partition &p);
