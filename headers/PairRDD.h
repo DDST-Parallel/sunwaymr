@@ -32,39 +32,38 @@ template <class K, class V, class T>
 class PairRDD : public RDD< Pair<K, V> > {
 public:
 	PairRDD(RDD<T> &prev, Pair<K, V> (*f)(T));
-	PairRDD<K, V, T> & operator=(const PairRDD<K, V, T> &p);
 	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq< Pair<K, V> > iteratorSeq(Partition &p);
 	void shuffle();
 
 	template <class U>
-	PairRDD<K, U, Pair<K, V> > mapValues(Pair<K, U> (*f)(Pair<K, V>));
+	PairRDD<K, U, Pair<K, V> > & mapValues(Pair<K, U> (*f)(Pair<K, V>));
 
-	MappedRDD<V, Pair< K, V > > values();
+	MappedRDD<V, Pair< K, V > > & values();
 
 	template <class C>
-	ShuffledRDD<K, V, C> combineByKey(Pair<K, C> (*createCombiner)(Pair<K, V>),
+	ShuffledRDD<K, V, C> & combineByKey(Pair<K, C> (*createCombiner)(Pair<K, V>),
 			Pair<K, C> (*mergeCombiner)(Pair<K, C>, Pair<K, C>),
 			int numPartitions);
 
-	ShuffledRDD<K, V, V> reduceByKey(
+	ShuffledRDD<K, V, V> & reduceByKey(
 			Pair<K, V> (*reduce_function)(Pair<K, V>, Pair<K, V>),
 			int numPartitions);
 
-	ShuffledRDD<K, V, V> reduceByKey(Pair<K, V> (*reduce_function)(Pair<K, V>, Pair<K, V>));
+	ShuffledRDD<K, V, V> & reduceByKey(Pair<K, V> (*reduce_function)(Pair<K, V>, Pair<K, V>));
 
-	ShuffledRDD<K, V, IteratorSeq<V> > groupByKey(int num_partitions);
+	ShuffledRDD<K, V, IteratorSeq<V> > & groupByKey(int num_partitions);
 
-	ShuffledRDD<K, V, IteratorSeq<V> > groupByKey();
+	ShuffledRDD<K, V, IteratorSeq<V> > & groupByKey();
 
 	template <class W>
-	FlatMappedRDD< Pair< K, Pair< V, W > >, Pair< K, IteratorSeq< Either< V, W > > > > join(
+	FlatMappedRDD< Pair< K, Pair< V, W > >, Pair< K, IteratorSeq< Either< V, W > > > > & join(
 			RDD< Pair< K, W > > &other,
 			int num_partitions);
 
 	template <class W>
-	FlatMappedRDD< Pair< K, Pair< V, W > >, Pair< K, IteratorSeq< Either< V, W > > > > join(
+	FlatMappedRDD< Pair< K, Pair< V, W > >, Pair< K, IteratorSeq< Either< V, W > > > > & join(
 			RDD< Pair< K, W > > &other);
 
 private:

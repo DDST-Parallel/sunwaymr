@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 	fsv.push_back(fs);
 	int iteration = 10;
 
-	PairRDD<string, IteratorSeq<string>, Pair<string, IteratorSeq<string> > >  links =
+	PairRDD<string, IteratorSeq<string>, Pair<string, IteratorSeq<string> > >  &links =
 			sc.textFile(fsv, FILE_SOURCE_FORMAT_LINE)
 			.flatMap(flat_map_f1)
 			.distinct()
@@ -78,9 +78,22 @@ int main(int argc, char *argv[]) {
 			.groupByKey()
 			.mapToPair(map_to_pair_do_nothing_f<string, IteratorSeq<string> >);
 
+	cout << "collecting................" << endl;
+	vector<Pair<string,  IteratorSeq<string> > > ll = links.collect();
+	cout << "links size: " << ll.size() << endl;
+	for (unsigned int i=0; i<ll.size(); i++) {
+		cout << ll[i].v1 << " has links: " << ll[i].v2.size() << endl;
+	}
+
 	PairRDD<string, double, Pair<string, double> > ranks =
 			links.mapValues(map_values_f1)
 			.mapToPair(map_to_pair_do_nothing_f<string, double>);
+
+	vector<Pair<string, double> > origin = ranks.collect();
+	cout << "ranks size: " << origin.size() << endl;
+	for (unsigned int i=0; i<origin.size(); i++) {
+		cout << origin[i].v1 << " has rank: " << origin[i].v2 << endl;
+	}
 
 	for (int i=0; i<iteration; i++) {
 		ranks =

@@ -100,7 +100,8 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 	master_ip = RDD<TextFileBlock>::context.getMaster();
 	scheduler_listen_port = RDD<TextFileBlock>::context.getListenPort();
 	// collect all file sizes
-	vector<FileSource> fileSources = RDD<TextFileBlock>::context.allNodes(seq).map(getFileSize).collect();
+	IteratorSeq<void *> *is = new IteratorSeq<void *>(seq);
+	vector<FileSource> fileSources = RDD<TextFileBlock>::context.allNodes(*is).map(getFileSize).collect();
 
 	long total_length = 0;
 	for(unsigned int i=0; i<fileSources.size(); i++) {
@@ -111,9 +112,11 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 	vector< IteratorSeq<TextFileBlock>* > ret;
 	if(total_length > 0) {
 		// calculate block length
+		int max_block_size = MAX_TEXT_FILE_BLOCK_SIZE_BYTE;
+		if (this->format == FILE_SOURCE_FORMAT_LINE) max_block_size = MAX_TEXT_FILE_BLOCK_SIZE_LINE;
 		long b = total_length / numSlices;
 		b += 1;
-		if (b > MAX_TEXT_FILE_BLOCK_SIZE) b = MAX_TEXT_FILE_BLOCK_SIZE;
+		if (b > max_block_size) b = max_block_size;
 		//if (b == 0) b = 1;
 		//else if (b > MAX_TEXT_FILE_BLOCK_SIZE) b = MAX_TEXT_FILE_BLOCK_SIZE;
 
@@ -148,7 +151,10 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 		// slice blocks
 		unsigned int partitionBlocksCount = allBlocksCount / numSlices;
 		unsigned int partitionBlocksCountMax = partitionBlocksCount;
-		if (partitionBlocksCount == 0) partitionBlocksCount = 1;
+		if (partitionBlocksCount == 0) {
+			partitionBlocksCount = 1;
+			partitionBlocksCountMax = 1;
+		}
 		else if (allBlocksCount % numSlices > 0) partitionBlocksCountMax++;
 
 		// 1. remove extra

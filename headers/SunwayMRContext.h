@@ -31,24 +31,23 @@ public:
 	SunwayMRContext(string appName, int argc, char *argv[]);
 	SunwayMRContext(string hostsFilePath, string master, string appName, int listenPort);
 	void init(string hostsFilePath, string master, string appName, int listenPort);
-	SunwayMRContext & operator=(const SunwayMRContext &c);
 
 	// parallelize
-	ParallelArray<int> parallelize(int start, int end);
-	ParallelArray<int> parallelize(int start, int end, int numSlices);
-	ParallelArray<long> parallelize(long start, long end);
-	ParallelArray<long> parallelize(long start, long end, int numSlices);
-	template <class T> ParallelArray<T> parallelize(vector<T> &v);
-	template <class T> ParallelArray<T> parallelize(vector<T> &v, int numSlices);
-	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> &iter);
-	template <class T> ParallelArray<T> parallelize(IteratorSeq<T> &iter, int numSlices);
+	ParallelArray<int> & parallelize(int start, int end);
+	ParallelArray<int> & parallelize(int start, int end, int numSlices);
+	ParallelArray<long> & parallelize(long start, long end);
+	ParallelArray<long> & parallelize(long start, long end, int numSlices);
+	template <class T> ParallelArray<T> & parallelize(vector<T> &v);
+	template <class T> ParallelArray<T> & parallelize(vector<T> &v, int numSlices);
+	template <class T> ParallelArray<T> & parallelize(IteratorSeq<T> &iter);
+	template <class T> ParallelArray<T> & parallelize(IteratorSeq<T> &iter, int numSlices);
 
 	// textFile
-	TextFileRDD textFile(vector<FileSource> files, FileSourceFormat format = FILE_SOURCE_FORMAT_BYTE);
-	TextFileRDD textFile(vector<FileSource> files, int numSlices, FileSourceFormat format);
+	TextFileRDD & textFile(vector<FileSource> files, FileSourceFormat format = FILE_SOURCE_FORMAT_BYTE);
+	TextFileRDD & textFile(vector<FileSource> files, int numSlices, FileSourceFormat format);
 
 	// allNodes
-	AllNodesRDD allNodes(IteratorSeq<void *> seq); // all partitions will have the save seq
+	AllNodesRDD & allNodes(IteratorSeq<void *> &seq); // all partitions will have the save seq
 
 	template <class T> vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 

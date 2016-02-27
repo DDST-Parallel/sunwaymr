@@ -32,31 +32,23 @@ RDD<T>::RDD(SunwayMRContext &c)
 }
 
 template <class T>
-RDD<T> & RDD<T>::operator=(RDD<T> &r) {
-	this->context = r.context;
-	this->partitions = r.partitions;
-	this->rddID = r.rddID;
-	return *this;
-}
-
-template <class T>
 RDD<T>::~RDD()
 {
 
 }
 
 template <class T> template <class U>
-MappedRDD<U, T> RDD<T>::map(U (*f)(T))
+MappedRDD<U, T> & RDD<T>::map(U (*f)(T))
 {
-	MappedRDD<U, T> map_rdd(*this, f);
-	return map_rdd;
+	MappedRDD<U, T> *map_rdd = new MappedRDD<U, T>(*this, f);
+	return *map_rdd;
 }
 
 template <class T> template <class U>
-FlatMappedRDD<U, T> RDD<T>::flatMap(vector<U> (*f)(T))
+FlatMappedRDD<U, T> & RDD<T>::flatMap(vector<U> (*f)(T))
 {
-	FlatMappedRDD<U, T> map_rdd(*this, f);
-	return map_rdd;
+	FlatMappedRDD<U, T> *map_rdd = new FlatMappedRDD<U, T>(*this, f);
+	return *map_rdd;
 }
 
 template <class T>
@@ -66,10 +58,10 @@ void RDD<T>::shuffle()
 }
 
 template <class T> template <class K, class V>
-PairRDD<K, V, T> RDD<T>::mapToPair(Pair<K, V> (*f)(T))
+PairRDD<K, V, T> & RDD<T>::mapToPair(Pair<K, V> (*f)(T))
 {
-	PairRDD<K, V, T> pair_rdd(*this, f);
-	return pair_rdd;
+	PairRDD<K, V, T> *pair_rdd = new PairRDD<K, V, T>(*this, f);
+	return *pair_rdd;
 }
 
 template <class T>
@@ -108,7 +100,7 @@ T RDD<T>::reduce(T (*g)(T, T))
 }
 
 template <class T>
-Pair< T, int > distinct_inner_mapToPair_f (T t) {
+Pair< T, int > distinct_inner_map_to_pair_f (T t) {
 	return Pair< T, int >(t, 0);
 }
 
@@ -145,16 +137,16 @@ T distinct_inner_map_f (Pair< T, int > p) {
 }
 
 template <class T>
-MappedRDD<T, Pair< T, int > > RDD<T>::distinct(int newNumSlices) {
+MappedRDD<T, Pair< T, int > > & RDD<T>::distinct(int newNumSlices) {
     //map(x => (x, null)).reduceByKey((x, y) => x, numPartitions).map(_._1)
-	return this->mapToPair(distinct_inner_mapToPair_f<T>)
+	return this->mapToPair(distinct_inner_map_to_pair_f<T>)
 			.reduceByKey(distinct_inner_reduce_f<T>, newNumSlices)
 			.map(distinct_inner_map_f<T>);
 }
 
 template <class T>
-MappedRDD<T, Pair< T, int > > RDD<T>::distinct() {
-	return this->distinct(this->partitions.size());
+MappedRDD<T, Pair< T, int > > & RDD<T>::distinct() {
+	return this->distinct(this->getPartitions().size());
 }
 
 template <class T>
@@ -170,7 +162,6 @@ vector<T>& RDD<T>::collect()
 		Task< vector<T> > *task = new CollectTask<T>(*this, *(pars[i]));
 		tasks.push_back(task);
 	}
-
 	// run tasks via context
 	vector< TaskResult< vector<T> >* > results = this->context.runTasks(tasks);
 	//get results
@@ -185,11 +176,12 @@ vector<T>& RDD<T>::collect()
 }
 
 template <class T>
-UnionRDD<T> RDD<T>::unionRDD(RDD<T> *other) {
+UnionRDD<T> & RDD<T>::unionRDD(RDD<T> *other) {
 	vector< RDD<T>* > rdds;
 	rdds.push_back(this);
 	rdds.push_back(other);
-	return UnionRDD<T>(this->context, rdds);
+	UnionRDD<T> *ret = new UnionRDD<T>(this->context, rdds);
+	return *ret;
 }
 
 #endif /* RDD_HPP_ */

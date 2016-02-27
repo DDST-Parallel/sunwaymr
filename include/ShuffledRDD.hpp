@@ -107,13 +107,16 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 	// merge
 	vector< Pair<K, C> > ret;
 	map<K, C> combiners = merge(replys);
+	cout << "shffule iter merge done ****************" << endl;
 	typename map<K, C>::iterator it;
 	for(it=combiners.begin(); it!=combiners.end(); it++)
 	{
 		Pair<K, C> p(it->first, it->second);
 		ret.push_back(p);
 	}
+	cout << "shffule iter: " << sendMsg << " ret size: " << ret.size() << endl;
 	IteratorSeq< Pair<K, C> > retIt(ret);
+	cout << "shffule iter: " << sendMsg << " is size: " << retIt.size() << endl;
 	return retIt;
 }
 
@@ -124,6 +127,7 @@ map<K, C> ShuffledRDD<K, V, C>::merge(vector<string> replys)
 	for(int i=0; i<replys.size(); i++)
 	{
 		vector<string> pairs;
+		cout << "reply i: " << replys[i] << endl;
 		splitString(replys[i], pairs, SHUFFLETASK_KV_DELIMITATION);
 		for(int j=0; j<pairs.size(); j++)
 		{
@@ -131,13 +135,18 @@ map<K, C> ShuffledRDD<K, V, C>::merge(vector<string> replys)
 				continue;
 
 			typename map<K, C>::iterator iter;
+			cout << "1111111111111111 pair j " << j << " " << pairs[j] << endl;
 			Pair<K, C> p = recoverFunc(pairs[j]);
+			cout << "2222222222222222" << endl;
 			iter = combiners.find(p.v1);
+			cout << "3333333333333333" << endl;
 			if(iter != combiners.end())
 			{
 				// the key exist
+				cout << "44444444444444444" << endl;
 				Pair<K, C> origin(p.v1, combiners[p.v1]);
 				Pair<K, C> newPair = agg.mergeCombiners(origin, p);
+				cout << "55555555555555555" << endl;
 				combiners[p.v1] = newPair.v2;
 			}
 			else
