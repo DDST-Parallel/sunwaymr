@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 	vector<FileSource> fsv;
 	FileSource fs = FileSource("192.168.1.66", "/tmp/2.txt");
 	fsv.push_back(fs);
-	int iteration = 10;
+	int iteration = 1;
 
 	PairRDD<string, IteratorSeq<string>, Pair<string, IteratorSeq<string> > >  &links =
 			sc.textFile(fsv, FILE_SOURCE_FORMAT_LINE)
@@ -77,23 +77,23 @@ int main(int argc, char *argv[]) {
 			.mapToPair(map_to_pair_do_nothing_f<string, string>)
 			.groupByKey();
 
-	PairRDD<string, double, Pair<string, IteratorSeq<string> > > &ranks =
-			links.mapValues(map_values_f1);
+	PairRDD<string, double, Pair<string, double > > *ranks =
+			&(links.mapValues(map_values_f1)
+					.mapToPair(map_to_pair_do_nothing_f<string, double>));
 
 	for (int i=0; i<iteration; i++) {
 		ranks =
-				links
-				.join(ranks)
-				.mapToPair(map_to_pair_do_nothing_f<string, Pair<IteratorSeq<string>, double> >)
-				.values()
-				.flatMap(flat_map_f2)
-				.mapToPair(map_to_pair_do_nothing_f<string, double>)
-				.reduceByKey(reduce_by_key_f)
-				.mapToPair(map_to_pair_do_nothing_f<string, double>)
-				.mapValues(map_values_f2);
+				&(links
+						.join(*ranks)
+						.values()
+						.flatMap(flat_map_f2)
+						.mapToPair(map_to_pair_do_nothing_f<string, double>)
+						.reduceByKey(reduce_by_key_f)
+						.mapValues(map_values_f2));
+
 	}
 
-	vector<Pair<string, double> > output = ranks.collect();
+	vector<Pair<string, double> > output = ranks->collect();
 	cout << "Result: " << endl;
 	for (unsigned int i=0; i<output.size(); i++) {
 		cout << output[i].v1 << " has rank: " << output[i].v2 << endl;

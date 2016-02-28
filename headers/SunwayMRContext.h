@@ -31,6 +31,7 @@ public:
 	SunwayMRContext(string appName, int argc, char *argv[]);
 	SunwayMRContext(string hostsFilePath, string master, string appName, int listenPort);
 	void init(string hostsFilePath, string master, string appName, int listenPort);
+	SunwayMRContext & operator=(const SunwayMRContext &c);
 
 	// parallelize
 	ParallelArray<int> & parallelize(int start, int end);

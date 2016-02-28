@@ -15,7 +15,6 @@
 #include "Partition.h"
 #include "RDD.h"
 #include "Pair.h"
-#include "ShuffledRDD.h"
 #include "MappedRDD.h"
 #include "Either.h"
 
@@ -23,11 +22,11 @@ using std::vector;
 using std::string;
 
 template <class T> class RDD;
-
 template <class K, class V, class T>
 class PairRDD : public RDD< Pair<K, V> > {
 public:
 	PairRDD(RDD<T> &prev, Pair<K, V> (*f)(T));
+	//PairRDD<K, V, T> & operator=(const PairRDD<K, V, T> &p);
 	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq< Pair<K, V> > iteratorSeq(Partition &p);

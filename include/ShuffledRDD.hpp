@@ -31,12 +31,13 @@
 using namespace std;
 
 template <class K, class V, class C>
-ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K, V>, Pair<K, C> > &_agg, HashDivider &_hd, long (*hf)(Pair<K, C>), string (*strf)(Pair<K, C>), long _shuffleID, Pair<K, C> (*_recoverFunc)(string))
+ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K, V>, Pair<K, C> > &_agg, HashDivider &_hd, long (*hf)(Pair<K, C>), string (*strf)(Pair<K, C>), Pair<K, C> (*_recoverFunc)(string))
 : RDD< Pair<K, C> >::RDD(_preRDD.context), preRDD(_preRDD), agg(_agg), hd(_hd)
 {
 	hashFunc = hf;
 	strFunc = strf;
-	shuffleID = _shuffleID;
+	shuffleID = this->rddID;
+	shuffleFinished = false;
 	recoverFunc = _recoverFunc;
 
 	// generate new partitions
@@ -65,6 +66,7 @@ vector<string> ShuffledRDD<K, V, C>::preferredLocations(Partition &p)
 template <class K, class V, class C>
 void ShuffledRDD<K, V, C>::shuffle()
 {
+	if (shuffleFinished) return;
 	preRDD.shuffle();
 
 	// construct tasks
@@ -80,6 +82,7 @@ void ShuffledRDD<K, V, C>::shuffle()
 
 	// run tasks via context
 	(this->context).runTasks(tasks);
+	this->shuffleFinished = true;
 }
 
 template <class K, class V, class C>
@@ -138,6 +141,7 @@ map<K, C> ShuffledRDD<K, V, C>::merge(vector<string> replys)
 				// the key exist
 				Pair<K, C> origin(p.v1, combiners[p.v1]);
 				Pair<K, C> newPair = agg.mergeCombiners(origin, p);
+				cout << "*****shuffle[" << shuffleID << "] replys[" << i << "][" << j << "] merge: origin: " << origin << " p: " << p << endl;
 				combiners[p.v1] = newPair.v2;
 			}
 			else

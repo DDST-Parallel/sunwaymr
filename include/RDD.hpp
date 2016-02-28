@@ -22,19 +22,30 @@
 #include "UnionRDD.hpp"
 using namespace std;
 
-template <class T> long RDD<T>::current_id = 1;
-
 template <class T>
 RDD<T>::RDD(SunwayMRContext &c)
 : context(c)
 {
-	rddID = current_id++;
+	rddID = XYZ_CURRENT_RDD_ID++;
+}
+
+template <class T>
+RDD<T> & RDD<T>::operator=(const RDD<T> &p) {
+	this->initRDDFrom(p);
+	return *this;
 }
 
 template <class T>
 RDD<T>::~RDD()
 {
 
+}
+
+template <class T>
+void RDD<T>::initRDDFrom(const RDD<T> &r) {
+	this->context = r.context;
+	this->partitions = r.partitions;
+	this->rddID = r.rddID;
 }
 
 template <class T> template <class U>

@@ -106,7 +106,7 @@ istream& operator>> (istream &in, IteratorSeq<T> &s) {
 	for (unsigned int i=0; i<vs.size(); i++) {
 		stringstream ss(vs[i]);
 		T t;
-		ss << t;
+		ss >> t;
 		values.push_back(t);
 	}
 	s.init(values);

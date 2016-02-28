@@ -50,5 +50,7 @@ all: $(TARGETS)
 
 clean:
 	rm -f $(TARGETS)
+	rm -rf cache
+	rm -rf sunwaymrhelper/1*
 
 .PHONY: all clean app

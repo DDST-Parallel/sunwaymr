@@ -35,6 +35,8 @@ using std::string;
 #define SHUFFLETASK_EMPTY_DELIMITATION "\aSHUFFLETASK_EMPTY\a"
 #endif
 
+long XYZ_CURRENT_TASK_ID = 1; // task id counter
+
 template <class T>
 class Task {
 public:
@@ -46,7 +48,6 @@ public:
 	virtual vector<string> preferredLocations() { return vector<string>(0); }
 
 	long taskID;
-	static long current_task_id; // task id counter
 };
 
 

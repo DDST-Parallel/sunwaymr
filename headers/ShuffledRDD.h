@@ -28,7 +28,7 @@ template <class K, class V, class C>
 class ShuffledRDD : public RDD< Pair<K, C> >, public Messaging
 {
 public:
-	ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K, V>, Pair<K, C> > &_agg, HashDivider &_hd, long (*hf)(Pair<K, C>), string (*strf)(Pair<K, C>), long _shuffleID, Pair<K, C> (*_recoverFunc)(string));
+	ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K, V>, Pair<K, C> > &_agg, HashDivider &_hd, long (*hf)(Pair<K, C>), string (*strf)(Pair<K, C>), Pair<K, C> (*_recoverFunc)(string));
 	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq< Pair<K, C> > iteratorSeq(Partition &p);
@@ -44,6 +44,7 @@ private:
     string (*strFunc)(Pair<K, C>); // function  to serialize a pair to string (to save to file)
     Pair<K, C> (*recoverFunc)(string); // function to deserialize a string to a pair
     long shuffleID;
+    bool shuffleFinished;
 };
 
 

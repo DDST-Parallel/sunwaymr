@@ -9,11 +9,9 @@
 
 #include "Task.h"
 
-template <class T> long Task<T>::current_task_id = 1;
-
 template <class T>
 Task<T>::Task()
 {
-	taskID = current_task_id++;
+	taskID = XYZ_CURRENT_TASK_ID++;
 }
 #endif /* TASK_HPP_ */

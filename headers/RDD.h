@@ -27,11 +27,15 @@ template <class U, class T> class FlatMappedRDD;
 template <class K, class V, class T> class PairRDD;
 class SunwayMRContext;
 
+long XYZ_CURRENT_RDD_ID = 1; // id counter
+
 template <class T>
 class RDD {
 public:
 	RDD(SunwayMRContext &c);
+	RDD<T> & operator=(const RDD<T> &p);
 	virtual ~RDD();
+	virtual void initRDDFrom(const RDD<T> &r);
 	virtual vector<Partition*> getPartitions()=0;
 	virtual vector<string> preferredLocations(Partition &p)=0;
 	virtual IteratorSeq<T> iteratorSeq(Partition &p)=0;
@@ -50,7 +54,6 @@ public:
 
 	SunwayMRContext &context;
 	vector<Partition*> partitions;
-	static long current_id; // id counter
 	long rddID;
 };
 

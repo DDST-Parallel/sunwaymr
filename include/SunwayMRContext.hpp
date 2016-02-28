@@ -75,6 +75,16 @@ void SunwayMRContext::init(string hostsFilePath, string master, string appName, 
 
 }
 
+SunwayMRContext & SunwayMRContext::operator=(const SunwayMRContext &c) {
+	this->hostsFilePath = c.hostsFilePath;
+	this->master = c.master;
+	this->appName = c.appName;
+	this->listenPort = c.listenPort;
+	this->hosts = c.hosts;
+	this->scheduler = c.scheduler;
+	return *this;
+}
+
 void SunwayMRContext::startScheduler() {
 	Logging::logInfo("SunwayMRContext: starting scheduler...");
 	bool r = scheduler->start();

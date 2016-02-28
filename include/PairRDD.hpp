@@ -32,6 +32,14 @@ PairRDD<K, V, T>::PairRDD(RDD<T> &prev, Pair<K, V> (*f)(T))
 	mapToPairFunction = f;
 }
 
+//template <class K, class V, class T>
+//PairRDD<K, V, T> & PairRDD<K, V, T>::operator=(const PairRDD<K, V, T> &p) {
+//	this->initRDDFrom(p);
+//	this->prevRDD = p.prevRDD;
+//	this->mapToPairFunction = p.mapToPairFunction;
+//	return *this;
+//}
+
 template <class K, class V, class T>
 void PairRDD<K, V, T>::shuffle()
 {
@@ -112,7 +120,7 @@ PairRDD<K, C, Pair<K, C> > & PairRDD<K, V, T>::combineByKey(
  {
 	Aggregator< Pair<K, V>, Pair<K, C> > *agg = new Aggregator< Pair<K, V>, Pair<K, C> >(createCombiner, mergeCombiner);
 	HashDivider *hd = new HashDivider(numPartitions);
-	ShuffledRDD<K, V, C> *shuffledRDD = new ShuffledRDD<K, V, C>(*this, *agg, *hd, xyz_pair_rdd_combineByKey_inner_hash_f<K, C>, xyz_pair_rdd_combineByKey_inner_to_string_f<K, C>, this->rddID, xyz_pair_rdd_combineByKey_inner_from_string_f<K, C>);
+	ShuffledRDD<K, V, C> *shuffledRDD = new ShuffledRDD<K, V, C>(*this, *agg, *hd, xyz_pair_rdd_combineByKey_inner_hash_f<K, C>, xyz_pair_rdd_combineByKey_inner_to_string_f<K, C>, xyz_pair_rdd_combineByKey_inner_from_string_f<K, C>);
 	return shuffledRDD->mapToPair(xyz_pair_rdd_do_nothing_f<K, C>);
  }
 
@@ -212,11 +220,11 @@ template <class W>
 PairRDD< K, Pair< V, W >, Pair< K, Pair< V, W > > > & PairRDD<K, V, T>::join(
 		RDD< Pair< K, W > > &other,
 		int num_partitions) {
-	MappedRDD< Pair<K, Either<V, W> >, Pair<K, V> > mapRDD1 = this->map(xyz_pair_rdd_join_inner_map_left_f<K, V, W>);
-	MappedRDD< Pair<K, Either<V, W> >, Pair<K, W> > mapRDD2 = other.map(xyz_pair_rdd_join_inner_map_right_f<K, V, W>);
+	MappedRDD< Pair<K, Either<V, W> >, Pair<K, V> > &mapRDD1 = this->map(xyz_pair_rdd_join_inner_map_left_f<K, V, W>);
+	MappedRDD< Pair<K, Either<V, W> >, Pair<K, W> > &mapRDD2 = other.map(xyz_pair_rdd_join_inner_map_right_f<K, V, W>);
 
 	UnionRDD< Pair<K, Either<V, W> > > &all = mapRDD1.unionRDD(&mapRDD2);
-	return all.mapToPair(xyz_pair_rdd_join_inner_map_to_pair_f<K, V, W>)
+	return all.mapToPair(xyz_pair_rdd_do_nothing_f< K, Either<V, W> >)
 			.groupByKey(num_partitions)
 			.flatMap(xyz_pair_rdd_join_inner_flat_map_f<K, V, W>)
 			.mapToPair(xyz_pair_rdd_do_nothing_f< K, Pair< V, W > >);
