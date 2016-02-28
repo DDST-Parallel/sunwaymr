@@ -15,6 +15,8 @@
 #include "Task.h"
 #include "TaskResult.h"
 
+int XYZ_TASK_SCHEDULER_RUN_TASK_MODE = 0; // 0: fork, 1: pthread
+
 template <class T>
 class TaskScheduler : public Messaging, public Scheduler {
 public:

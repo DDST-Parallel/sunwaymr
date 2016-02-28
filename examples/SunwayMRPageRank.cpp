@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 	vector<FileSource> fsv;
 	FileSource fs = FileSource("192.168.1.66", "/tmp/2.txt");
 	fsv.push_back(fs);
-	int iteration = 1;
+	int iteration = 10;
 
 	PairRDD<string, IteratorSeq<string>, Pair<string, IteratorSeq<string> > >  &links =
 			sc.textFile(fsv, FILE_SOURCE_FORMAT_LINE)

@@ -17,7 +17,7 @@ using std::cout;
 using std::endl;
 
 #ifndef LOGGING_MASK
-#define LOGGING_MASK 0
+#define LOGGING_MASK 1
 #endif
 
 pthread_mutex_t Logging::mutex_logging;

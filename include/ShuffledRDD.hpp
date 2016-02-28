@@ -23,6 +23,7 @@
 #include "Messaging.hpp"
 #include "MessageType.hpp"
 #include "Utils.hpp"
+#include "TaskScheduler.h"
 
 #include <ctime>
 #include <cstdlib>
@@ -66,7 +67,10 @@ vector<string> ShuffledRDD<K, V, C>::preferredLocations(Partition &p)
 template <class K, class V, class C>
 void ShuffledRDD<K, V, C>::shuffle()
 {
+	XYZ_TASK_SCHEDULER_RUN_TASK_MODE = 1;
+
 	if (shuffleFinished) return;
+
 	preRDD.shuffle();
 
 	// construct tasks
@@ -89,6 +93,12 @@ template <class K, class V, class C>
 IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 {
 	ShuffledRDDPartition &srp = dynamic_cast<ShuffledRDDPartition&>(p);
+
+	// !TODO cannot save shuffle cache data in memory if running in fork !
+	// now running tasks by pthread if shuffled (by change XYZ_TASK_SCHEDULER_RUN_TASK_MODE in shuffle())
+	if (shuffleCache.find(srp.partitionID) != shuffleCache.end()) {
+		return this->shuffleCache[srp.partitionID];
+	}
 
 	// fetch
 	vector<string> IPs = (this->context).getHosts();
@@ -117,6 +127,10 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 		ret.push_back(p);
 	}
 	IteratorSeq< Pair<K, C> > retIt(ret);
+
+	// saving cache
+	this->shuffleCache[srp.partitionID] = retIt;
+
 	return retIt;
 }
 
@@ -141,7 +155,6 @@ map<K, C> ShuffledRDD<K, V, C>::merge(vector<string> replys)
 				// the key exist
 				Pair<K, C> origin(p.v1, combiners[p.v1]);
 				Pair<K, C> newPair = agg.mergeCombiners(origin, p);
-				cout << "*****shuffle[" << shuffleID << "] replys[" << i << "][" << j << "] merge: origin: " << origin << " p: " << p << endl;
 				combiners[p.v1] = newPair.v2;
 			}
 			else

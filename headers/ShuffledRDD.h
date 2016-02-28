@@ -45,6 +45,7 @@ private:
     Pair<K, C> (*recoverFunc)(string); // function to deserialize a string to a pair
     long shuffleID;
     bool shuffleFinished;
+    map<int, IteratorSeq< Pair<K, C> > > shuffleCache;
 };
 
 

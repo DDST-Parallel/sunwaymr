@@ -69,7 +69,7 @@ template <class T>
 vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 
 	stringstream runTasksInfo;
-	runTasksInfo << "TaskScheduler: run tasks, job ID: [" << jobID << "], tasks: " << tasks.size();
+	runTasksInfo << "TaskScheduler: runTasks, job: [" << jobID << "], tasks size: [" << tasks.size() << "]";
 	Logging::logInfo(runTasksInfo.str());
 
 	int taskNum=tasks.size();
@@ -140,9 +140,6 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 	}
 	vector<int> launchedTask = vector<int>(taskNum);
 
-
-	//int THREADS_NUM_MAX = 10; // 10 threads at most TODO configuration out of code
-
 	pthread_mutex_init(&mutex_allTaskResultsReceived, NULL);
 	pthread_mutex_lock(&mutex_allTaskResultsReceived);
 	while (!allTaskResultsReceived) { // waiting until all results received
@@ -153,17 +150,44 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 			continue;
 		}
 
-		while (lanuchedTaskNum < runOnThisNodeTaskNum) {
-			for (int i=0; i < taskNum; i++) {
-				if (taskOnIPVector[i]==selfIP && launchedTask[i]==0) { // pick non started task
-					if (fork()==0) { // !!! keep thread safety !!! no stdio !!!
-						T& value = tasks[i]->run();
-						stringstream ss;
-						ss << jobID << TASK_RESULT_DELIMITATION << i << TASK_RESULT_DELIMITATION << tasks[i]->serialize(value);
-						sendMessage(master, listenPort, A_TASK_RESULT, ss.str());
-						exit(0);
-					} else {
+		if (XYZ_TASK_SCHEDULER_RUN_TASK_MODE == 0) {
+			// [0]run tasks by fork
+			while (lanuchedTaskNum < runOnThisNodeTaskNum) {
+				for (int i=0; i < taskNum; i++) {
+					if (taskOnIPVector[i]==selfIP && launchedTask[i]==0) { // pick non started task
+						if (fork()==0) { // !!! keep thread safety !!! no stdio !!!
+							T& value = tasks[i]->run();
+							stringstream ss;
+							ss << jobID << TASK_RESULT_DELIMITATION << i << TASK_RESULT_DELIMITATION << tasks[i]->serialize(value);
+							sendMessage(master, listenPort, A_TASK_RESULT, ss.str());
+							exit(0);
+						} else {
+							lanuchedTaskNum ++;
+						}
+					}
+				}
+			}
+
+		} else {
+			// [1]run tasks by pthread
+			int THREADS_NUM_MAX = 10; // 10 threads at most TODO configuration out of code
+			while (runningThreadNum < THREADS_NUM_MAX
+					&& lanuchedTaskNum < runOnThisNodeTaskNum) {
+				for (int i=0; i < taskNum; i++) {
+					if (taskOnIPVector[i]==selfIP && launchedTask[i]==0) { // pick non started task
+						pthread_t thread;
+						struct thread_data<T> *data = new thread_data<T> (*this, master,
+							listenPort, jobID, i, *tasks[i]);
+						int rc = pthread_create(&thread, NULL, runTask<T>, (void *)data);
+						if (rc){
+							Logging::logError("TaskScheduler: failed to create thread to run task");
+							exit(-1);
+						}
+						startedThreads.push_back(thread);
+						launchedTask[i] = 1;
 						lanuchedTaskNum ++;
+						increaseRunningThreadNum();
+						break;
 					}
 				}
 			}
@@ -172,11 +196,11 @@ vector< TaskResult<T>* > TaskScheduler<T>::runTasks(vector< Task<T>* > &tasks) {
 	}
 
 	stringstream results;
-	results << "TaskScheduler: job[" << jobID << "] task results: \n";
+	results << "TaskScheduler: \n" << "job[" << jobID << "] task results: \n";
 	for (unsigned int i=0; i<taskResults.size(); i++) {
 		results << "[" << i << "] " << taskResults[i]->task.serialize(taskResults[i]->value) << endl;
 	}
-	Logging::logInfo(results.str());
+	Logging::logDebug(results.str());
 
 	return taskResults;
 }
@@ -225,7 +249,7 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 
 			// check if all task results received
 			if (receivedTaskResultNum == tasks.size()) {
-				Logging::logInfo("TaskScheduler: master: all task results received, now send out task result list...");
+				Logging::logInfo("TaskScheduler: master: sending out results...");
 
 				// send out to other nodes
 				stringstream resultList;
@@ -239,7 +263,7 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 					sendMessage(IPVector[i], listenPort, TASK_RESULT_LIST, msg);
 				}
 
-				Logging::logInfo("TaskScheduler: result list sent");
+				Logging::logInfo("TaskScheduler: results sent");
 
 				allTaskResultsReceived = true;
 				pthread_mutex_unlock(&mutex_allTaskResultsReceived);
