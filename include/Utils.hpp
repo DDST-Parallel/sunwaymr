@@ -23,38 +23,33 @@
 #include <dirent.h>
 using namespace std;
 
-int splitString(const std::string& str, std::vector<std::string>& ret, const std::string& sep)
+int splitString(const std::string& str, std::vector<std::string>& ret, const std::string& delim)
 {
 	if (str.empty())
-	    {
-	        return 0;
-	    }
+	{
+		return 0;
+	}
 
-	    string tmp;
-	    string::size_type pos_begin = str.find_first_not_of(sep);
-	    string::size_type comma_pos = 0;
+	string tmp;
+	string::size_type start = 0U;
+	string::size_type end = str.find(delim);
+	while (end != std::string::npos)
+	{
+		tmp = str.substr(start, end - start);
+		ret.push_back(tmp);
+		start = end + delim.length();
+		end = str.find(delim, start);
+	}
 
-	    while (pos_begin != string::npos)
-	    {
-	        comma_pos = str.find(sep, pos_begin);
-	        if (comma_pos != string::npos)
-	        {
-	            tmp = str.substr(pos_begin, comma_pos - pos_begin);
-	            pos_begin = comma_pos + sep.length();
-	        }
-	        else
-	        {
-	            tmp = str.substr(pos_begin);
-	            pos_begin = comma_pos;
-	        }
+	tmp = str.substr(start, end);
 
-	        if (!tmp.empty())
-	        {
-	            ret.push_back(tmp);
-	            tmp.clear();
-	        }
-	    }
-	    return 0;
+	if (!tmp.empty())
+	{
+		ret.push_back(tmp);
+		tmp.clear();
+	}
+
+	return 0;
 }
 
 

@@ -66,6 +66,12 @@ PairRDD<K, U, Pair<K, V> > & PairRDD<K, V, T>::mapValues(Pair<K, U> (*f)(Pair<K,
 }
 
 template <class K, class V>
+Pair< K, V > xyz_pair_rdd_do_nothing_f(Pair< K, V > p) {
+	return p;
+}
+
+
+template <class K, class V>
 V xyz_pair_rdd_values_inner_map_f (Pair< K, V > p) {
 	return p.v2;
 }
@@ -99,7 +105,7 @@ Pair<K, C> xyz_pair_rdd_combineByKey_inner_from_string_f (string s) {
 
 template <class K, class V, class T>
 template <class C>
-ShuffledRDD<K, V, C> & PairRDD<K, V, T>::combineByKey(
+PairRDD<K, C, Pair<K, C> > & PairRDD<K, V, T>::combineByKey(
 		Pair<K, C> (*createCombiner)(Pair<K, V>),
 		Pair<K, C> (*mergeCombiner)(Pair<K, C>, Pair<K, C>),
 		int numPartitions)
@@ -107,28 +113,22 @@ ShuffledRDD<K, V, C> & PairRDD<K, V, T>::combineByKey(
 	Aggregator< Pair<K, V>, Pair<K, C> > *agg = new Aggregator< Pair<K, V>, Pair<K, C> >(createCombiner, mergeCombiner);
 	HashDivider *hd = new HashDivider(numPartitions);
 	ShuffledRDD<K, V, C> *shuffledRDD = new ShuffledRDD<K, V, C>(*this, *agg, *hd, xyz_pair_rdd_combineByKey_inner_hash_f<K, C>, xyz_pair_rdd_combineByKey_inner_to_string_f<K, C>, this->rddID, xyz_pair_rdd_combineByKey_inner_from_string_f<K, C>);
-	return *shuffledRDD;
+	return shuffledRDD->mapToPair(xyz_pair_rdd_do_nothing_f<K, C>);
  }
 
-template <class K, class V>
-Pair<K, V> xyz_pair_rdd_reduceByKey_do_nothing(Pair<K, V> p)
-{
-	return p;
-}
-
 template <class K, class V, class T>
-ShuffledRDD<K, V, V> & PairRDD<K, V, T>::reduceByKey(
+PairRDD<K, V, Pair<K, V> > & PairRDD<K, V, T>::reduceByKey(
 		Pair<K, V> (*reduce_function)(Pair<K, V>, Pair<K, V>),
 		int numPartitions)
 {
-	return combineByKey(xyz_pair_rdd_reduceByKey_do_nothing<K, V>, reduce_function, numPartitions);
+	return combineByKey(xyz_pair_rdd_do_nothing_f<K, V>, reduce_function, numPartitions);
 }
 
 template <class K, class V, class T>
-ShuffledRDD<K, V, V> & PairRDD<K, V, T>::reduceByKey(
+PairRDD<K, V, Pair<K, V> > & PairRDD<K, V, T>::reduceByKey(
 		Pair<K, V> (*reduce_function)(Pair<K, V>, Pair<K, V>))
 {
-	return combineByKey(xyz_pair_rdd_reduceByKey_do_nothing<K, V>, reduce_function, (this->context).getTotalThreads());
+	return combineByKey(xyz_pair_rdd_do_nothing_f<K, V>, reduce_function, (this->context).getTotalThreads());
 }
 
 template <class K, class V>
@@ -151,7 +151,7 @@ Pair<K, IteratorSeq<V> > xyz_pair_rdd_groupByKey_inner_mergeCombiner (
 }
 
 template <class K, class V, class T>
-ShuffledRDD<K, V, IteratorSeq<V> > & PairRDD<K, V, T>::groupByKey(
+PairRDD<K, IteratorSeq<V>, Pair<K, IteratorSeq<V> > > & PairRDD<K, V, T>::groupByKey(
 		int num_partitions) {
 	return combineByKey(xyz_pair_rdd_groupByKey_inner_createCombiner<K, V>,
 			xyz_pair_rdd_groupByKey_inner_mergeCombiner<K, V>,
@@ -160,7 +160,7 @@ ShuffledRDD<K, V, IteratorSeq<V> > & PairRDD<K, V, T>::groupByKey(
 }
 
 template <class K, class V, class T>
-ShuffledRDD<K, V, IteratorSeq<V> > & PairRDD<K, V, T>::groupByKey() {
+PairRDD<K, IteratorSeq<V>, Pair<K, IteratorSeq<V> > > & PairRDD<K, V, T>::groupByKey() {
 	return groupByKey((this->context).getTotalThreads());
 
 }
@@ -209,7 +209,7 @@ vector< Pair< K, Pair< V, W > > > xyz_pair_rdd_join_inner_flat_map_f(Pair< K, It
 
 template <class K, class V, class T>
 template <class W>
-FlatMappedRDD< Pair< K, Pair< V, W > >, Pair< K, IteratorSeq< Either< V, W > > > > & PairRDD<K, V, T>::join(
+PairRDD< K, Pair< V, W >, Pair< K, Pair< V, W > > > & PairRDD<K, V, T>::join(
 		RDD< Pair< K, W > > &other,
 		int num_partitions) {
 	MappedRDD< Pair<K, Either<V, W> >, Pair<K, V> > mapRDD1 = this->map(xyz_pair_rdd_join_inner_map_left_f<K, V, W>);
@@ -218,13 +218,14 @@ FlatMappedRDD< Pair< K, Pair< V, W > >, Pair< K, IteratorSeq< Either< V, W > > >
 	UnionRDD< Pair<K, Either<V, W> > > &all = mapRDD1.unionRDD(&mapRDD2);
 	return all.mapToPair(xyz_pair_rdd_join_inner_map_to_pair_f<K, V, W>)
 			.groupByKey(num_partitions)
-			.flatMap(xyz_pair_rdd_join_inner_flat_map_f<K, V, W>);
+			.flatMap(xyz_pair_rdd_join_inner_flat_map_f<K, V, W>)
+			.mapToPair(xyz_pair_rdd_do_nothing_f< K, Pair< V, W > >);
 
 }
 
 template <class K, class V, class T>
 template <class W>
-FlatMappedRDD< Pair< K, Pair< V, W > >, Pair< K, IteratorSeq< Either< V, W > > > > & PairRDD<K, V, T>::join(
+PairRDD< K, Pair< V, W >, Pair< K, Pair< V, W > > > & PairRDD<K, V, T>::join(
 		RDD< Pair< K, W > > &other) {
 	return join(other, (this->context).getTotalThreads());
 }
