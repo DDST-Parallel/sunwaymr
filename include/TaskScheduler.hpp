@@ -287,17 +287,22 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost, int m
 			splitString(msg, results, TASK_RESULT_LIST_DELIMITATION);
 			if (results.size() == tasks.size()) {
 				for (unsigned int i=0; i<tasks.size(); i++) {
-					vector<string> result;
-					splitString(results[i], result, TASK_RESULT_DELIMITATION);
-					if (result.size() == 3) {
-						int jobID = atoi(result[0].c_str());
-						int taskID = atoi(result[1].c_str());
+					vector<string> vs;
+					splitString(results[i], vs, TASK_RESULT_DELIMITATION);
+					if (vs.size() >= 2) {
+						int jobID = atoi(vs[0].c_str());
+						int taskID = atoi(vs[1].c_str());
 
 						if (jobID == this->jobID
 								&& taskID < tasks.size()
 								&& !resultReceived[taskID]) {
-							T& value = tasks[taskID]->deserialize(result[2]);
-							taskResults.push_back(new TaskResult<T>(*tasks[taskID], value));
+							if (vs.size() >=3) {
+								T& value = tasks[taskID]->deserialize(vs[2]);
+								taskResults.push_back(new TaskResult<T>(*tasks[taskID], value));
+							} else {
+								T& value = tasks[taskID]->deserialize("");
+								taskResults.push_back(new TaskResult<T>(*tasks[taskID], value));
+							}
 							resultReceived[taskID] = true;
 							receivedTaskResultNum ++;
 						} else {
