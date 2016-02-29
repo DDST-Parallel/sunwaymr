@@ -283,27 +283,28 @@ void* messageHandler(void *data)
 		    dir = base_dir + dir;
 		    vector<string> allFileNames;
 			listAllFileNamesContain(dir, allFileNames, "shuffleTaskFile");
-			map< long, vector< vector<string> > >::iterator it = fetch_content.find(shuffleID);
+			map< long, vector< vector<string> > > fetch_content_local; // !global shuffle cache data map(fetch_content) will cause segmentation fault!
+			map< long, vector< vector<string> > >::iterator it = fetch_content_local.find(shuffleID);
 
-			if(it == fetch_content.end())
+			if(it == fetch_content_local.end())
 			{
 				// this shuffle has not  been cached, read it
 				vector< vector<string> > vv;
-				fetch_content[shuffleID] = vv;
+				fetch_content_local[shuffleID] = vv;
 				for(unsigned int i=0; i<allFileNames.size(); i++)
 				{
 					string content;
 					readFile(dir+allFileNames[i], content);
 					vector<string> lines;
 					splitString(content, lines, SHUFFLETASK_PARTITION_DELIMITATION);
-					fetch_content[shuffleID].push_back(lines);
+					fetch_content_local[shuffleID].push_back(lines);
 				}
 			}
 			//organize send message
 			string senMsg;
-			for(unsigned int i=0; i<fetch_content[shuffleID].size()-1; i++)
-				senMsg += fetch_content[shuffleID][i][partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
-			senMsg += (fetch_content[shuffleID].back())[partitionID];
+			for(unsigned int i=0; i<fetch_content_local[shuffleID].size()-1; i++)
+				senMsg += fetch_content_local[shuffleID][i][partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
+			senMsg += (fetch_content_local[shuffleID].back())[partitionID];
 
 			send(td->client_sockfd, senMsg.c_str(), senMsg.length(), 0);
 		}
