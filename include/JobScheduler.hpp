@@ -44,7 +44,6 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 	}
 
 	//read resource file
-	//read resource file
 	string fileContent;
 	bool rd = readFile(hostFilePath, fileContent);
 	if (!rd) {
@@ -126,7 +125,6 @@ int JobScheduler::totalThreads(){
 		if(selfIPIndex >=0) {
 			ret = threadCountVector[selfIPIndex];
 		}
-
 	}
 	else{
         //return total thread of all node
@@ -172,10 +170,21 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 			}
 			break;
 
+		case RESULT_RENEED:
+			if (taskSchedulers.size() > 0) {
+				taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg);
+			}
+			break;
+
+		case RESULT_RENEED_TOTAL:
+			if (taskSchedulers.size() > 0) {
+				taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg);
+			}
+			break;
+
 		default:
 			break;
 	}
-
 }
 
 

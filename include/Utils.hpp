@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <time.h>
 using namespace std;
 
 int splitString(const std::string& str, std::vector<std::string>& ret, const std::string& delim)
@@ -88,11 +89,9 @@ int vectorFind(const vector<string>& v, string value){
 
 vector<int> vectorFindAll(const vector<string>& v, string value){
 	vector<int>  indexVector;
-	//int index=-1;
 	int vs=v.size();
 	for( int i=0;i<vs;i++){
 		if(v[i]==value){
-			//ndex=i;
             indexVector.push_back(i);
 		}
 	}
@@ -113,6 +112,50 @@ int vectorNonZero(const vector<int>& v){
 		}
 	}
 	return index;
+}
+
+vector<int> vectorNonZeroAllIndex(const vector<int>& v){
+	vector<int> indexVector;
+	int vs=v.size();
+	for (int i = 0; i < vs; i++){
+		if(v[i]>0){
+			indexVector.push_back(i);
+		}
+	}
+	if(indexVector.size()==0){
+		indexVector.push_back(-1);
+	}
+	return indexVector;
+}
+
+int vectorNonZeroExcept(const vector<int>& v, const vector<string>& vString, string ss){
+	int vs=v.size();
+	srand(unsigned(time(NULL)));
+	int index=rand()%vs;
+
+	while(v[index]==0 || vString[index]==ss){
+		srand(unsigned(time(NULL)));
+		index=rand()%vs;
+	}
+	return index;
+}
+
+vector<int> vectorMatchCount(const vector<string>& v1, const vector<string>& v2){
+	int vs1=v1.size();
+	int vs2=v2.size();
+
+	vector<int> c(vs1,0);
+	for (int i = 0; i < vs2; ++i)
+	{
+		for (int j = 0; j < vs1; ++i)
+		{
+			if(v2[i]==v1[j]){
+				c[j]++;
+				break;
+			}
+		}
+	}
+	return c;
 }
 
 int vectorIntMax(const vector<int>& v){
@@ -170,7 +213,6 @@ vector<int> vectorExpandNonNegativeSum(const vector<int>& v,int total){
 			}
 		}
 	}
-
 	return uv;
 }
 

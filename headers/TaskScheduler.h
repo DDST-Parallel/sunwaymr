@@ -48,6 +48,16 @@ private:
     vector< TaskResult<T>* > taskResults;
 
     pthread_mutex_t mutex_allTaskResultsReceived;
+
+    //backup the last job result
+    int lastJobId;
+	vector<bool> resultDone;
+    vector<string> lastJobResultPart;
+    vector<string> currJobResultPart;
+    string lastJobResultTotal;
+
+    //master: check whether node is valid or not
+    vector<int> IPVectorValid;
 };
 
 
