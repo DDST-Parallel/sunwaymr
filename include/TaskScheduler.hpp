@@ -179,6 +179,7 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 	clock_t t_end = clock();
 	clock_t period = t_end - t_start;
 
+	int overtimeCount=1;
 	pthread_mutex_init(&mutex_allTaskResultsReceived, NULL);
 	pthread_mutex_lock(&mutex_allTaskResultsReceived);
 	while (!allTaskResultsReceived) { // waiting until all results received
@@ -251,7 +252,8 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 		t_end = clock();
 		period = t_end - t_start;
 
-		if (isMaster == 1 && period > 10000 * taskNum) {
+		if (isMaster == 1 && period/CLOCKS_PER_SEC > 10*overtimeCount * taskNum) {
+			overtimeCount++;
 			//master only collect part of task result, ask slaves for the rest
 			/*still need concrete strategy in face with node down -> IPVectorValid*/
 			for (int i = 0; i < taskNum; i++) {
@@ -276,7 +278,8 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 			Logging::logInfo(receivedDebug.str());
 		}
 
-		if (isMaster == 0 && period > 10000 * taskNum) {
+		if (isMaster == 0 && period/CLOCKS_PER_SEC > 10*overtimeCount* taskNum) {
+			overtimeCount++;
 			//slave re-ask job results from master
 			stringstream jobResultReneedTotal;
 			int taskMarkTotal = -1;
