@@ -1,6 +1,10 @@
 /*
  * ShuffledRDD.h
  *
+ * ShuffledRDD means partition values of previous RDD will be redistributed in new partitions.
+ * PairRDD::combineByKey, PairRDD::reduceByKey, PairRDD::groupByKey will generate ShuffledRDD.
+ *
+ *
  *  Created on: 2016年2月23日
  *      Author: knshen
  */

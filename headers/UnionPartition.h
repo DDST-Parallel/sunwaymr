@@ -1,6 +1,10 @@
 /*
  * UnionPartition.h
  *
+ * Partition of UnionRDD.
+ * Constructed from a pointer *RDD and a pointer *partition.
+ * The RDD and partition above is from UnionRDD.
+ *
  *  Created on: Feb 26, 2016
  *      Author: yupeng
  */

@@ -1,6 +1,9 @@
 /*
  * HashDivider.h
  *
+ * Get partition index by hashCode.
+ * Pair value will be on that partition after shuffle.
+ *
  *  Created on: 2016年2月23日
  *      Author: knshen
  */

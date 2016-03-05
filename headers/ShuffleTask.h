@@ -1,6 +1,10 @@
 /*
  * ShuffleTask.h
  *
+ * ShuffledRDD::shuffle will create and run ShuffleTasks.
+ * ShuffleTask is designed to obtain partition values of ShuffledRDD from previous RDD.
+ * Values above will be fetched in ShuffledRDD::iteratorSeq
+ *
  *  Created on: 2016年2月22日
  *      Author: knshen
  */

@@ -1,6 +1,9 @@
 /*
  * PairRDD.h
  *
+ * Return type of RDD::mapToPair.
+ * PairRDD values are all Pairs.
+ *
  *  Created on: Jan 13, 2016
  *      Author: yupeng
  */
@@ -33,33 +36,33 @@ public:
 	void shuffle();
 
 	template <class U>
-	PairRDD<K, U, Pair<K, V> > & mapValues(Pair<K, U> (*f)(Pair<K, V>));
+	PairRDD<K, U, Pair<K, V> > & mapValues(Pair<K, U> (*f)(Pair<K, V>)); // change value's type
 
-	MappedRDD<V, Pair< K, V > > & values();
+	MappedRDD<V, Pair< K, V > > & values(); // get all values
 
 	template <class C>
 	PairRDD<K, C, Pair<K, C> > & combineByKey(Pair<K, C> (*createCombiner)(Pair<K, V>),
 			Pair<K, C> (*mergeCombiner)(Pair<K, C>, Pair<K, C>),
-			int numPartitions);
+			int numPartitions); // used by redueceByKey and groupByKey
 
 	PairRDD<K, V, Pair<K, V> > & reduceByKey(
 			Pair<K, V> (*reduce_function)(Pair<K, V>, Pair<K, V>),
-			int numPartitions);
+			int numPartitions); // shuffle operator
 
-	PairRDD<K, V, Pair<K, V> > & reduceByKey(Pair<K, V> (*reduce_function)(Pair<K, V>, Pair<K, V>));
+	PairRDD<K, V, Pair<K, V> > & reduceByKey(Pair<K, V> (*reduce_function)(Pair<K, V>, Pair<K, V>)); // shuffle operator
 
-	PairRDD<K, IteratorSeq<V>, Pair<K, IteratorSeq<V> > > & groupByKey(int num_partitions);
+	PairRDD<K, IteratorSeq<V>, Pair<K, IteratorSeq<V> > > & groupByKey(int num_partitions); // shuffle operator
 
-	PairRDD<K, IteratorSeq<V>, Pair<K, IteratorSeq<V> > > & groupByKey();
+	PairRDD<K, IteratorSeq<V>, Pair<K, IteratorSeq<V> > > & groupByKey(); // shuffle operator
 
 	template <class W>
 	PairRDD< K, Pair< V, W >, Pair< K, Pair< V, W > > > & join(
 			RDD< Pair< K, W > > &other,
-			int num_partitions);
+			int num_partitions); // join two PairRDD
 
 	template <class W>
 	PairRDD< K, Pair< V, W >, Pair< K, Pair< V, W > > > & join(
-			RDD< Pair< K, W > > &other);
+			RDD< Pair< K, W > > &other); // join two PairRDD
 
 private:
 	RDD<T> &prevRDD;

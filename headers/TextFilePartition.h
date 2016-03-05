@@ -1,6 +1,8 @@
 /*
  * TextFilePartition.h
  *
+ * Partition of TextFileRDD, with several TextFileBlocks
+ *
  *  Created on: Jan 13, 2016
  *      Author: yupeng
  */

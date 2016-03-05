@@ -1,6 +1,8 @@
 /*
  * Either.h
  *
+ * Containing a value of class L or R.
+ *
  *  Created on: Feb 26, 2016
  *      Author: yupeng
  */

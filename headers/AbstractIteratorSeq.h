@@ -1,6 +1,10 @@
 /*
  * AbstractIteratorSeq.h
  *
+ * Just like Iterable in Java.
+ * Abstract super class of VectorIteratorSeq & RangeIteratorSeq.
+ * Providing interfaces for IteratorSeq.iterator
+ *
  *  Created on: Jan 28, 2016
  *      Author: yupeng
  */

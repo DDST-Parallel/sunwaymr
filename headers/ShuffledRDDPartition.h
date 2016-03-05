@@ -1,6 +1,8 @@
 /*
  * ShuffledRDDPartition.h
  *
+ * Partition of ShuffledRDD
+ *
  *  Created on: 2016年2月23日
  *      Author: knshen
  */

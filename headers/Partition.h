@@ -1,6 +1,8 @@
 /*
  * Partition.h
  *
+ * Base class of RDD partition.
+ *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */

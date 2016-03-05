@@ -1,3 +1,10 @@
+/*
+ * CollectTask.h
+ *
+ * RDD::collect() will run CollectTasks
+ *
+ */
+
 #ifndef COLLECT_H_
 #define COLLECT_H_
 

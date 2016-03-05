@@ -1,6 +1,10 @@
 /*
  * SunwayMRContext.h
  *
+ * To keep context information in whole process of RDD transformations.
+ * First RDD in user app is created by parallelize, textFile, allNodes.
+ * Additionally, runTasks can receive new tasks to run.
+ *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */

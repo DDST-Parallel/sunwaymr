@@ -1,6 +1,11 @@
 /*
  * TaskScheduler.h
  *
+ * TaskScheduler will run tasks of one job.
+ * When running, each node will run one or more of given tasks.
+ * Master will wait for every task result message.
+ * Slaves will wait for task result list from Master.
+ *
  *  Created on: Dec 10, 2015
  *      Author: yupeng
  */

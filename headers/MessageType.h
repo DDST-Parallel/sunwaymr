@@ -1,6 +1,9 @@
 /*
  * MessageType.h
  *
+ * All message types are defined here.
+ * MessageType will be used by Messaging when sending and receiving messages.
+ *
  *  Created on: Dec 9, 2015
  *      Author: yupeng
  */

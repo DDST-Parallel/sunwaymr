@@ -1,6 +1,8 @@
 /*
  * Messaging.h
  *
+ * A useful base class to send and listen socket messages.
+ *
  *  Created on: Dec 8, 2015
  *      Author: yupeng
  */

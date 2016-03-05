@@ -1,6 +1,9 @@
 /*
  * Task.h
  *
+ * Abstract super class of RDDTask.
+ * Every action operator of RDD will create Tasks to run.
+ *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */

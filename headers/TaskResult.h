@@ -1,6 +1,8 @@
 /*
  * TaskResult.h
  *
+ * Task result information of a Task.
+ *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */

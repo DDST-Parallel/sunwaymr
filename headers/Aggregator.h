@@ -1,6 +1,8 @@
 /*
  * Aggregator.h
  *
+ * To keep two function will be used in ShuffleTask::run, ShuffleRDD::iteratorSeq
+ *
  *  Created on: 2016年2月23日
  *      Author: knshen
  */

@@ -1,6 +1,10 @@
 /*
  * UnionRDD.h
  *
+ * Return type of RDD::unionRDD.
+ * To union numbers of RDDs.
+ * Create UnionRDDPartitions for each RDD and each partition in RDDs.
+ *
  *  Created on: Feb 26, 2016
  *      Author: yupeng
  */

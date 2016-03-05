@@ -1,6 +1,11 @@
 /*
  * TextFileBlock.h
  *
+ * Context::textFile creates TextFileRDD.
+ * TextFileRDD creates TextFileBlocks.
+ * TextFileBlock keeps FileSource and duration information.
+ * Member function blockData() does retrieve file data from file source.
+ *
  *  Created on: Jan 15, 2016
  *      Author: yupeng
  */

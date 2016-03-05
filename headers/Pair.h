@@ -1,6 +1,8 @@
 /*
  * Pair.h
  *
+ * Duplicate class with pair class in C++.
+ *
  *  Created on: Jan 13, 2016
  *      Author: yupeng
  */

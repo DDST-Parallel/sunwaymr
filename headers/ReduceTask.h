@@ -1,6 +1,8 @@
 /*
  * ReduceTask.h
  *
+ * RDD::reduce will create ReduceTasks, and run in context->JobScheduler->TaskScheduler
+ *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */

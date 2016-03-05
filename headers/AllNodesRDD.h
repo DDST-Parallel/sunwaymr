@@ -1,8 +1,8 @@
 /*
  * AllNodesRDD.h
  *
- * A RDD with an partition on each node.
- * An easy way to run same code on all nodes.
+ * A RDD with a same partition on each node.
+ * An easy way to run the same code on all nodes.
  *
  *  Created on: Jan 17, 2016
  *      Author: yupeng

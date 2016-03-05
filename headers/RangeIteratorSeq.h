@@ -1,6 +1,9 @@
 /*
  * RangeIteratorSeq.h
  *
+ * Sub-class of AbstractIteratorSeq.
+ * Containing a seq, like 1...1000
+ *
  *  Created on: Jan 28, 2016
  *      Author: yupeng
  */

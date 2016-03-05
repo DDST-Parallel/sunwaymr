@@ -1,6 +1,8 @@
 /*
  * FlatMappedRDD.h
  *
+ * RDD::flatmap will return a FlatMappedRDD
+ *
  *  Created on: Jan 13, 2016
  *      Author: yupeng
  */

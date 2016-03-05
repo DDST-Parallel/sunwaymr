@@ -1,6 +1,9 @@
 /*
  * ParallelArrayPartition.h
  *
+ * RDD partition of ParallelArray (ParallelArray is a RDD type).
+ * With a part of IteratorSeq values of ParallelArray.
+ *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */

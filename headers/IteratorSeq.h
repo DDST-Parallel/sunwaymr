@@ -1,6 +1,9 @@
 /*
  * IteratorSeq.h
  *
+ * Just like Collection in Java
+ * Return type of RDD::iteratorSeq
+ *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */

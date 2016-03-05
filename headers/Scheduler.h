@@ -1,6 +1,8 @@
 /*
  * Scheduler.h
  *
+ * Super class of TaskScheduler
+ *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */

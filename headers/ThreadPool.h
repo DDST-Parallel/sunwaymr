@@ -1,6 +1,8 @@
 /*
  * ThreadPool.h
  *
+ * Deprecated class.
+ *
  *  Created on: Dec 7, 2015
  *      Author: shi qiuwei
  */
