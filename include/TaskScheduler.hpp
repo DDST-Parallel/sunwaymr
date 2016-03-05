@@ -61,8 +61,17 @@ void *runTask(void *d) {
 	// send out task result
 	stringstream ss;
 	ss << data->jobID << TASK_RESULT_DELIMITATION << data->taskID
-			<< TASK_RESULT_DELIMITATION << task.serialize(value);
+			<< TASK_RESULT_DELIMITATION <<ts.selfIP<<TASK_RESULT_DELIMITATION<< task.serialize(value);
+
+	//record temp result in case the second time to sendMessage
+	ts.currJobResultPart[data->taskID]=ss.str();
+
+	int isFirst=1;
+	ss<<TASK_RESULT_DELIMITATION<<isFirst;
 	ts.sendMessage(data->master, data->masterPort, A_TASK_RESULT, ss.str());
+
+	//record that task has been done
+	ts.resultDone[data->taskID]=true;
 	ts.decreaseRunningThreadNum();
 
 	pthread_exit(NULL);
@@ -191,6 +200,8 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 							int isFirst = 1;
 							ss << jobID << TASK_RESULT_DELIMITATION << i
 									<< TASK_RESULT_DELIMITATION
+									<<taskOnIPVector[i]
+									<<TASK_RESULT_DELIMITATION
 									<< tasks[i]->serialize(value);
 
 							//record temp result in case the second time to sendMessage
@@ -200,7 +211,7 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 							sendMessage(master, listenPort, A_TASK_RESULT,
 									ss.str());
 
-							//record task has been done
+							//record that task has been done
 							resultDone[i] = true;
 							exit(0);
 						} else {

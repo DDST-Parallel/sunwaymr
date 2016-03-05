@@ -76,7 +76,6 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 		}
 	}
 
-
 }
 
 struct JobSchedulerThreadData {

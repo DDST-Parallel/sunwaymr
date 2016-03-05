@@ -28,9 +28,21 @@ public:
 	void increaseRunningThreadNum();
 	void decreaseRunningThreadNum();
 
+	string selfIP;
+
+	//backup the last job result
+	int lastJobId;
+	vector<bool> resultDone;
+	vector<string> lastJobResultPart;
+	vector<string> currJobResultPart;
+	string lastJobResultTotal;
+
+	//master: check whether node is valid or not
+	vector<int> IPVectorValid;
+
+
 private:
 	int jobID;
-	string selfIP;
 	int selfIPIndex;
 	string master, appName;
 	int listenPort;
@@ -49,15 +61,6 @@ private:
 
     pthread_mutex_t mutex_allTaskResultsReceived;
 
-    //backup the last job result
-    int lastJobId;
-	vector<bool> resultDone;
-    vector<string> lastJobResultPart;
-    vector<string> currJobResultPart;
-    string lastJobResultTotal;
-
-    //master: check whether node is valid or not
-    vector<int> IPVectorValid;
 };
 
 
