@@ -33,8 +33,6 @@ public:
 	void increaseRunningThreadNum();
 	void decreaseRunningThreadNum();
 
-	string selfIP;
-
 	//backup the last job result
 	int lastJobId;
 	vector<bool> resultDone;
@@ -48,6 +46,7 @@ public:
 
 private:
 	int jobID;
+	string selfIP;
 	int selfIPIndex;
 	string master, appName;
 	int listenPort;

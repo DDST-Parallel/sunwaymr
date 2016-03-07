@@ -66,7 +66,7 @@ void *runTask(void *d) {
 	// send out task result
 	stringstream ss;
 	ss << data->jobID << TASK_RESULT_DELIMITATION << data->taskID
-			<< TASK_RESULT_DELIMITATION <<ts.selfIP<<TASK_RESULT_DELIMITATION<< task.serialize(value);
+			<<TASK_RESULT_DELIMITATION<< task.serialize(value);
 
 	//record temp result in case the second time to sendMessage
 	ts.currJobResultPart[data->taskID]=ss.str();
@@ -179,7 +179,7 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 	}
 	vector<int> launchedTask = vector<int>(taskNum);
 
-	//time counter
+	//timer
 	clock_t t_start = clock();
 	clock_t t_end = clock();
 	clock_t period = t_end - t_start;
@@ -205,8 +205,6 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 							stringstream ss;
 							int isFirst = 1;
 							ss << jobID << TASK_RESULT_DELIMITATION << i
-									<< TASK_RESULT_DELIMITATION
-									<<taskOnIPVector[i]
 									<<TASK_RESULT_DELIMITATION
 									<< tasks[i]->serialize(value);
 
@@ -268,8 +266,8 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 					resultReneed << jobID << TASK_RESULT_DELIMITATION << i<< TASK_RESULT_DELIMITATION << isAccordingOrigin;
 					sendMessage(taskOnIPVector[i], listenPort, RESULT_RENEED,resultReneed.str());
 
-					//in case taskOnIPVector[i] fails -> re-schedule <- random keep  master no wait in vain
-					/*some case the taskOnIPVector[i], taskOnIPVector[index] both down-> wait next while loop to pick another ip*/
+					//in case taskOnIPVector[i] fails -> re-schedule <- random mechanism keeps master no wait in vain
+					/*some case the taskOnIPVector[i], taskOnIPVector[index] both down-> wait for next while loop to pick another ip*/
 					isAccordingOrigin = 0;
 					stringstream resultReneed2;
 					resultReneed2 << jobID << TASK_RESULT_DELIMITATION << i<< TASK_RESULT_DELIMITATION << isAccordingOrigin;
@@ -288,7 +286,7 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 			//slave re-ask job results from master
 			stringstream jobResultReneedTotal;
 			int taskMarkTotal = -1;
-			jobResultReneedTotal << jobID << TASK_RESULT_LIST_DELIMITATION<< taskMarkTotal << TASK_RESULT_LIST_DELIMITATION << selfIP;
+			jobResultReneedTotal<<jobID<< TASK_RESULT_LIST_DELIMITATION<< taskMarkTotal;
 			sendMessage(master, listenPort, RESULT_RENEED_TOTAL,jobResultReneedTotal.str());
 
 			stringstream receivedDebug;
@@ -329,28 +327,15 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 			// add task result to taskResults, if not duplicate
 			vector<string> vs;
 			splitString(msg, vs, TASK_RESULT_DELIMITATION);
-			if (vs.size() >= 3) {
+			if (vs.size() >= 2) {
 				int jobID = atoi(vs[0].c_str());
 				int taskID = atoi(vs[1].c_str());
-				//string slaveIp=vs[2].c_str();
 				string slaveIp=fromHost;
 
 				if (jobID == this->jobID && taskID < tasks.size()
 						&& !resultReceived[taskID]) {
-					if (vs.size() >= 5) {
-						T& value = tasks[taskID]->deserialize(vs[3]);
-						taskResults.push_back(
-								new TaskResult<T>(*tasks[taskID], value));
-
-						int isFirst=atoi(vs[4].c_str());
-						if(isFirst==1){
-							int index=vectorFind(IPVector,slaveIp);
-							IPVectorValid[index]--;
-						}else{
-							//second time to ask slave for result->do nothing
-						}
-					} else {
-						T& value = tasks[taskID]->deserialize("");
+					if (vs.size() >= 4) {
+						T& value = tasks[taskID]->deserialize(vs[2]);
 						taskResults.push_back(
 								new TaskResult<T>(*tasks[taskID], value));
 
@@ -359,7 +344,19 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 							int index=vectorFind(IPVector,slaveIp);
 							IPVectorValid[index]--;
 						}else{
-							//second time to ask slave for result->do nothing
+							//result is not from the sepecial node ->do nothing
+						}
+					} else {
+						T& value = tasks[taskID]->deserialize("");
+						taskResults.push_back(
+								new TaskResult<T>(*tasks[taskID], value));
+
+						int isFirst=atoi(vs[2].c_str());
+						if(isFirst==1){
+							int index=vectorFind(IPVector,slaveIp);
+							IPVectorValid[index]--;
+						}else{
+							//result is not from the sepecial node ->do nothing
 						}
 
 					}
@@ -406,7 +403,6 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 				if(invalidIPIndex[0]!=-1){
 					stringstream nodeDebug;
 					nodeDebug<< "TaskScheduler: master: discover invalid node of high possibility-----";
-					//int ipIndex=-1;
 					for (unsigned int i = 0; i < invalidIPIndex.size(); ++i)
 					{
 						//inform all the other node of which node is invalid
@@ -513,7 +509,7 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 				int taskID = atoi(vs[1].c_str());
 				int isAccordingOrigin=atoi(vs[2].c_str());
 
-				int isFirst=0;
+				int isFirst=isAccordingOrigin;
 				if(isAccordingOrigin==1){
 					if (jobID == this->lastJobId) {
 						stringstream ss;
@@ -549,8 +545,6 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 					T& value = this->tasks[taskID]->run();
 					stringstream ss;
 					ss << jobID << TASK_RESULT_DELIMITATION << taskID
-							<< TASK_RESULT_DELIMITATION
-							<<selfIP
 							<<TASK_RESULT_DELIMITATION
 							<< tasks[taskID]->serialize(value)
 							<<TASK_RESULT_DELIMITATION
@@ -582,10 +576,10 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 		if (isMaster == 1) {
 			vector<string> vs;
 			splitString(msg, vs, TASK_RESULT_DELIMITATION);
-			if (vs.size() >= 3) {
+			if (vs.size() >= 2) {
 				int jobID = atoi(vs[0].c_str());
 				int taskID = atoi(vs[1].c_str());
-				string slaveIp = vs[2].c_str();
+				string slaveIp=fromHost;
 
 				if (taskID == -1 && jobID == this->lastJobId) {
 					string msg = lastJobResultTotal;
