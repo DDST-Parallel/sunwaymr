@@ -147,7 +147,7 @@ vector<int> vectorMatchCount(const vector<string>& v1, const vector<string>& v2)
 	vector<int> c(vs1,0);
 	for (int i = 0; i < vs2; ++i)
 	{
-		for (int j = 0; j < vs1; ++i)
+		for (int j = 0; j < vs1; ++j)
 		{
 			if(v2[i]==v1[j]){
 				c[j]++;
