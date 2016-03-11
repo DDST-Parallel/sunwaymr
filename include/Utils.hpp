@@ -273,7 +273,10 @@ string getLocalHost() {
 
             string temp = string(addressBuffer);
             string lo = "127.0.0.1";
-            if (temp.compare(0, lo.size(), lo)!=0) ret = temp;
+            if (temp.compare(0, lo.size(), lo)!=0) {
+            	ret = temp;
+            	break;
+            }
 
         } else if (ifa->ifa_addr->sa_family == AF_INET6) { // check it is IP6
             // is a valid IP6 Address
