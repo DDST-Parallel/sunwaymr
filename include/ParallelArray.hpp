@@ -34,7 +34,7 @@ ParallelArray<T>::ParallelArray(SunwayMRContext &c, IteratorSeq<T> &seq, int num
 	}
 
 	//construct partitions
-	for (int i = 0; i < slices.size(); i++)
+	for (unsigned int i = 0; i < slices.size(); i++)
 	{
 		Partition* partition = new ParallelArrayPartition<T>(parallelArray_id, i, *slices[i]);
 		partitions.push_back(partition);

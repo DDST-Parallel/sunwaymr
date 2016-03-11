@@ -77,7 +77,7 @@ void ShuffledRDD<K, V, C>::shuffle()
 	vector< Task<int>* > tasks;
 	vector<Partition*> pars = preRDD.getPartitions(); //partitions before shuffle
 
-	for (int i = 0; i < pars.size(); i++)
+	for (unsigned int i = 0; i < pars.size(); i++)
 	{
 		//ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U));
 		Task<int> *task = new ShuffleTask< Pair<K, V>, Pair<K, C> >(preRDD, *(pars[i]), this->shuffleID, hd.getNumPartitions(), hd, agg, hashFunc, strFunc);
@@ -110,7 +110,7 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 	string sendMsg = str_shuffleID+","+str_partitionID; //organize request
 
 	vector<string> replys;
-	for(int i=0; i<IPs.size(); i++)
+	for(unsigned int i=0; i<IPs.size(); i++)
 	{
 		string reply;
 		sendMessageForReply(IPs[i], port, FETCH_REQUEST, sendMsg, reply);

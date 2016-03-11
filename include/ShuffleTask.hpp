@@ -68,7 +68,7 @@ template <class T, class U> int&  ShuffleTask<T, U>::run()
 			fileContent += string(SHUFFLETASK_EMPTY_DELIMITATION) + string(SHUFFLETASK_PARTITION_DELIMITATION);
 			continue;
 		}
-		for(int j=0; j<list[i].size()-1; j++)
+		for(unsigned int j=0; j<list[i].size()-1; j++)
 			fileContent += list[i][j] + string(SHUFFLETASK_KV_DELIMITATION);
 
 		fileContent += list[i].back();

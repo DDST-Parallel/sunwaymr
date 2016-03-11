@@ -83,7 +83,7 @@ T RDD<T>::reduce(T (*g)(T, T))
 	vector< Task< vector<T> >* > tasks;
 	vector<Partition*> pars = this->getPartitions();
 
-	for (int i = 0; i < pars.size(); i++)
+	for (unsigned int i = 0; i < pars.size(); i++)
 	{
 		Task< vector<T> > *task = new ReduceTask<T>(*this, *(pars[i]), g);
 		tasks.push_back(task);
@@ -94,7 +94,7 @@ T RDD<T>::reduce(T (*g)(T, T))
 
 	//get results
 	vector<T> values_results;
-	for (int j = 0; j < results.size(); j++)
+	for (unsigned int j = 0; j < results.size(); j++)
 		if(results[j]->value.size() > 0) {
 			values_results.push_back(results[j]->value[0]);
 		}
@@ -168,7 +168,7 @@ vector<T>& RDD<T>::collect()
 	// construct tasks
 	vector< Task< vector<T> >* > tasks;
 	vector<Partition*> pars = this->getPartitions();
-	for(int i=0; i<pars.size(); i++)
+	for(unsigned int i=0; i<pars.size(); i++)
 	{
 		Task< vector<T> > *task = new CollectTask<T>(*this, *(pars[i]));
 		tasks.push_back(task);
@@ -176,9 +176,9 @@ vector<T>& RDD<T>::collect()
 	// run tasks via context
 	vector< TaskResult< vector<T> >* > results = this->context.runTasks(tasks);
 	//get results
-	for(int i=0; i<results.size(); i++)
+	for(unsigned int i=0; i<results.size(); i++)
 	{
-		for(int j=0; j<(results[i]->value).size(); j++)
+		for(unsigned int j=0; j<(results[i]->value).size(); j++)
 		{
 			ret->push_back((results[i]->value)[j]);
 		}
