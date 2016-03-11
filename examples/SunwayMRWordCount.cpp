@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 
 	SunwayMRContext sc("SunwayMRWordCount", argc, argv);
 	vector<FileSource> fsv;
-	FileSource fs = FileSource("192.168.1.66", "/tmp/1.txt");
+	FileSource fs = FileSource("192.168.99.13", "/opt/sunwaymr/tmp/1.txt");
 	fsv.push_back(fs);
 	vector< Pair<string, int> > wc = sc.textFile(fsv, FILE_SOURCE_FORMAT_LINE)
 			.flatMap(flat_map_f1)

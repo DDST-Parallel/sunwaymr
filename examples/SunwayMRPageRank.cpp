@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 
 	SunwayMRContext sc("SunwayMRPageRank", argc, argv);
 	vector<FileSource> fsv;
-	FileSource fs = FileSource("192.168.1.66", "/tmp/2.txt");
+	FileSource fs = FileSource("192.168.99.13", "/opt/sunwaymr/tmp/2.txt");
 	fsv.push_back(fs);
 	int iteration = 10;
 

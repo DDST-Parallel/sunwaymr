@@ -10,9 +10,11 @@
 using std::cout;
 using std::endl;
 
+unsigned int seed = time(NULL);
+
 double random(double start, double end)
 {
-	return start+(end-start)*rand()/(RAND_MAX + 1.0);
+	return start+(end-start)*rand_r(&seed)/(RAND_MAX + 1.0);
 }
 
 long map_f(long i)
