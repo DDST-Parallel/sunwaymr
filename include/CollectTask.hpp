@@ -65,7 +65,7 @@ vector<T>& CollectTask<T>::deserialize(string s)
 	vector<string> vs;
 	splitString(s, vs, COLLECT_TASK_DELIMITATION);
 
-	for(int i=0; i<vs.size(); i++) {
+	for(unsigned int i=0; i<vs.size(); i++) {
 		std::stringstream ss(vs[i]);
 		T t;
 		ss >> t;

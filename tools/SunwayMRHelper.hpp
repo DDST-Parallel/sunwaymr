@@ -32,6 +32,7 @@ struct thread_data{
 };
 
 void *startHelperListening(void *data) {
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	struct thread_data *my_data;
 	my_data = (struct thread_data *)data;
 	my_data->helper.listenMessage(my_data->v);
@@ -39,11 +40,20 @@ void *startHelperListening(void *data) {
 	pthread_exit(NULL);
 }
 
+bool xyz_send_host_resource_info_thread_cancel_flag = false;
+bool xyz_send_host_resource_info_thread_canceled_flag = true;
 void *sendHostResourceInfoToMasterRepeatedly(void *data) {
+	xyz_send_host_resource_info_thread_canceled_flag = false;
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	struct thread_data *my_data;
 	my_data = (struct thread_data *)data;
 
 	while(true) {
+		if (xyz_send_host_resource_info_thread_cancel_flag) {
+			xyz_send_host_resource_info_thread_cancel_flag = false;
+			xyz_send_host_resource_info_thread_canceled_flag = true;
+			break;
+		}
 		sleep(1);
 		my_data->helper.sendHostResourceInfoToMaster(string(my_data->msg));
 		sleep(5);
@@ -59,7 +69,7 @@ SunwayMRHelper::SunwayMRHelper(bool forUserApp) {
 	memory = 0;
 	listenPort = 0;
 	listening = false;
-	sendResourceInfoThread = 0;
+	sendResourceInfoThread = pthread_t();
 
 	// -a mode
 	if (forUserApp)
@@ -145,7 +155,11 @@ void SunwayMRHelper::setLocalResouce(int threads, int memory) {
 	int v = 0;
 	struct thread_data *data = new thread_data (*this, ss.str().c_str(), v);
 
-	pthread_cancel(sendResourceInfoThread);
+	//pthread_cancel(sendResourceInfoThread);
+	if (!xyz_send_host_resource_info_thread_canceled_flag) {
+		xyz_send_host_resource_info_thread_cancel_flag = true;
+		while (!xyz_send_host_resource_info_thread_canceled_flag);
+	}
 	int rc = pthread_create(&sendResourceInfoThread, NULL, sendHostResourceInfoToMasterRepeatedly, (void *)data);
 	if (rc){
 		Logging::logError("SunwayMRHelper: SunwayMRHelper: failed to create thread to send host resource info.");

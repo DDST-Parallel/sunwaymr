@@ -37,7 +37,7 @@ template <class T> vector<T>& VectorIteratorSeq<T>::reduceLeft(T (*g)(T,T)) {
 		if (v.size() == 1) ret->push_back(v[0]);
 		else {
 			T t = g(v[0], v[1]);
-			for(int i = 2; i < v.size(); i++) {
+			for(unsigned int i = 2; i < v.size(); i++) {
 				t = g(t, v[i]);
 			}
 			ret->push_back(t);

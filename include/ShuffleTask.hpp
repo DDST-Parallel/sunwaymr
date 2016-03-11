@@ -42,7 +42,7 @@ template <class T, class U> int&  ShuffleTask<T, U>::run()
 
 	// T -> U
 	vector<U> datas1;
-	for(int i=0; i<datas.size(); i++)
+	for(unsigned int i=0; i<datas.size(); i++)
 		datas1.push_back(agg.createCombiner(datas[i]));
 
 	// get list
@@ -53,7 +53,7 @@ template <class T, class U> int&  ShuffleTask<T, U>::run()
     	list.push_back(v);
     }
 
-	for(int i=0; i<datas.size(); i++)
+	for(unsigned int i=0; i<datas.size(); i++)
 	{
 		long hashCode = hashFunc(datas1[i]);
 		int pos = hd.getPartition(hashCode); // get the new partition index
@@ -61,7 +61,7 @@ template <class T, class U> int&  ShuffleTask<T, U>::run()
 	}
 	//merge data to a string
 	string fileContent;
-	for(int i=0; i<list.size(); i++)
+	for(unsigned int i=0; i<list.size(); i++)
 	{
 		if(list[i].size() == 0)
 		{

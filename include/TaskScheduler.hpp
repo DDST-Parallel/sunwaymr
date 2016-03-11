@@ -28,7 +28,7 @@ template<class T>
 TaskScheduler<T>::TaskScheduler(int jobID, string selfIP, int selfIPIndex,
 		string master, string appName, int listenPort, vector<string> ip,
 		vector<int> threads, vector<int> memory) :
-		selfIP(selfIP), jobID(jobID), selfIPIndex(selfIPIndex), master(master), appName(
+		jobID(jobID), selfIP(selfIP), selfIPIndex(selfIPIndex), master(master), appName(
 				appName), listenPort(listenPort), IPVector(ip), threadCountVector(
 				threads), memoryVector(memory), isMaster(0) {
 	if (master == "local" || master == selfIP) {
@@ -322,7 +322,7 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 		int msgType, string msg) {
 	switch (msgType) {
 	case A_TASK_RESULT: {
-		if (isMaster == 1 && receivedTaskResultNum < tasks.size()) {
+		if (isMaster == 1 && (unsigned)receivedTaskResultNum < tasks.size()) {
 
 			// add task result to taskResults, if not duplicate
 			vector<string> vs;
@@ -332,7 +332,7 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 				int taskID = atoi(vs[1].c_str());
 				string slaveIp=fromHost;
 
-				if (jobID == this->jobID && taskID < tasks.size()
+				if (jobID == this->jobID && (unsigned)taskID < tasks.size()
 						&& !resultReceived[taskID]) {
 					if (vs.size() >= 4) {
 						T& value = tasks[taskID]->deserialize(vs[2]);
@@ -377,7 +377,7 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 			}
 
 			// check if all task results received
-			if (receivedTaskResultNum == tasks.size()) {
+			if ((unsigned)receivedTaskResultNum == tasks.size()) {
 				Logging::logInfo(
 						"TaskScheduler: master: sending out results...");
 
@@ -447,7 +447,7 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 						int jobID = atoi(vs[0].c_str());
 						int taskID = atoi(vs[1].c_str());
 
-						if (jobID == this->jobID && taskID < tasks.size()
+						if (jobID == this->jobID && (unsigned)taskID < tasks.size()
 								&& !resultReceived[taskID]) {
 							if (vs.size() >= 3) {
 								T& value = tasks[taskID]->deserialize(vs[2]);

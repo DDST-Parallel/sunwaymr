@@ -138,11 +138,11 @@ template <class K, class V, class C>
 map<K, C> ShuffledRDD<K, V, C>::merge(vector<string> replys)
 {
 	map<K, C> combiners;
-	for(int i=0; i<replys.size(); i++)
+	for(unsigned int i=0; i<replys.size(); i++)
 	{
 		vector<string> pairs;
 		splitString(replys[i], pairs, SHUFFLETASK_KV_DELIMITATION);
-		for(int j=0; j<pairs.size(); j++)
+		for(unsigned int j=0; j<pairs.size(); j++)
 		{
 			if(pairs[j] == string(SHUFFLETASK_EMPTY_DELIMITATION))
 				continue;
