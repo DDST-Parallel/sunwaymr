@@ -13,6 +13,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "IteratorSeq.hpp"
 #include "RDD.hpp"
@@ -160,7 +161,7 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 		// 1. remove extra
 		if(allBlocks.size() > (unsigned)numSlices) {
 			for (unsigned int i=numSlices; i<allBlocks.size(); i++) {
-				unsigned int smallest = INT32_MAX, smallestIndex = 0;
+				unsigned int smallest = INT_MAX, smallestIndex = 0;
 				for (int j=0; j<numSlices; j++) {
 					if (allBlocks[j].size() < smallest) {
 						smallest = allBlocks[j].size();
@@ -186,7 +187,7 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 
 		// 3. balancing
 		while (true) {
-			unsigned int smallest = INT32_MAX, smallestIndex = 0, biggest = 0, biggestIndex = 0;
+			unsigned int smallest = INT_MAX, smallestIndex = 0, biggest = 0, biggestIndex = 0;
 			for (int j=0; j<numSlices; j++) {
 				if (allBlocks[j].size() < smallest) {
 					smallest = allBlocks[j].size();
