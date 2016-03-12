@@ -62,6 +62,7 @@ Pair<string, double> map_values_f2(Pair<string, double>  p) {
 }
 
 int main(int argc, char *argv[]) {
+	Logging::setMask(2); // view info, warning & error
 
 	cout << endl << "SunwayMR Page Rank" << endl << endl;
 
