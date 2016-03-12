@@ -20,29 +20,23 @@
 #include "Task.h"
 #include "TaskResult.h"
 
-int XYZ_TASK_SCHEDULER_RUN_TASK_MODE = 1; // 0: fork, 1: pthread
+int XYZ_TASK_SCHEDULER_RUN_TASK_MODE = 0; // 0: fork, 1: pthread
 
 template <class T>
 class TaskScheduler : public Messaging, public Scheduler {
 public:
 	TaskScheduler(int jobID, string selfIP, int selfIPIndex, string master, string appName, int listenPort, vector<string> ip, vector<int> threads, vector<int> memory);
+	~TaskScheduler();
+	void preRunTasks(vector< Task<T>* > &tasks);
 	vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
+	void finishTask(int task, T &value);
 
 	void messageReceived(int localListenPort, string fromHost, int msgType, string msg); // override Messaging
 	void handleMessage(int localListenPort, string fromHost, int msgType, string msg); // override Scheduler
 	void increaseRunningThreadNum();
 	void decreaseRunningThreadNum();
-
-	//backup the last job result
-	int lastJobId;
-	vector<bool> resultDone;
-	vector<string> lastJobResultPart;
-	vector<string> currJobResultPart;
-	string lastJobResultTotal;
-
-	//master: check whether node is valid or not
-	vector<int> IPVectorValid;
-
+	bool getTaskResultString(int job, int task, string &result);
+	bool getTaskResultListString(int job, string &result);
 
 private:
 	int jobID;
@@ -52,7 +46,7 @@ private:
 	int listenPort;
 	vector<string> IPVector;
 	vector<int> threadCountVector, memoryVector, threadRemainVector;
-	vector<string>  taskOnIPVector;
+	vector<string> taskOnIPVector;
 	int isMaster;
 
 	int runningThreadNum;
@@ -63,7 +57,8 @@ private:
 	vector< Task<T>* > tasks;
     vector< TaskResult<T>* > taskResults;
 
-    pthread_mutex_t mutex_allTaskResultsReceived;
+    pthread_mutex_t mutex_handle_message_ready;
+    pthread_mutex_t mutex_all_tasks_received;
 
 };
 

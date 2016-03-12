@@ -29,6 +29,8 @@ JobScheduler::JobScheduler(){
 	isMaster=0;
 	selfIPIndex = -1;
 	threadCountSum = 0;
+	pthread_mutex_init(&mutex_job_scheduler, NULL);
+	nextJobID = 0;
 }
 
 JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
@@ -54,6 +56,9 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 	}
 
 	threadCountSum = 0;
+	pthread_mutex_init(&mutex_job_scheduler, NULL);
+	nextJobID = 0;
+
 	stringstream fileContentStream(fileContent);
 	string line;
 	while(std::getline(fileContentStream,line,'\n')){
@@ -139,10 +144,30 @@ vector<string> JobScheduler::getHosts() {
 
 template <class T>
 vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
-	int jobID = taskSchedulers.size();
+	pthread_mutex_lock(&mutex_job_scheduler);
+	int jobID = nextJobID;
+	nextJobID++;
 	TaskScheduler<T> *ts = new TaskScheduler<T>(jobID, selfIP, selfIPIndex, master, appName,
 			listenPort, IPVector, threadCountVector, memoryVector);
 	taskSchedulers.push_back(ts);
+	ts->preRunTasks(tasks);
+
+	// handle pre-arrived task results
+	for (unsigned int i=0; i<taskResultWorksOfNextJob.size(); i++) {
+		ts->handleMessage(listenPort, taskResultWorksOfNextJob[i], A_TASK_RESULT, taskResultsOfNextJob[i]);
+	}
+	taskResultWorksOfNextJob.clear();
+	taskResultsOfNextJob.clear();
+
+	pthread_mutex_unlock(&mutex_job_scheduler);
+
+	if (taskSchedulers.size() > 10) {
+		pthread_mutex_lock(&mutex_job_scheduler);
+		delete(taskSchedulers[0]);
+		taskSchedulers.erase(taskSchedulers.begin());
+		pthread_mutex_unlock(&mutex_job_scheduler);
+	}
+
 	return ts->runTasks(tasks);
 }
 
@@ -156,13 +181,26 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 			<< ", message content: " << msg;
 	Logging::logDebug(received.str());
 
+	pthread_mutex_lock(&mutex_job_scheduler);
 	switch (msgType) {
 		case A_TASK_RESULT:
-			if (taskSchedulers.size() > 0) {
-				taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg);
+		{
+			vector<string> vs;
+			splitString(msg, vs, TASK_RESULT_DELIMITATION);
+			if (vs.size() != 0) {
+				int jobID = atoi(vs[0].c_str());
+				if (jobID == this->nextJobID) {
+					// a task result for next job. this occurs when master is slower than the slave
+					// save the result
+					taskResultWorksOfNextJob.push_back(fromHost);
+					taskResultsOfNextJob.push_back(msg);
+
+				} else {
+					taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg);
+				}
 			}
 			break;
-
+		}
 		case TASK_RESULT_LIST:
 			if (taskSchedulers.size() > 0) {
 				taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg);
@@ -170,20 +208,19 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 			break;
 
 		case RESULT_RENEED:
-			if (taskSchedulers.size() > 0) {
-				taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg);
-			}
+			// TODO parse message, select receiver in this->taskSchedulers
+
 			break;
 
 		case RESULT_RENEED_TOTAL:
-			if (taskSchedulers.size() > 0) {
-				taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg);
-			}
+			// TODO parse message, select receiver in this->taskSchedulers
+
 			break;
 
 		default:
 			break;
 	}
+	pthread_mutex_unlock(&mutex_job_scheduler);
 }
 
 

@@ -15,6 +15,8 @@ using std::exception;
 
 class Logging {
 public:
+	static void setMask(int m);
+	static void logVerbose(string msg);
 	static void logDebug(string msg);
 	static void logInfo(string msg);
 	static void logWarning(string msg);
@@ -26,6 +28,7 @@ public:
 //	void logError(string msg, exception e);
 
 private:
+	static int logging_mask;
 	static pthread_mutex_t mutex_logging;
 };
 

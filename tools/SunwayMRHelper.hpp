@@ -171,7 +171,7 @@ void SunwayMRHelper::sendHostResourceInfoToMaster(string msg) {
 	stringstream ss;
 	ss << "SunwayMRHelper: send resource info to master: " << masterAddr << ":"
 			<< masterListenPort << ", message: " << msg;
-	Logging::logDebug(ss.str());
+	Logging::logVerbose(ss.str());
 	Messaging::sendMessage(masterAddr, masterListenPort, HOST_RESOURCE_INFO, msg);
 }
 
@@ -251,7 +251,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 				Logging::logError(err.str());
 			}
 
-			usleep(100000); // TODO
+			usleep(100000); // sleep 100ms TODO
 
 			// send file content 1
 			sr = sendMessage(host, port, fileUID1, fileContent1);
@@ -366,7 +366,7 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 			<< ", message received from: " << fromHost
 			<< ", message type: " << msgType
 			<< ", message content: " << msg;
-	Logging::logDebug(received.str());
+	Logging::logVerbose(received.str());
 
 	switch(msgType) {
 	case HOST_RESOURCE_INFO:

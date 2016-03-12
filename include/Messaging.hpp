@@ -49,9 +49,10 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 
 	// connect
 	int conn = connect(sockfd, (struct sockaddr *)&address, len);
-	if (conn < 0)
+	while (conn < 0)
 	{
-		Logging::logError("Messaging: sendMessage: connect fail!");
+		usleep(100000); // sleep 100ms
+		Logging::logWarning("Messaging: sendMessage: connect fail! will try again");
 		return false;
 	}
 
@@ -205,30 +206,15 @@ void Messaging::listenMessage(int listenPort)
 		int client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, (socklen_t *)&client_len);
 		if (client_sockfd < 0)
 			continue;
-
 		string ip = inet_ntoa(client_address.sin_addr);
-
-		string msg = readSocket(client_sockfd);
-
-		string::size_type pos;
-		pos=msg.find('$', 0);
-		if (pos !=  string::npos) {
-			string typeStr = msg.substr(0, pos);
-			int type = atoi(typeStr.c_str());
-			string content=msg.substr(pos+1);
-			// thread data encapsulation
-			struct ThreadData *td = new ThreadData(*this, listenPort, ip, type, content, client_sockfd);
-
-			// create a thread
-			pthread_t worker;
-			if (pthread_create(&worker, NULL, messageHandler, (void *)td) != 0) {
-				Logging::logError("Messaging: failed to create new thread while listening");
-				close(client_sockfd);
-			}
-		} else {
+		// thread data encapsulation
+		struct xyz_messaging_listen_thread_data_ *td = new xyz_messaging_listen_thread_data_(*this, listenPort, ip, client_sockfd);
+		// create a thread
+		pthread_t worker;
+		if (pthread_create(&worker, NULL, messageHandler, (void *)td) != 0) {
+			Logging::logError("Messaging: failed to create new thread while listening");
 			close(client_sockfd);
 		}
-
 	}
 
 }
@@ -241,81 +227,95 @@ int Messaging::getListenStatus() {
 void* messageHandler(void *data)
 {
 	// parse data
-	struct ThreadData *td = (struct ThreadData *)data;
-	if(td->msgType == FILE_BLOCK_REQUEST) { // reply file block
-		vector<string> vs;
-		splitString(td->msgContent, vs, FILE_BLOCK_REQUEST_DELIMITATION);
-		if(vs.size() >= 4) {
-			string ret;
-			string path = vs[0];
-			int offset = atoi(vs[1].c_str());
-			int length = atoi(vs[2].c_str());
-			FileSourceFormat format = static_cast<FileSourceFormat>(atoi(vs[3].c_str()));
+	struct xyz_messaging_listen_thread_data_ *td = (struct xyz_messaging_listen_thread_data_ *)data;
 
-			if (format == FILE_SOURCE_FORMAT_BYTE) {
-				readFile(path, offset, length, ret);
-			} else {
-				readFileByLineNumber(path, offset, length, ret);
-			}
-			int byte = send(td->client_sockfd, ret.c_str(), ret.length(), 0);
-			if (byte < 0) {
-				// send failed
-			}
-		}
-		close(td->client_sockfd);
-	} else if(td->msgType == FETCH_REQUEST) {
+	string msg = readSocket(td->client_sockfd);
 
-		//cout << "CONTEXT ID: " << SUNWAYMR_CONTEXT_ID << endl;
+	string::size_type pos;
+	pos=msg.find('$', 0);
+	if (pos !=  string::npos) {
+		string typeStr = msg.substr(0, pos);
+		int msgType = atoi(typeStr.c_str());
+		string msgContent=msg.substr(pos+1);
 
-		vector<string> paras;
-		splitString(td->msgContent, paras, ",");
-		if(paras.size() == 2)
-		{
-			long shuffleID = atol(paras[0].c_str());
-			int partitionID = atoi(paras[1].c_str());
+		if(msgType == FILE_BLOCK_REQUEST) { // reply file block
+			vector<string> vs;
+			splitString(msgContent, vs, FILE_BLOCK_REQUEST_DELIMITATION);
+			if(vs.size() >= 4) {
+				string ret;
+				string path = vs[0];
+				int offset = atoi(vs[1].c_str());
+				int length = atoi(vs[2].c_str());
+				FileSourceFormat format = static_cast<FileSourceFormat>(atoi(vs[3].c_str()));
 
-			// send back data
-			string base_dir = "cache/shuffle/";
-			string app_id = num2string(SUNWAYMR_CONTEXT_ID);
-		    string shuffle_id = num2string(shuffleID);
-
-		    string dir = app_id.append("/shuffle-") + shuffle_id.append("/");
-		    dir = base_dir + dir;
-		    vector<string> allFileNames;
-			listAllFileNamesContain(dir, allFileNames, "shuffleTaskFile");
-			map< long, vector< vector<string> > > fetch_content_local; // !global shuffle cache data map(fetch_content) will cause segmentation fault!
-			map< long, vector< vector<string> > >::iterator it = fetch_content_local.find(shuffleID);
-
-			if(it == fetch_content_local.end())
-			{
-				// this shuffle has not  been cached, read it
-				vector< vector<string> > vv;
-				fetch_content_local[shuffleID] = vv;
-				for(unsigned int i=0; i<allFileNames.size(); i++)
-				{
-					string content;
-					readFile(dir+allFileNames[i], content);
-					vector<string> lines;
-					splitString(content, lines, SHUFFLETASK_PARTITION_DELIMITATION);
-					fetch_content_local[shuffleID].push_back(lines);
+				if (format == FILE_SOURCE_FORMAT_BYTE) {
+					readFile(path, offset, length, ret);
+				} else {
+					readFileByLineNumber(path, offset, length, ret);
+				}
+				int byte = send(td->client_sockfd, ret.c_str(), ret.length(), 0);
+				if (byte < 0) {
+					// send failed
 				}
 			}
-			//organize send message
-			string senMsg;
-			for(unsigned int i=0; i<fetch_content_local[shuffleID].size()-1; i++)
-				senMsg += fetch_content_local[shuffleID][i][partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
-			senMsg += (fetch_content_local[shuffleID].back())[partitionID];
+			close(td->client_sockfd);
+		} else if(msgType == FETCH_REQUEST) {
 
-			send(td->client_sockfd, senMsg.c_str(), senMsg.length(), 0);
+			//cout << "CONTEXT ID: " << SUNWAYMR_CONTEXT_ID << endl;
+
+			vector<string> paras;
+			splitString(msgContent, paras, ",");
+			if(paras.size() == 2)
+			{
+				long shuffleID = atol(paras[0].c_str());
+				int partitionID = atoi(paras[1].c_str());
+
+				// send back data
+				string base_dir = "cache/shuffle/";
+				string app_id = num2string(SUNWAYMR_CONTEXT_ID);
+			    string shuffle_id = num2string(shuffleID);
+
+			    string dir = app_id.append("/shuffle-") + shuffle_id.append("/");
+			    dir = base_dir + dir;
+			    vector<string> allFileNames;
+				listAllFileNamesContain(dir, allFileNames, "shuffleTaskFile");
+				map< long, vector< vector<string> > > fetch_content_local; // !global shuffle cache data map(fetch_content) will cause segmentation fault!
+				map< long, vector< vector<string> > >::iterator it = fetch_content_local.find(shuffleID);
+
+				if(it == fetch_content_local.end())
+				{
+					// this shuffle has not  been cached, read it
+					vector< vector<string> > vv;
+					fetch_content_local[shuffleID] = vv;
+					for(unsigned int i=0; i<allFileNames.size(); i++)
+					{
+						string content;
+						readFile(dir+allFileNames[i], content);
+						vector<string> lines;
+						splitString(content, lines, SHUFFLETASK_PARTITION_DELIMITATION);
+						fetch_content_local[shuffleID].push_back(lines);
+					}
+				}
+				//organize send message
+				string senMsg;
+				for(unsigned int i=0; i<fetch_content_local[shuffleID].size()-1; i++)
+					senMsg += fetch_content_local[shuffleID][i][partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
+				senMsg += (fetch_content_local[shuffleID].back())[partitionID];
+
+				send(td->client_sockfd, senMsg.c_str(), senMsg.length(), 0);
+			}
+
+			close(td->client_sockfd);
+		} else {
+			close(td->client_sockfd); // close socket
+
+			Messaging &m = td->mess;
+			m.messageReceived(td->local_port, td->ip, msgType, msgContent);
 		}
-
-		close(td->client_sockfd);
 	} else {
-		close(td->client_sockfd); // close socket
-
-		Messaging &m = td->mess;
-		m.messageReceived(td->local_port, td->ip, td->msgType, td->msgContent);
+		close(td->client_sockfd);
 	}
+
 
 	pthread_exit(NULL);
 }

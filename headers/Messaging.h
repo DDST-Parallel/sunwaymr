@@ -32,18 +32,14 @@ enum ListenStatus {
 };
 
 class Messaging;
-struct ThreadData {
+struct xyz_messaging_listen_thread_data_ {
 	Messaging &mess;
 	int local_port;
 	string ip;
-	int msgType;
-	string msgContent;
 	int client_sockfd;
 
-	ThreadData(Messaging &mess, int port, string ip,
-			int msgType, string msgContent, int client_sockfd)
-	: mess(mess), local_port(port), ip(ip), msgType(msgType),
-	  msgContent(msgContent), client_sockfd(client_sockfd) { }
+	xyz_messaging_listen_thread_data_(Messaging &mess, int port, string ip, int client_sockfd)
+	: mess(mess), local_port(port), ip(ip), client_sockfd(client_sockfd) { }
 };
 
 /*

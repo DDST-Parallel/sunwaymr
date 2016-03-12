@@ -16,40 +16,49 @@
 using std::cout;
 using std::endl;
 
-#ifndef LOGGING_MASK
-#define LOGGING_MASK 1
-#endif
-
+int Logging::logging_mask = 1;
 pthread_mutex_t Logging::mutex_logging;
 
-void Logging::logDebug(string msg) {
-	if (LOGGING_MASK < 1) {
+void Logging::setMask(int m) {
+	logging_mask = m;
+}
+
+void Logging::logVerbose(string msg) {
+	if (logging_mask < 1) {
 		pthread_mutex_lock(&mutex_logging);
-		cout << "[" << currentDateTime() << "] debug: " << msg << endl;
+		cout << "[" << currentDateTime() << "][VERBOSE]: " << msg << endl;
+		pthread_mutex_unlock(&mutex_logging);
+	}
+}
+
+void Logging::logDebug(string msg) {
+	if (logging_mask < 2) {
+		pthread_mutex_lock(&mutex_logging);
+		cout << "[" << currentDateTime() << "][DEBUG]: " << msg << endl;
 		pthread_mutex_unlock(&mutex_logging);
 	}
 }
 
 void Logging::logInfo(string msg) {
-	if (LOGGING_MASK < 2) {
+	if (logging_mask < 3) {
 		pthread_mutex_lock(&mutex_logging);
-		cout << "[" << currentDateTime() << "] info: " << msg << endl;
+		cout << "[" << currentDateTime() << "][INFO]: " << msg << endl;
 		pthread_mutex_unlock(&mutex_logging);
 	}
 }
 
 void Logging::logWarning(string msg) {
-	if (LOGGING_MASK < 3) {
+	if (logging_mask < 4) {
 		pthread_mutex_lock(&mutex_logging);
-		cout << "[" << currentDateTime() << "] warning: " << msg << endl;
+		cout << "[" << currentDateTime() << "][WARNING]: " << msg << endl;
 		pthread_mutex_unlock(&mutex_logging);
 	}
 }
 
 void Logging::logError(string msg) {
-	if (LOGGING_MASK < 4) {
+	if (logging_mask < 5) {
 		pthread_mutex_lock(&mutex_logging);
-		cout << "[" << currentDateTime() << "] error: " << msg << endl;
+		cout << "[" << currentDateTime() << "][ERROR]: " << msg << endl;
 		pthread_mutex_unlock(&mutex_logging);
 	}
 }

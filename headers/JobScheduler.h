@@ -14,6 +14,7 @@
 
 #include <string>
 #include <vector>
+#include <pthread.h>
 #include "Messaging.h"
 #include "Scheduler.h"
 #include "Task.h"
@@ -45,6 +46,11 @@ private:
 	vector<int> threadCountVector;
 	vector<int> memoryVector;
 	vector<Scheduler*> taskSchedulers;
+
+	pthread_mutex_t mutex_job_scheduler;
+	int nextJobID;
+	vector<string> taskResultWorksOfNextJob;
+	vector<string> taskResultsOfNextJob;
 
 	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
 };
