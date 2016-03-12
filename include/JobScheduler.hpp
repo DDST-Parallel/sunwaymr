@@ -179,7 +179,7 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 			<< ", message received from: " << fromHost
 			<< ", message type: " << msgType
 			<< ", message content: " << msg;
-	Logging::logDebug(received.str());
+	Logging::logVerbose(received.str());
 
 	pthread_mutex_lock(&mutex_job_scheduler);
 	switch (msgType) {

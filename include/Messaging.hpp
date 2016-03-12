@@ -49,11 +49,13 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 
 	// connect
 	int conn = connect(sockfd, (struct sockaddr *)&address, len);
-	while (conn < 0)
+	if (conn < 0)
 	{
-		usleep(100000); // sleep 100ms
 		Logging::logWarning("Messaging: sendMessage: connect fail! will try again");
-		return false;
+		while (conn < 0) {
+			usleep(100000); // sleep 100ms
+			conn = connect(sockfd, (struct sockaddr *)&address, len);
+		}
 	}
 
 	// reorganize packet

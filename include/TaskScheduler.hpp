@@ -280,7 +280,6 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 			if (vs.size() >= 2) {
 				int jobID = atoi(vs[0].c_str());
 				int taskID = atoi(vs[1].c_str());
-				string slaveIp=fromHost;
 
 				if (jobID == this->jobID && (unsigned)taskID < tasks.size()
 						&& !resultReceived[taskID]) {
@@ -303,12 +302,13 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 							<< jobID << "] received, totally "
 							<< receivedTaskResultNum << " results of "
 							<< tasks.size() << " tasks received";
-					Logging::logDebug(receivedDebug.str());
+					Logging::logVerbose(receivedDebug.str());
 				}
 			}
 
 			// check if all task results received
 			if ((unsigned)receivedTaskResultNum == tasks.size()) {
+				allTaskResultsReceived = true;
 				Logging::logInfo(
 						"TaskScheduler: master: sending out results...");
 
@@ -321,8 +321,6 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 				}
 
 				Logging::logInfo("TaskScheduler: results sent");
-
-				allTaskResultsReceived = true;
 				pthread_mutex_unlock(&mutex_all_tasks_received);
 			}
 		}
@@ -447,10 +445,9 @@ bool TaskScheduler<T>::getTaskResultListString(int job, string &result) {
 		if (i != this->tasks.size()-1) {
 			ss << TASK_RESULT_LIST_DELIMITATION;
 		}
-		result = ss.str();
-		return true;
 	}
-	return false;
+	result = ss.str();
+	return true;
 }
 
 #endif /* TASKSCHEDULER_HPP_ */
