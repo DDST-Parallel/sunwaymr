@@ -248,11 +248,12 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 
 template <class T>
 void TaskScheduler<T>::finishTask(int task, T &value) {
-	if (task>=0 && task<this->tasks.size()) {
+	if (task>=0 && (unsigned)task<this->tasks.size()) {
 		// send out task result
 		stringstream ss;
 		ss << this->jobID << TASK_RESULT_DELIMITATION << task
 				<<TASK_RESULT_DELIMITATION<< this->tasks[task]->serialize(value);
+		usleep(rand()%500000); // delay sending result
 		this->sendMessage(this->master, this->listenPort, A_TASK_RESULT, ss.str());
 		this->decreaseRunningThreadNum();
 	}
@@ -418,7 +419,7 @@ void TaskScheduler<T>::decreaseRunningThreadNum() {
 template<class T>
 bool TaskScheduler<T>::getTaskResultString(int job, int task, string &result) {
 	if (job != this->jobID) return false;
-	if (task >= this->resultReceived.size()
+	if ((unsigned)task >= this->resultReceived.size()
 			|| !this->resultReceived[task]) return false;
 	if (this->taskResults[task] != NULL) {
 		T& value = taskResults[task]->value;
