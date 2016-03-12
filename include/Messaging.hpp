@@ -308,6 +308,13 @@ void* messageHandler(void *data)
 			}
 
 			close(td->client_sockfd);
+		} else if(msgType == FILE_INFO || msgType > 999999) { // sunwaymrhelper file sending
+			Messaging &m = td->mess;
+			m.messageReceived(td->local_port, td->ip, msgType, msgContent);
+			string reply = "0";
+			send(td->client_sockfd, reply.c_str(), reply.length(), 0);
+
+			close(td->client_sockfd); // close socket
 		} else {
 			close(td->client_sockfd); // close socket
 

@@ -234,8 +234,9 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			};
 			tmp.push_back(hr);
 
+			string reply;
 			// send file info 1
-			bool sr = sendMessage(host, port, FILE_INFO, fileInfo1.str());
+			bool sr = sendMessageForReply(host, port, FILE_INFO, fileInfo1.str(), reply);
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
@@ -243,7 +244,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 				Logging::logError(err.str());
 			}
 			// send file info 2
-			sr = sendMessage(host, port, FILE_INFO, fileInfo2.str());
+			sr = sendMessageForReply(host, port, FILE_INFO, fileInfo2.str(), reply);
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
@@ -251,10 +252,8 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 				Logging::logError(err.str());
 			}
 
-			usleep(100000); // sleep 100ms TODO
-
 			// send file content 1
-			sr = sendMessage(host, port, fileUID1, fileContent1);
+			sr = sendMessageForReply(host, port, fileUID1, fileContent1, reply);
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
@@ -263,7 +262,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			}
 
 			// send file content 2
-			sr = sendMessage(host, port, fileUID2, fileContent2);
+			sr = sendMessageForReply(host, port, fileUID2, fileContent2, reply);
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
