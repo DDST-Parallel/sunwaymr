@@ -53,7 +53,7 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 	{
 		Logging::logWarning("Messaging: sendMessage: connect fail! will try again");
 		while (conn < 0) {
-			usleep(100000); // sleep 100ms
+			usleep(300000 + rand()%300000); // sleep & reconnect later
 			conn = connect(sockfd, (struct sockaddr *)&address, len);
 		}
 	}

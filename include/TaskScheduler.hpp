@@ -303,7 +303,7 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 							<< jobID << "] received, totally "
 							<< receivedTaskResultNum << " results of "
 							<< tasks.size() << " tasks received";
-					Logging::logVerbose(receivedDebug.str());
+					Logging::logDebug(receivedDebug.str());
 				}
 			}
 
