@@ -477,6 +477,7 @@ vector<string> splitStringByDelimitationCouple(string str, string delim_l, strin
 	    string _file(dirp->d_name);
 	    files.push_back(_file);
 	}
+	closedir(dp);
 	return true;
 }
 
@@ -499,6 +500,7 @@ vector<string> splitStringByDelimitationCouple(string str, string delim_l, strin
  	    if(_file.find(contain) < _file.length())
  	    	 files.push_back(_file);
  	}
+	closedir(dp);
  	return true;
  }
 
