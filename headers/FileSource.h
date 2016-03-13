@@ -40,6 +40,7 @@ public:
 	int listenPort;
 	string location; // will be used to initialize TextFileBlock
 	FileSourceFormat format; // 0: byte, 1: line
+	long bytes, lines;
 };
 
 

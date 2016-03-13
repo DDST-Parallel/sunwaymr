@@ -19,7 +19,6 @@
 using std::string;
 
 int MAX_TEXT_FILE_BLOCK_SIZE_BYTE = 3 * 1024 * 1024; // TODO configuration out of code
-int MAX_TEXT_FILE_BLOCK_SIZE_LINE = 3 * 128; // TODO configuration out of code
 
 class TextFileBlock : public Messaging {
 public:

@@ -72,15 +72,16 @@ FileSource getFileSize(void *file) {
 	if(fs->source=="*" || fs->source==selfIP) {
 		fs->location = selfIP;
 		fs->listenPort = scheduler_listen_port;
-		long length;
+
+		long bytes, lines;
+		getFileLength(fs->path, bytes);
+		getFileLineNumber(fs->path, lines);
+		fs->bytes = bytes;
+		fs->lines = lines;
 		if (fs->format == FILE_SOURCE_FORMAT_BYTE) {
-			if(getFileLength(fs->path, length)) {
-				fs->length = length;
-			}
+			fs->length = bytes;
 		} else {
-			if(getFileLineNumber(fs->path, length)) {
-				fs->length = length;
-			}
+			fs->length = lines;
 		}
 	} else if (fs->source=="[DFS-server]" && selfIP==master_ip) {
 		// TODO DFS file
@@ -104,9 +105,11 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 	IteratorSeq<void *> *is = new IteratorSeq<void *>(seq);
 	vector<FileSource> fileSources = RDD<TextFileBlock>::context.allNodes(*is).map(getFileSize).collect();
 
-	long total_length = 0;
+	long total_length = 0, total_bytes = 0, total_lines = 0;
 	for(unsigned int i=0; i<fileSources.size(); i++) {
 		total_length += fileSources[i].length;
+		total_bytes += fileSources[i].bytes;
+		total_lines += fileSources[i].lines;
 	}
 
 	// create file blocks, slice
@@ -114,7 +117,7 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 	if(total_length > 0) {
 		// calculate block length
 		int max_block_size = MAX_TEXT_FILE_BLOCK_SIZE_BYTE;
-		if (this->format == FILE_SOURCE_FORMAT_LINE) max_block_size = MAX_TEXT_FILE_BLOCK_SIZE_LINE;
+		if (this->format == FILE_SOURCE_FORMAT_LINE) max_block_size = MAX_TEXT_FILE_BLOCK_SIZE_BYTE / (total_bytes / total_lines);
 		long b = total_length / numSlices;
 		b += 1;
 		if (b > max_block_size) b = max_block_size;

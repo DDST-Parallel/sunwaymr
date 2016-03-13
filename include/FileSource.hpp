@@ -25,6 +25,8 @@ FileSource::FileSource() {
 	listenPort = 0;
 	location = " ";
 	format = FILE_SOURCE_FORMAT_BYTE;
+	bytes = 0;
+	lines = 0;
 }
 
 FileSource::FileSource(string source, string path, FileSourceFormat format)
@@ -32,6 +34,8 @@ FileSource::FileSource(string source, string path, FileSourceFormat format)
 	length = 0;
 	listenPort = 0;
 	location = " ";
+	bytes = 0;
+	lines = 0;
 }
 
 FileSource::FileSource(const FileSource &f)
@@ -39,24 +43,36 @@ FileSource::FileSource(const FileSource &f)
 	length = f.length;
 	listenPort = f.listenPort;
 	location = f.location;
+	bytes = f.bytes;
+	lines = f.lines;
 }
 
 string FileSource::serialize(string delim) const {
 	stringstream ss;
-	ss << source << delim << path << delim << length << delim << listenPort << delim << location << delim << format;
+	ss << source << delim << path << delim << length 
+		<< delim << listenPort << delim << location << delim << format
+		<< delim << bytes << delim << lines;
 	return ss.str();
 }
 
 void FileSource::deserialize(string s, string delim) {
 	vector<string> vs;
 	splitString(s, vs, delim);
-	if(vs.size()>=6) {
+	if(vs.size()>=8) {
 		source = vs[0];
 		path = vs[1];
-		length = atoi(vs[2].c_str());
+		stringstream ss1;
+		ss1 << vs[2];
+		ss1 >> length;
 		listenPort = atoi(vs[3].c_str());
 		location = vs[4];
 		format = static_cast<FileSourceFormat>(atoi(vs[5].c_str()));
+		stringstream ss2;
+		ss2 << vs[6];
+		ss2 >> bytes;
+		stringstream ss3;
+		ss3 << vs[7];
+		ss3 >> lines;
 	}
 }
 
