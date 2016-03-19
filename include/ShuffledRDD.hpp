@@ -29,6 +29,7 @@
 #include <cstdlib>
 #include <map>
 #include <sstream>
+#include <new>
 using namespace std;
 
 template <class K, class V, class C>
@@ -165,7 +166,12 @@ void ShuffledRDD<K, V, C>::merge(vector<string * > &replys, map<K, C> &combiners
 				continue;
 
 			typename map<K, C>::iterator iter;
-			Pair<K, C> p = recoverFunc(pairs[j]);
+			Pair<K, C> p;
+			try {
+				p = recoverFunc(pairs[j]);
+			} catch (std::bad_alloc& ba) {
+				continue; // converting from string failed
+			}
 			iter = combiners.find(p.v1);
 			if(iter != combiners.end())
 			{

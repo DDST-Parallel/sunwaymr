@@ -303,6 +303,7 @@ void* messageHandler(void *data)
 					unsigned end_line = offset+length;
 					for (unsigned int i=offset; i<end_line && i<m.file_cache_lines[path]->size(); i++) {
 						ret += (*m.file_cache_lines[path])[i];
+						ret += "\n";
 					}
 				}
 				int byte = send(td->client_sockfd, ret.c_str(), ret.length(), 0);
