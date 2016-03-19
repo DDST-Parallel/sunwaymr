@@ -53,6 +53,11 @@ template <class T> IteratorSeq<T>::IteratorSeq(VectorIteratorSeq<T> *v) {
 	type = 1;
 }
 
+template <class T> 
+IteratorSeq<T>::~IteratorSeq() {
+
+}
+
 template <class T> void IteratorSeq<T>::init(vector<T> &v)
 {
 	iterator = new VectorIteratorSeq<T>(v);

@@ -41,7 +41,7 @@ string TextFileBlock::blockData() {
 	if (file.source == "[DFS server]") {
 		// TODO DFS file
 	} else {
-		if(location == getLocalHost()) { // local file
+		if(false && location == getLocalHost()) { // local file
 			if (format == FILE_SOURCE_FORMAT_BYTE) {
 				readFile(file.path, offset, length, ret);
 			} else {

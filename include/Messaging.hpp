@@ -23,8 +23,38 @@
 #include "SunwayMRContext.h"
 using namespace std;
 
+
+Messaging::Messaging() {
+	pthread_mutex_init(&mutex_check_file_cache, NULL);
+}
+
 Messaging::~Messaging()
 {
+	// clear cached data
+
+	// file content
+	map<string, string*>::iterator it1;
+	for(it1=file_cache_bytes.begin(); it1!=file_cache_bytes.end(); ++it1) {
+		delete it1->second;
+	}
+	file_cache_bytes.clear();
+
+	map<string, vector<string>*>::iterator it2;
+	for(it2=file_cache_lines.begin(); it2!=file_cache_lines.end(); ++it2) {
+		delete it2->second;
+	}
+	file_cache_lines.clear();
+
+	// fetch content
+	map< long, vector< vector<string>* > >::iterator it3;
+	for(it3=fetch_content_local.begin(); it3!=fetch_content_local.end(); ++it3) {
+		for (unsigned int i=0; i<it3->second.size(); i++) {
+			delete it3->second[i];
+		}
+		it3->second.clear();
+	}
+	fetch_content_local.clear();
+
 }
 
 bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg)
@@ -230,6 +260,7 @@ void* messageHandler(void *data)
 {
 	// parse data
 	struct xyz_messaging_listen_thread_data_ *td = (struct xyz_messaging_listen_thread_data_ *)data;
+	Messaging &m = td->mess;
 
 	string msg = readSocket(td->client_sockfd);
 
@@ -249,11 +280,30 @@ void* messageHandler(void *data)
 				int offset = atoi(vs[1].c_str());
 				int length = atoi(vs[2].c_str());
 				FileSourceFormat format = static_cast<FileSourceFormat>(atoi(vs[3].c_str()));
-
 				if (format == FILE_SOURCE_FORMAT_BYTE) {
-					readFile(path, offset, length, ret);
+
+					pthread_mutex_lock(&m.mutex_check_file_cache);
+					if (m.file_cache_bytes.find(path) == m.file_cache_bytes.end()) { // check file cache
+						string *file_content = new string();
+						readFile(path, *file_content);
+						m.file_cache_bytes[path] = file_content;	
+					} 
+					pthread_mutex_unlock(&m.mutex_check_file_cache);
+
+					ret = m.file_cache_bytes[path]->substr(offset, length);
 				} else {
-					readFileByLineNumber(path, offset, length, ret);
+					pthread_mutex_lock(&m.mutex_check_file_cache);
+					if (m.file_cache_lines.find(path) == m.file_cache_lines.end()) { // check file cache
+						vector<string> *file_content = new vector<string>();
+						readFileToLines(path, *file_content);
+						m.file_cache_lines[path] = file_content;
+					} 
+					pthread_mutex_unlock(&m.mutex_check_file_cache);
+
+					unsigned end_line = offset+length;
+					for (unsigned int i=offset; i<end_line && i<m.file_cache_lines[path]->size(); i++) {
+						ret += (*m.file_cache_lines[path])[i];
+					}
 				}
 				int byte = send(td->client_sockfd, ret.c_str(), ret.length(), 0);
 				if (byte < 0) {
@@ -281,35 +331,36 @@ void* messageHandler(void *data)
 			    dir = base_dir + dir;
 			    vector<string> allFileNames;
 				listAllFileNamesContain(dir, allFileNames, "shuffleTaskFile");
-				map< long, vector< vector<string> > > fetch_content_local; // !global shuffle cache data map(fetch_content) will cause segmentation fault!
-				map< long, vector< vector<string> > >::iterator it = fetch_content_local.find(shuffleID);
 
-				if(it == fetch_content_local.end())
+				pthread_mutex_lock(&m.mutex_check_file_cache);
+				//map< long, vector< vector<string>* > > fetch_content_local; // !global shuffle cache data map(fetch_content) will cause segmentation fault!
+				map< long, vector< vector<string>* > >::iterator it = m.fetch_content_local.find(shuffleID);
+				if(it == m.fetch_content_local.end())
 				{
 					// this shuffle has not  been cached, read it
-					vector< vector<string> > vv;
-					fetch_content_local[shuffleID] = vv;
+					m.fetch_content_local[shuffleID] = vector< vector<string>* >();
 					for(unsigned int i=0; i<allFileNames.size(); i++)
 					{
 						string content;
 						readFile(dir+allFileNames[i], content);
-						vector<string> lines;
-						splitString(content, lines, SHUFFLETASK_PARTITION_DELIMITATION);
-						fetch_content_local[shuffleID].push_back(lines);
+						vector<string> *lines = new vector<string>();
+						splitString(content, *lines, SHUFFLETASK_PARTITION_DELIMITATION);
+						m.fetch_content_local[shuffleID].push_back(lines);
 					}
 				}
+				pthread_mutex_unlock(&m.mutex_check_file_cache);
+
 				//organize send message
 				string senMsg;
-				for(unsigned int i=0; i<fetch_content_local[shuffleID].size()-1; i++)
-					senMsg += fetch_content_local[shuffleID][i][partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
-				senMsg += (fetch_content_local[shuffleID].back())[partitionID];
+				for(unsigned int i=0; i<m.fetch_content_local[shuffleID].size()-1; i++)
+					senMsg += (*(m.fetch_content_local[shuffleID][i]))[partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
+				senMsg += (*(m.fetch_content_local[shuffleID].back()))[partitionID];
 
 				send(td->client_sockfd, senMsg.c_str(), senMsg.length(), 0);
 			}
 
 			close(td->client_sockfd);
 		} else if(msgType == FILE_INFO || msgType > 999999) { // sunwaymrhelper file sending
-			Messaging &m = td->mess;
 			m.messageReceived(td->local_port, td->ip, msgType, msgContent);
 			string reply = "0";
 			send(td->client_sockfd, reply.c_str(), reply.length(), 0);
@@ -318,7 +369,6 @@ void* messageHandler(void *data)
 		} else {
 			close(td->client_sockfd); // close socket
 
-			Messaging &m = td->mess;
 			m.messageReceived(td->local_port, td->ip, msgType, msgContent);
 		}
 	} else {

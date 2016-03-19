@@ -11,11 +11,13 @@
 #include "VectorIteratorSeq.h"
 
 #include <assert.h>
+#include <algorithm>
 #include "AbstractIteratorSeq.hpp"
 
 template <class T> VectorIteratorSeq<T>::VectorIteratorSeq(vector<T> &v)
-: v(v){
-
+{
+        this->v.resize(v.size());
+        std::copy(v.begin(), v.end(), this->v.begin());
 }
 
 template <class T> long VectorIteratorSeq<T>::size() {

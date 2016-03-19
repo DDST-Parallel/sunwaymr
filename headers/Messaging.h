@@ -42,18 +42,12 @@ struct xyz_messaging_listen_thread_data_ {
 	: mess(mess), local_port(port), ip(ip), client_sockfd(client_sockfd) { }
 };
 
-/*
- * shuffleID -> data
- * data:
- * <shuffleTask0, shuffleTask1, ...>
- * shuffleTask0: <partition0, partition1, ...>
- */
-map< long, vector< vector<string> > > fetch_content;
 
 void* messageHandler(void *fd);
 
 class Messaging {
 public:
+	Messaging();
 	virtual ~Messaging();
 
 	/*
@@ -73,8 +67,18 @@ public:
 
 	virtual void messageReceived(int localListenPort, string fromHost, int msgType, string msg) = 0;
 
-	pthread_mutex_t mutex_listen_status;
+	pthread_mutex_t mutex_listen_status, mutex_check_file_cache;
 
+
+	map<string, string*> file_cache_bytes;
+	map<string, vector<string>*> file_cache_lines;
+	/*
+	 * shuffleID -> data
+	 * data:
+	 * <shuffleTask0, shuffleTask1, ...>
+	 * shuffleTask0: <partition0, partition1, ...>
+	 */
+	map< long, vector< vector<string>* > > fetch_content_local;
 private:
 	int listenStatus;
 };

@@ -33,11 +33,12 @@ class ShuffledRDD : public RDD< Pair<K, C> >, public Messaging
 {
 public:
 	ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K, V>, Pair<K, C> > &_agg, HashDivider &_hd, long (*hf)(Pair<K, C>), string (*strf)(Pair<K, C>), Pair<K, C> (*_recoverFunc)(string));
+	~ShuffledRDD();
 	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition &p);
 	IteratorSeq< Pair<K, C> > iteratorSeq(Partition &p);
 	void shuffle();
-	map<K, C> merge(vector<string> replys);
+	void merge(vector<string * > &replys, map<K, C> &combiners);
 	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
 
 private:
@@ -49,7 +50,7 @@ private:
     Pair<K, C> (*recoverFunc)(string); // function to deserialize a string to a pair
     long shuffleID;
     bool shuffleFinished;
-    map<int, IteratorSeq< Pair<K, C> > > shuffleCache;
+    map<int, IteratorSeq< Pair<K, C> >*> shuffleCache;
 };
 
 

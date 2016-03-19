@@ -356,6 +356,23 @@ bool readFile(string path, int offset, int length, string &content) {
 	}
 }
 
+bool readFileToLines(string path, vector<string> &content) {
+	std::ifstream file(path.c_str(), std::ifstream::in);
+	if (file.is_open()) {
+		std::string line;
+		while (std::getline(file, line)) {
+			content.push_back(line);
+		}
+
+		file.close();
+		return true;
+	} else {
+		return false;
+	}
+
+}
+
+
 
 bool readFileByLineNumber(string path, int offset, int length, string &content) {
 	std::ifstream file(path.c_str(), std::ifstream::in);

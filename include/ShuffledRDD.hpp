@@ -52,6 +52,17 @@ ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K
 }
 
 template <class K, class V, class C>
+ShuffledRDD<K, V, C>::~ShuffledRDD()
+{
+	typename map<int, IteratorSeq< Pair<K, C> >* >::iterator it;
+	for (it=this->shuffleCache.begin(); it!=this->shuffleCache.end(); ++it) {
+		delete (it->second);
+	}
+	this->shuffleCache.clear();
+
+}
+
+template <class K, class V, class C>
 vector<Partition*> ShuffledRDD<K, V, C>::getPartitions()
 {
 	return this->partitions;
@@ -97,7 +108,7 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 	// !TODO cannot save shuffle cache data in memory if running in fork !
 	// now running tasks by pthread if shuffled (by change XYZ_TASK_SCHEDULER_RUN_TASK_MODE in shuffle())
 	if (shuffleCache.find(srp.partitionID) != shuffleCache.end()) {
-		return this->shuffleCache[srp.partitionID];
+		return *(this->shuffleCache[srp.partitionID]);
 	}
 
 	// fetch
@@ -109,39 +120,45 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 
 	string sendMsg = str_shuffleID+","+str_partitionID; //organize request
 
-	vector<string> replys;
+	vector<string * > replys;
 	for(unsigned int i=0; i<IPs.size(); i++)
 	{
-		string reply;
-		sendMessageForReply(IPs[i], port, FETCH_REQUEST, sendMsg, reply);
+		string *reply = new string();
+		sendMessageForReply(IPs[i], port, FETCH_REQUEST, sendMsg, *reply);
 		replys.push_back(reply);
 	}
 
 	// merge
 	vector< Pair<K, C> > ret;
-	map<K, C> combiners = merge(replys);
+	map<K, C> combiners;
+	merge(replys, combiners);
+	// delete replys 
+	for (vector<string * >::iterator it=replys.begin(); it!=replys.end(); ++it) {
+		delete(*it);
+	}
+	replys.clear();
+	// making result 
 	typename map<K, C>::iterator it;
 	for(it=combiners.begin(); it!=combiners.end(); it++)
 	{
 		Pair<K, C> p(it->first, it->second);
 		ret.push_back(p);
 	}
-	IteratorSeq< Pair<K, C> > retIt(ret);
+	IteratorSeq< Pair<K, C> > *retIt = new IteratorSeq< Pair<K, C> >(ret);
 
 	// saving cache
 	this->shuffleCache[srp.partitionID] = retIt;
 
-	return retIt;
+	return *retIt;
 }
 
 template <class K, class V, class C>
-map<K, C> ShuffledRDD<K, V, C>::merge(vector<string> replys)
+void ShuffledRDD<K, V, C>::merge(vector<string * > &replys, map<K, C> &combiners)
 {
-	map<K, C> combiners;
 	for(unsigned int i=0; i<replys.size(); i++)
 	{
 		vector<string> pairs;
-		splitString(replys[i], pairs, SHUFFLETASK_KV_DELIMITATION);
+		splitString(*replys[i], pairs, SHUFFLETASK_KV_DELIMITATION);
 		for(unsigned int j=0; j<pairs.size(); j++)
 		{
 			if(pairs[j] == string(SHUFFLETASK_EMPTY_DELIMITATION))
@@ -163,8 +180,6 @@ map<K, C> ShuffledRDD<K, V, C>::merge(vector<string> replys)
 			}
 		}
 	}
-
-	return combiners;
 }
 
 template <class K, class V, class C>

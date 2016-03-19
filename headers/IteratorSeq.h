@@ -36,6 +36,7 @@ public:
 	IteratorSeq(vector<T> &v);
 	IteratorSeq(RangeIteratorSeq<T> *r);
 	IteratorSeq(VectorIteratorSeq<T> *v);
+	~IteratorSeq();
 	void init(vector<T> &v);
 	int type; // 0: range, 1: vector
 
