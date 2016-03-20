@@ -27,10 +27,10 @@ using namespace std;
 template<class T>
 TaskScheduler<T>::TaskScheduler(int jobID, string selfIP, int selfIPIndex,
 		string master, string appName, int listenPort, vector<string> ip,
-		vector<int> threads, vector<int> memory) :
-		jobID(jobID), selfIP(selfIP), selfIPIndex(selfIPIndex), master(master), appName(
-				appName), listenPort(listenPort), IPVector(ip), threadCountVector(
-				threads), memoryVector(memory), isMaster(0) {
+		vector<int> threads, vector<int> memory) 
+		: jobID(jobID), selfIP(selfIP), selfIPIndex(selfIPIndex), 
+				master(master), appName(appName), listenPort(listenPort), IPVector(ip), 
+				threadCountVector(threads), memoryVector(memory), isMaster(0) {
 	if (master == "local" || master == selfIP) {
 		isMaster = 1;
 	}

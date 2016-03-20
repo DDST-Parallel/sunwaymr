@@ -172,6 +172,7 @@ void ShuffledRDD<K, V, C>::merge(vector<string * > &replys, map<K, C> &combiners
 			} catch (std::bad_alloc& ba) {
 				continue; // converting from string failed
 			}
+			if (!p.valid) continue;
 			iter = combiners.find(p.v1);
 			if(iter != combiners.end())
 			{

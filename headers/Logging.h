@@ -16,11 +16,11 @@ using std::exception;
 class Logging {
 public:
 	static void setMask(int m);
-	static void logVerbose(string msg);
-	static void logDebug(string msg);
-	static void logInfo(string msg);
-	static void logWarning(string msg);
-	static void logError(string msg);
+	static void logVerbose(const string &msg);
+	static void logDebug(const string &msg);
+	static void logInfo(const string &msg);
+	static void logWarning(const string &msg);
+	static void logError(const string &msg);
 
 //	void logInfo(string msg, exception e);
 //	void logDebug(string msg, exception e);

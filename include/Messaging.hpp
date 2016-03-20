@@ -109,8 +109,8 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 }
 
 string readSocket(int socketfd) {
-	int MAX_MESSAGE_SIZE = 1024 * 1024 * 100; // TODO configuration out of code
-	int BUFFER_SIZE = 1024 * 1024; // TODO configuration out of code
+	int MAX_MESSAGE_SIZE = 1024 * 1024 * 1024; // TODO configuration out of code
+	int BUFFER_SIZE = 1024 * 1024 * 4; // TODO configuration out of code
 
 	char buffer[BUFFER_SIZE];
 	int total = 0;

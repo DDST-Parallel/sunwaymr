@@ -59,7 +59,6 @@ private:
 
     pthread_mutex_t mutex_handle_message_ready;
     pthread_mutex_t mutex_all_tasks_received;
-
 };
 
 

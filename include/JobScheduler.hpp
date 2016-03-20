@@ -161,11 +161,9 @@ vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
 
 	pthread_mutex_unlock(&mutex_job_scheduler);
 
-	if (taskSchedulers.size() > 10) {
-		pthread_mutex_lock(&mutex_job_scheduler);
+	if (taskSchedulers.size() > 2) {
 		delete(taskSchedulers[0]);
 		taskSchedulers.erase(taskSchedulers.begin());
-		pthread_mutex_unlock(&mutex_job_scheduler);
 	}
 
 	return ts->runTasks(tasks);
@@ -181,7 +179,8 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 			<< ", message content: " << msg;
 	Logging::logVerbose(received.str());
 
-	pthread_mutex_lock(&mutex_job_scheduler);
+	Scheduler * handler = NULL;
+	// pthread_mutex_lock(&mutex_job_scheduler);
 	switch (msgType) {
 		case A_TASK_RESULT:
 		{
@@ -189,6 +188,7 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 			splitString(msg, vs, TASK_RESULT_DELIMITATION);
 			if (vs.size() != 0) {
 				int jobID = atoi(vs[0].c_str());
+				pthread_mutex_lock(&mutex_job_scheduler);
 				if (jobID == this->nextJobID) {
 					// a task result for next job. this occurs when master is slower than the slave
 					// save the result
@@ -196,14 +196,15 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 					taskResultsOfNextJob.push_back(msg);
 
 				} else {
-					taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg);
+					handler = taskSchedulers[taskSchedulers.size()-1];
 				}
+				pthread_mutex_unlock(&mutex_job_scheduler);
 			}
 			break;
 		}
 		case TASK_RESULT_LIST:
 			if (taskSchedulers.size() > 0) {
-				taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg);
+				handler = taskSchedulers[taskSchedulers.size()-1];
 			}
 			break;
 
@@ -220,8 +221,10 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 		default:
 			break;
 	}
-	pthread_mutex_unlock(&mutex_job_scheduler);
+	// pthread_mutex_unlock(&mutex_job_scheduler);
+	if (handler != NULL) {
+		handler->handleMessage(localListenPort, fromHost, msgType, msg);
+	}
 }
-
 
 #endif /* JOBSCHEDULER_HPP_ */

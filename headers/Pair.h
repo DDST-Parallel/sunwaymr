@@ -34,6 +34,8 @@ public:
 
 	K v1;
 	V v2;
+
+	bool valid;
 };
 
 #endif /* HEADERS_PAIR_H_ */

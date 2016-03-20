@@ -20,13 +20,13 @@ using std::stringstream;
 
 template <class K, class V>
 Pair<K, V>::Pair()
-{
+: valid(false) {
 
 }
 
 template <class K, class V>
 Pair<K, V>::Pair(K k, V v)
-: v1(k), v2(v)
+: v1(k), v2(v), valid(true)
 {
 
 }
@@ -65,14 +65,18 @@ istream& operator>> (istream &in, Pair<K, V> &p) {
 	string s(buffer.str());
 	vector<string> vs;
 	vs = splitStringByDelimitationCouple(s, PAIR_DELIMITATION_LEFT, PAIR_DELIMITATION_RIGHT);
-	stringstream s1(vs[0]);
-	stringstream s2(vs[1]);
-	K k;
-	V v;
-	s1 >> k;
-	s2 >> v;
-	p.v1 = k;
-	p.v2 = v;
+	if (vs.size() > 1) {
+		stringstream s1(vs[0]);
+		stringstream s2(vs[1]);
+		K k;
+		V v;
+		s1 >> k;
+		s2 >> v;
+		p.v1 = k;
+		p.v2 = v;
+
+		p.valid = true;
+	}
 	return in;
 }
 
