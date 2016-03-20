@@ -16,7 +16,7 @@
 using std::cout;
 using std::endl;
 
-int Logging::logging_mask = 1;
+int Logging::logging_mask = 2;
 pthread_mutex_t Logging::mutex_logging;
 
 void Logging::setMask(int m) {
