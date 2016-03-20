@@ -154,7 +154,8 @@ vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
 
 	// handle pre-arrived task results
 	for (unsigned int i=0; i<taskResultWorksOfNextJob.size(); i++) {
-		ts->handleMessage(listenPort, taskResultWorksOfNextJob[i], A_TASK_RESULT, taskResultsOfNextJob[i]);
+		int ret = 0;
+		ts->handleMessage(listenPort, taskResultWorksOfNextJob[i], A_TASK_RESULT, taskResultsOfNextJob[i], ret);
 	}
 	taskResultWorksOfNextJob.clear();
 	taskResultsOfNextJob.clear();
@@ -179,32 +180,30 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 			<< ", message content: " << msg;
 	Logging::logVerbose(received.str());
 
-	Scheduler * handler = NULL;
-	// pthread_mutex_lock(&mutex_job_scheduler);
 	switch (msgType) {
 		case A_TASK_RESULT:
 		{
-			vector<string> vs;
-			splitString(msg, vs, TASK_RESULT_DELIMITATION);
-			if (vs.size() != 0) {
-				int jobID = atoi(vs[0].c_str());
-				pthread_mutex_lock(&mutex_job_scheduler);
-				if (jobID == this->nextJobID) {
-					// a task result for next job. this occurs when master is slower than the slave
-					// save the result
-					taskResultWorksOfNextJob.push_back(fromHost);
-					taskResultsOfNextJob.push_back(msg);
+			if (taskSchedulers.size() > 0) {
+				int ret = 0;
+				taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg, ret);
 
-				} else {
-					handler = taskSchedulers[taskSchedulers.size()-1];
+				if (ret > 0) { // task scheduler handle failed
+					pthread_mutex_lock(&mutex_job_scheduler);
+					if (ret == this->nextJobID) {
+						// a task result for next job. this occurs when master is slower than the slave
+						// save the result
+						taskResultWorksOfNextJob.push_back(fromHost);
+						taskResultsOfNextJob.push_back(msg);
+					}
+					pthread_mutex_unlock(&mutex_job_scheduler);
 				}
-				pthread_mutex_unlock(&mutex_job_scheduler);
 			}
 			break;
 		}
 		case TASK_RESULT_LIST:
 			if (taskSchedulers.size() > 0) {
-				handler = taskSchedulers[taskSchedulers.size()-1];
+				int ret = 0;
+				taskSchedulers[taskSchedulers.size()-1]->handleMessage(localListenPort, fromHost, msgType, msg, ret);
 			}
 			break;
 
@@ -220,10 +219,6 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 
 		default:
 			break;
-	}
-	// pthread_mutex_unlock(&mutex_job_scheduler);
-	if (handler != NULL) {
-		handler->handleMessage(localListenPort, fromHost, msgType, msg);
 	}
 }
 

@@ -32,7 +32,7 @@ public:
 	void finishTask(int task, T &value);
 
 	void messageReceived(int localListenPort, string fromHost, int msgType, string msg); // override Messaging
-	void handleMessage(int localListenPort, string fromHost, int msgType, string msg); // override Scheduler
+	void handleMessage(int localListenPort, string fromHost, int msgType, string msg, int &retValue); // override Scheduler
 	void increaseRunningThreadNum();
 	void decreaseRunningThreadNum();
 	bool getTaskResultString(int job, int task, string &result);

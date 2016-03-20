@@ -19,7 +19,7 @@ class Scheduler {
 public:
 	Scheduler();
 	virtual ~Scheduler();
-	virtual void handleMessage(int localListenPort, string fromHost, int msgType, string msg) = 0;
+	virtual void handleMessage(int localListenPort, string fromHost, int msgType, string msg, int &retValue) = 0;
 
 };
 

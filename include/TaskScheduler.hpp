@@ -206,7 +206,7 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 
 		} else {
 			// [1]run tasks by pthread
-			int THREADS_NUM_MAX = 10; // 10 threads at most TODO configuration out of code
+			int THREADS_NUM_MAX = threadCountVector[selfIPIndex]; // 10 threads at most TODO configuration out of code
 			while (runningThreadNum < THREADS_NUM_MAX
 					&& lanuchedTaskNum < runOnThisNodeTaskNum) {
 				for (int i = 0; i < taskNum; i++) {
@@ -267,7 +267,7 @@ void TaskScheduler<T>::messageReceived(int localListenPort, string fromHost,
 
 template<class T>
 void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
-		int msgType, string msg) {
+		int msgType, string msg, int &retValue) {
 	pthread_mutex_lock(&mutex_handle_message_ready);
 	pthread_mutex_unlock(&mutex_handle_message_ready);
 
@@ -304,6 +304,8 @@ void TaskScheduler<T>::handleMessage(int localListenPort, string fromHost,
 							<< receivedTaskResultNum << " results of "
 							<< tasks.size() << " tasks received";
 					Logging::logDebug(receivedDebug.str());
+				} else if (jobID > this->jobID) {
+					retValue = jobID;
 				}
 			}
 
