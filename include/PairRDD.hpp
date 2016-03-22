@@ -90,24 +90,29 @@ MappedRDD<V, Pair< K, V > > & PairRDD<K, V, T>::values() {
 }
 
 template <class K, class C>
-long xyz_pair_rdd_combineByKey_inner_hash_f (Pair<K, C> p) {
-	stringstream ss;
+long xyz_pair_rdd_combineByKey_inner_hash_f (Pair<K, C> &p, stringstream &ss) {
 	ss << p.v1;
-	return hash(ss.str());
+	long ret = hash(ss.str());
+	ss.str(string());
+	ss.clear();
+	return ret;
 }
 
 template <class K, class C>
-string xyz_pair_rdd_combineByKey_inner_to_string_f (Pair<K, C> p) {
-	stringstream ss;
+string xyz_pair_rdd_combineByKey_inner_to_string_f (Pair<K, C> &p, stringstream &ss) {
 	ss << p;
-	return ss.str();
+	string ret = ss.str();
+	ss.str(string());
+	ss.clear();
+	return ret;
 }
 
 template <class K, class C>
-Pair<K, C> xyz_pair_rdd_combineByKey_inner_from_string_f (string s) {
+Pair<K, C> xyz_pair_rdd_combineByKey_inner_from_string_f (string &s, stringstream &ss) {
 	Pair<K, C> p;
-	stringstream ss(s);
-	ss >> p;
+	p.fromString(s, ss);
+	ss.str(string());
+	ss.clear();
 	return p;
 }
 

@@ -39,12 +39,32 @@ Pair<K, V>::~Pair()
 
 template <class K, class V>
 bool Pair<K, V>::operator<(const Pair< K, V >& p) const {
-	stringstream ss1;
-	stringstream ss2;
-	ss1 << *this;
-	ss2 << p;
-	return (ss1.str().compare(ss2.str()) < 0);
+	stringstream ss;
+	ss << *this;
+	string s(ss.str());
+	ss.str(string());
+	ss << p;
+	return (s.compare(ss.str()) < 0);
 
+}
+
+template <class K, class V>
+void Pair<K, V>::fromString(string &s, stringstream &ss) {
+	vector<string> vs;
+	vs = splitStringByDelimitationCouple(s, PAIR_DELIMITATION_LEFT, PAIR_DELIMITATION_RIGHT);
+	if (vs.size() > 1) {
+		K k;
+		V v;
+		ss.str(vs[0]);
+		ss >> k;
+		ss.str(vs[1]);
+		ss.clear();
+		ss >> v;
+		this->v1 = k;
+		this->v2 = v;
+
+		this->valid = true;
+	}
 }
 
 template <class K, class V>
@@ -60,18 +80,19 @@ ostream& operator<< (ostream &out, const Pair<K, V> &p) {
 
 template <class K, class V>
 istream& operator>> (istream &in, Pair<K, V> &p) {
-	std::stringstream buffer;
-	buffer << in.rdbuf();
-	string s(buffer.str());
+	std::stringstream ss;
+	ss << in.rdbuf();
+	string s(ss.str());
 	vector<string> vs;
 	vs = splitStringByDelimitationCouple(s, PAIR_DELIMITATION_LEFT, PAIR_DELIMITATION_RIGHT);
 	if (vs.size() > 1) {
-		stringstream s1(vs[0]);
-		stringstream s2(vs[1]);
 		K k;
 		V v;
-		s1 >> k;
-		s2 >> v;
+		ss.str(vs[0]);
+		ss >> k;
+		ss.str(vs[1]);
+		ss.clear();
+		ss >> v;
 		p.v1 = k;
 		p.v2 = v;
 

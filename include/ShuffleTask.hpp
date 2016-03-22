@@ -25,7 +25,7 @@
 #include <fstream>
 using namespace std;
 
-template <class T, class U> ShuffleTask<T, U>::ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U))
+template <class T, class U> ShuffleTask<T, U>::ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U &u, stringstream &ss), string (*sf)(U &u, stringstream &ss))
 :RDDTask< T, int >::RDDTask(r, p), hd(hashDivider), agg(aggregator)
 {
 	shuffleID = shID;
@@ -36,6 +36,7 @@ template <class T, class U> ShuffleTask<T, U>::ShuffleTask(RDD<T> &r, Partition 
 
 template <class T, class U> int&  ShuffleTask<T, U>::run()
 {
+	stringstream thread_sstream;
 	// get current RDD value
 	IteratorSeq<T> iter = RDDTask< T, int >::rdd.iteratorSeq(RDDTask< T, int >::partition);
 	vector<T> datas = iter.getVector();
@@ -55,9 +56,9 @@ template <class T, class U> int&  ShuffleTask<T, U>::run()
 
 	for(unsigned int i=0; i<datas.size(); i++)
 	{
-		long hashCode = hashFunc(datas1[i]);
+		long hashCode = hashFunc(datas1[i], thread_sstream);
 		int pos = hd.getPartition(hashCode); // get the new partition index
-		list[pos].push_back(strFunc(datas1[i]));
+		list[pos].push_back(strFunc(datas1[i], thread_sstream));
 	}
 	//merge data to a string
 	string fileContent;

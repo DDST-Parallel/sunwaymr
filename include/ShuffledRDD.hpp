@@ -33,7 +33,7 @@
 using namespace std;
 
 template <class K, class V, class C>
-ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K, V>, Pair<K, C> > &_agg, HashDivider &_hd, long (*hf)(Pair<K, C>), string (*strf)(Pair<K, C>), Pair<K, C> (*_recoverFunc)(string))
+ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K, V>, Pair<K, C> > &_agg, HashDivider &_hd, long (*hf)(Pair<K, C> &p, stringstream &ss), string (*strf)(Pair<K, C> &p, stringstream &ss), Pair<K, C> (*_recoverFunc)(string &s, stringstream &ss))
 : RDD< Pair<K, C> >::RDD(_preRDD.context), preRDD(_preRDD), agg(_agg), hd(_hd)
 {
 	hashFunc = hf;
@@ -156,6 +156,8 @@ IteratorSeq< Pair<K, C> > ShuffledRDD<K, V, C>::iteratorSeq(Partition &p)
 template <class K, class V, class C>
 void ShuffledRDD<K, V, C>::merge(vector<string * > &replys, map<K, C> &combiners)
 {
+	int invalid = 0;
+	stringstream thread_sstream;
 	for(unsigned int i=0; i<replys.size(); i++)
 	{
 		vector<string> pairs;
@@ -168,11 +170,15 @@ void ShuffledRDD<K, V, C>::merge(vector<string * > &replys, map<K, C> &combiners
 			typename map<K, C>::iterator iter;
 			Pair<K, C> p;
 			try {
-				p = recoverFunc(pairs[j]);
+				p = recoverFunc(pairs[j], thread_sstream);
 			} catch (std::bad_alloc& ba) {
+				invalid ++;
 				continue; // converting from string failed
 			}
-			if (!p.valid) continue;
+			if (!p.valid) {
+				invalid ++;
+				continue; // converting from string failed
+			}
 			iter = combiners.find(p.v1);
 			if(iter != combiners.end())
 			{
@@ -186,6 +192,11 @@ void ShuffledRDD<K, V, C>::merge(vector<string * > &replys, map<K, C> &combiners
 				combiners[p.v1] = p.v2;
 			}
 		}
+	}
+	if (invalid > 0) {
+        stringstream ss;
+        ss << invalid << " invalid pairs found in ShuffledRDD::merge()";
+        Logging::logWarning(ss.str());
 	}
 }
 
