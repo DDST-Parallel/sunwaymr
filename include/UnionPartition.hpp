@@ -23,13 +23,13 @@ UnionPartition<T>::UnionPartition(long rddID, int partitionID, RDD<T> *rdd, Part
 }
 
 template <class T>
-IteratorSeq<T> UnionPartition<T>::iteratorSeq() {
-	return rdd->iteratorSeq(*partition);
+IteratorSeq<T> * UnionPartition<T>::iteratorSeq() {
+	return rdd->iteratorSeq(partition);
 }
 
 template <class T>
 vector<string> UnionPartition<T>::preferredLocations() {
-	return rdd->preferredLocations(*partition);
+	return rdd->preferredLocations(partition);
 }
 
 #endif /* INCLUDE_UNIONPARTITION_HPP_ */

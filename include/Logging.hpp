@@ -16,11 +16,15 @@
 using std::cout;
 using std::endl;
 
-int Logging::logging_mask = 2;
+int Logging::logging_mask = 1;
 pthread_mutex_t Logging::mutex_logging;
 
 void Logging::setMask(int m) {
 	logging_mask = m;
+}
+
+int Logging::getMask() {
+	return logging_mask;
 }
 
 void Logging::logVerbose(const string &msg) {

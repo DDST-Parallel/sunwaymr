@@ -13,15 +13,23 @@
 #include <iostream>
 #include "IteratorSeq.hpp"
 #include "Partition.hpp"
+#include "PointerContainer.hpp"
 using namespace std;
 
-AllNodesPartition::AllNodesPartition(long _rddID, int _partitionID, IteratorSeq<void *> &_values)
+template <class T>
+AllNodesPartition<T>::AllNodesPartition(long _rddID, int _partitionID, IteratorSeq<PointerContainer <T> > *_values)
 : rddID(_rddID), partitionID(_partitionID), values(_values)
 {
 
 }
 
-IteratorSeq<void *> AllNodesPartition::iteratorSeq()
+template <class T>
+AllNodesPartition<T>::~AllNodesPartition() {
+	// values will be deleted in AllNodesRDD's destructor
+}
+
+template <class T>
+IteratorSeq<PointerContainer <T> > * AllNodesPartition<T>::iteratorSeq()
 {
 	return values;
 }

@@ -11,15 +11,20 @@
 using namespace std;
 
 template <class T>
-ParallelArrayPartition<T>::ParallelArrayPartition(long _rddID, int _partitionID, IteratorSeq<T> &_values) 
+ParallelArrayPartition<T>::ParallelArrayPartition(long _rddID, int _partitionID, IteratorSeq<T> *_values)
 : rddID(_rddID), partitionID(_partitionID), values(_values)
 {
 }
 
 template <class T>
-IteratorSeq<T> ParallelArrayPartition<T>::iteratorSeq()
+ParallelArrayPartition<T>::~ParallelArrayPartition() {
+	delete this->values;
+}
+
+template <class T>
+IteratorSeq<T> * ParallelArrayPartition<T>::iteratorSeq()
 {
-	return values;
+	return this->values;
 }
 
 

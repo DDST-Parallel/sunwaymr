@@ -29,7 +29,7 @@ TextFileBlock::TextFileBlock(const TextFileBlock &tfb)
 
 }
 
-void TextFileBlock::messageReceived(int localListenPort, string fromHost, int msgType, string msg) {
+void TextFileBlock::messageReceived(int localListenPort, string fromHost, int msgType, string &msg) {
 
 }
 
@@ -54,8 +54,9 @@ string TextFileBlock::blockData() {
 					<< offset << FILE_BLOCK_REQUEST_DELIMITATION
 					<< length << FILE_BLOCK_REQUEST_DELIMITATION
 					<< format;
+			string msg = request.str();
 			sendMessageForReply(location, file.listenPort,
-					FILE_BLOCK_REQUEST, request.str(), ret);
+					FILE_BLOCK_REQUEST, msg, ret);
 		}
 	}
 

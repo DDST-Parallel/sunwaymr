@@ -350,6 +350,7 @@ bool readFile(string path, int offset, int length, string &content) {
 		content = ss.str();
 
 		file.close();
+		delete []buffer;
 		return true;
 	} else {
 		return false;

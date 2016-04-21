@@ -32,25 +32,31 @@ template <class K, class V, class C>
 class ShuffledRDD : public RDD< Pair<K, C> >, public Messaging
 {
 public:
-	ShuffledRDD(RDD< Pair<K, V> > &_preRDD, Aggregator< Pair<K, V>, Pair<K, C> > &_agg, HashDivider &_hd, long (*hf)(Pair<K, C> &p, stringstream &ss), string (*strf)(Pair<K, C> &p, stringstream &ss), Pair<K, C> (*_recoverFunc)(string &s, stringstream &ss));
+	ShuffledRDD(RDD< Pair<K, V> > *_prevRDD,
+			Aggregator< Pair<K, V>, Pair<K, C> > &_agg,
+			HashDivider &_hd,
+			long (*hf)(Pair<K, C> &p, stringstream &ss),
+			string (*strf)(Pair<K, C> &p, stringstream &ss),
+			Pair<K, C> (*_recoverFunc)(string &s, stringstream &ss));
 	~ShuffledRDD();
 	vector<Partition*> getPartitions();
-	vector<string> preferredLocations(Partition &p);
-	IteratorSeq< Pair<K, C> > iteratorSeq(Partition &p);
+	vector<string> preferredLocations(Partition *p);
+	IteratorSeq< Pair<K, C> > * iteratorSeq(Partition *p);
 	void shuffle();
-	void merge(vector<string * > &replys, map<K, C> &combiners);
-	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
+	void messageReceived(int localListenPort, string fromHost, int msgType, string &msg);
 
 private:
-	RDD< Pair<K, V> > &preRDD;
-	Aggregator< Pair<K, V>, Pair<K, C> > &agg;
-	HashDivider &hd;
+	RDD< Pair<K, V> > *prevRDD;
+	Aggregator< Pair<K, V>, Pair<K, C> > agg;
+	HashDivider hd;
 	long (*hashFunc)(Pair<K, C> &p, stringstream &ss); // function to compute hashCode of a pair
     string (*strFunc)(Pair<K, C> &p, stringstream &ss); // function  to serialize a pair to string (to save to file)
     Pair<K, C> (*recoverFunc)(string &s, stringstream &ss); // function to deserialize a string to a pair
     long shuffleID;
     bool shuffleFinished;
-    map<int, IteratorSeq< Pair<K, C> >*> shuffleCache;
+    map<int, IteratorSeq< Pair<K, C> >* > shuffleCache;
+
+	void merge(vector<string> &replys, map<K, C> &combiners);
 };
 
 

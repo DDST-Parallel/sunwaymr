@@ -234,17 +234,20 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			};
 			tmp.push_back(hr);
 
+			string msg1 = fileInfo1.str();
 			string reply;
 			// send file info 1
-			bool sr = sendMessageForReply(host, port, FILE_INFO, fileInfo1.str(), reply);
+			bool sr = sendMessageForReply(host, port, FILE_INFO, msg1, reply);
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
 				err << "SunwayMRHelper: failed to send file info[1] to host: " << host << ", " << port << "; info:" << fileInfo1.str();
 				Logging::logError(err.str());
 			}
+
+			string msg2 = fileInfo2.str();
 			// send file info 2
-			sr = sendMessageForReply(host, port, FILE_INFO, fileInfo2.str(), reply);
+			sr = sendMessageForReply(host, port, FILE_INFO, msg2, reply);
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
@@ -300,7 +303,8 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			<< masterValue << " " << appListenPort << endl;
 
 	for(unsigned int i=0; i<tmp.size(); i++) {
-		sendMessage(tmp[i].host, tmp[i].listenPort, SHELL_COMMAND, startAppCmd.str());
+		string msg = startAppCmd.str();
+		sendMessage(tmp[i].host, tmp[i].listenPort, SHELL_COMMAND, msg);
 	}
 
 }
@@ -357,7 +361,7 @@ bool SunwayMRHelper::init() {
 	return ret;
 }
 
-void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int msgType, string msg) {
+void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int msgType, string &msg) {
 	if (localListenPort != this->listenPort || fromHost == "" || msg == "") return;
 
 	stringstream received;

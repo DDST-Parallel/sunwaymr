@@ -24,7 +24,7 @@ template <class T>
 class UnionPartition: public Partition {
 public:
 	UnionPartition(long rddID, int partitionID, RDD<T> *rdd, Partition *partition);
-	IteratorSeq<T> iteratorSeq();
+	IteratorSeq<T> * iteratorSeq();
 	vector<string> preferredLocations();
 
 	long rddID;

@@ -25,15 +25,16 @@ template <class T> class RDD;
 template <class U, class T>
 class MappedRDD : public RDD<U> {
 public:
-	MappedRDD(RDD<T> &prev, U (*f)(T));
+	MappedRDD(RDD<T> *prev, U (*f)(T&));
+	~MappedRDD();
 	vector<Partition*> getPartitions();
-	vector<string> preferredLocations(Partition &p);
-	IteratorSeq<U> iteratorSeq(Partition &p);
+	vector<string> preferredLocations(Partition *p);
+	IteratorSeq<U> * iteratorSeq(Partition *p);
 	void shuffle();
 
 private:
-	RDD<T> &prevRDD;
-	U (*mappedFunction)(T);
+	RDD<T> *prevRDD;
+	U (*mappedFunction)(T&);
 };
 
 

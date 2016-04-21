@@ -16,6 +16,7 @@ using std::exception;
 class Logging {
 public:
 	static void setMask(int m);
+	static int getMask();
 	static void logVerbose(const string &msg);
 	static void logDebug(const string &msg);
 	static void logInfo(const string &msg);

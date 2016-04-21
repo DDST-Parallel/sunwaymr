@@ -1,15 +1,14 @@
 /*
- * ShuffleTask.hpp
+ * ShuffledTask.hpp
  *
  *  Created on: 2016年2月22日
  *      Author: knshen
  */
 
-#ifndef INCLUDE_SHUFFLETASK_HPP_
-#define INCLUDE_SHUFFLETASK_HPP_
+#ifndef INCLUDE_SHUFFLEDTASK_HPP_
+#define INCLUDE_SHUFFLEDTASK_HPP_
 
-#include "ShuffleTask.h"
-
+#include <ShuffledTask.h>
 #include "RDD.hpp"
 #include "Partition.hpp"
 #include "IteratorSeq.hpp"
@@ -25,7 +24,12 @@
 #include <fstream>
 using namespace std;
 
-template <class T, class U> ShuffleTask<T, U>::ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U &u, stringstream &ss), string (*sf)(U &u, stringstream &ss))
+template <class T, class U> ShuffledTask<T, U>::ShuffledTask(
+		RDD<T> *r, Partition *p, long shID, int nPs,
+		HashDivider &hashDivider,
+		Aggregator<T, U> &aggregator,
+		long (*hFunc)(U &u, stringstream &ss),
+		string (*sf)(U &u, stringstream &ss))
 :RDDTask< T, int >::RDDTask(r, p), hd(hashDivider), agg(aggregator)
 {
 	shuffleID = shID;
@@ -34,12 +38,12 @@ template <class T, class U> ShuffleTask<T, U>::ShuffleTask(RDD<T> &r, Partition 
 	strFunc = sf;
 }
 
-template <class T, class U> int&  ShuffleTask<T, U>::run()
+template <class T, class U> int ShuffledTask<T, U>::run()
 {
 	stringstream thread_sstream;
 	// get current RDD value
-	IteratorSeq<T> iter = RDDTask< T, int >::rdd.iteratorSeq(RDDTask< T, int >::partition);
-	vector<T> datas = iter.getVector();
+	IteratorSeq<T> *iter = RDDTask< T, int >::rdd->iteratorSeq(RDDTask< T, int >::partition);
+	vector<T> datas = iter->getVector();
 
 	// T -> U
 	vector<U> datas1;
@@ -88,13 +92,12 @@ template <class T, class U> int&  ShuffleTask<T, U>::run()
 	fileName += task_id;
 	writeFile(dir, fileName, fileContent);
 
-	int *ret = new int(1);
-	return *ret;
+	return 1;
 }
 
 
 
-template <class T, class U> string ShuffleTask<T, U>::serialize(int &t)
+template <class T, class U> string ShuffledTask<T, U>::serialize(int &t)
 {
 	stringstream ss;
 	string str;
@@ -103,15 +106,14 @@ template <class T, class U> string ShuffleTask<T, U>::serialize(int &t)
 	return str;
 }
 
-template <class T, class U> int& ShuffleTask<T, U>::deserialize(string s)
+template <class T, class U> int ShuffledTask<T, U>::deserialize(string &s)
 {
 	int val = 0;
 	stringstream ss;
 	ss<<s;
 	ss>>val;
 
-	int *ret = new int(val);
-	return *ret;
+	return val;
 }
 
-#endif /* INCLUDE_SHUFFLETASK_HPP_ */
+#endif /* INCLUDE_SHUFFLEDTASK_HPP_ */

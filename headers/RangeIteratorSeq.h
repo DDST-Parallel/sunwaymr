@@ -12,18 +12,19 @@
 #define HEADERS_RANGEITERATORSEQ_H_
 
 #include <vector>
-#include "AbstractIteratorSeq.h"
+#include "IteratorSeq.h"
 using std::vector;
 
 template <class T>
-class RangeIteratorSeq : public AbstractIteratorSeq<T> {
+class RangeIteratorSeq : public IteratorSeq<T> {
 public:
 	RangeIteratorSeq(T start, T end, T step);
 	RangeIteratorSeq(T start, T end, T step, bool inclusive);
-	long size();
-	T at(long index);
+	int getType();
+	size_t size() const;
+	T at(size_t index) const;
 	vector<T> getVector();
-	vector<T>& reduceLeft(T (*g)(T,T));
+	vector<T> reduceLeft(T (*g)(T&, T&));
 
 //	T getStart();
 //	T getEnd();

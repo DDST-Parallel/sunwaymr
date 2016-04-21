@@ -25,26 +25,38 @@ using namespace std;
 
 
 Messaging::Messaging() {
+	listenStatus = NA;
 	pthread_mutex_init(&mutex_check_file_cache, NULL);
 }
 
 Messaging::~Messaging()
 {
 	// clear cached data
+	this->clearAllCache();
 
+}
+
+void Messaging::clearAllCache() {
+	this->clearFileCache();
+	this->clearShuffleCache();
+}
+
+void Messaging::clearFileCache() {
 	// file content
-	map<string, string*>::iterator it1;
+	map<string, string* >::iterator it1;
 	for(it1=file_cache_bytes.begin(); it1!=file_cache_bytes.end(); ++it1) {
 		delete it1->second;
 	}
 	file_cache_bytes.clear();
 
-	map<string, vector<string>*>::iterator it2;
+	map<string, vector<string>* >::iterator it2;
 	for(it2=file_cache_lines.begin(); it2!=file_cache_lines.end(); ++it2) {
 		delete it2->second;
 	}
 	file_cache_lines.clear();
+}
 
+void Messaging::clearShuffleCache() {
 	// fetch content
 	map< long, vector< vector<string>* > >::iterator it3;
 	for(it3=fetch_content_local.begin(); it3!=fetch_content_local.end(); ++it3) {
@@ -54,10 +66,9 @@ Messaging::~Messaging()
 		it3->second.clear();
 	}
 	fetch_content_local.clear();
-
 }
 
-bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg)
+bool Messaging::sendMessage(string addr, int targetPort, int msgType, string &msg)
 {
 	// !!! logging removed since invoked in fork !!!
 
@@ -96,7 +107,7 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 
 	// send data
 	const char* ch = send_data.c_str();
-	int byte = send(sockfd, ch, strlen(ch), 0);
+	int byte = send(sockfd, ch, send_data.length(), 0);
 	if (byte < 0)
 	{
 		Logging::logError("Messaging: sendMessage: send fail!");
@@ -108,16 +119,16 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string msg
 	return true;
 }
 
-string readSocket(int socketfd) {
-	int MAX_MESSAGE_SIZE = 1024 * 1024 * 1024; // TODO configuration out of code
+void readSocket(int socketfd, string &ret) {
+	//int MAX_MESSAGE_SIZE = 1024 * 1024 * 1024; // TODO configuration out of code
 	int BUFFER_SIZE = 1024 * 1024 * 4; // TODO configuration out of code
 
 	char buffer[BUFFER_SIZE];
-	int total = 0;
+	ssize_t total = 0;
 	stringstream msgStream;
 	memset(buffer, 0, BUFFER_SIZE);
-	int received = read(socketfd, buffer, BUFFER_SIZE);
-	while (total < MAX_MESSAGE_SIZE && received > 0) {
+	ssize_t received = read(socketfd, buffer, BUFFER_SIZE);
+	while (received > 0) { // && total < MAX_MESSAGE_SIZE
 		string sb(buffer);
 		string::size_type end = sb.find(END_OF_MESSAGE);
 		if (end != string::npos) {
@@ -134,10 +145,10 @@ string readSocket(int socketfd) {
 		received = read(socketfd, buffer, BUFFER_SIZE);
 	}
 
-	return msgStream.str();
+	ret = msgStream.str();
 }
 
-bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, string msg, string &reply)
+bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, string &msg, string &reply)
 {
 	// !!! logging removed since invoked in fork !!!
 
@@ -173,7 +184,7 @@ bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, st
 
 	// send data
 	const char* ch = send_data.c_str();
-	int byte = send(sockfd, ch, strlen(ch), 0);
+	int byte = send(sockfd, ch, send_data.length(), 0);
 	if (byte < 0)
 	{
 		//Logging::logError("Messaging: sendMessage: send fail!");
@@ -181,7 +192,7 @@ bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, st
 	}
 
 	// read replied data
-	reply = readSocket(sockfd);
+	readSocket(sockfd, reply);
 
 	// release socket
 	close(sockfd);
@@ -240,7 +251,9 @@ void Messaging::listenMessage(int listenPort)
 			continue;
 		string ip = inet_ntoa(client_address.sin_addr);
 		// thread data encapsulation
-		struct xyz_messaging_listen_thread_data_ *td = new xyz_messaging_listen_thread_data_(*this, listenPort, ip, client_sockfd);
+		struct xyz_messaging_listen_thread_data_ *td =
+				new xyz_messaging_listen_thread_data_(
+						this, listenPort, ip, client_sockfd);
 		// create a thread
 		pthread_t worker;
 		if (pthread_create(&worker, NULL, messageHandler, (void *)td) != 0) {
@@ -260,9 +273,10 @@ void* messageHandler(void *data)
 {
 	// parse data
 	struct xyz_messaging_listen_thread_data_ *td = (struct xyz_messaging_listen_thread_data_ *)data;
-	Messaging &m = td->mess;
+	Messaging *m = td->mess;
 
-	string msg = readSocket(td->client_sockfd);
+	string msg;
+	readSocket(td->client_sockfd, msg);
 
 	string::size_type pos;
 	pos=msg.find('$', 0);
@@ -282,27 +296,27 @@ void* messageHandler(void *data)
 				FileSourceFormat format = static_cast<FileSourceFormat>(atoi(vs[3].c_str()));
 				if (format == FILE_SOURCE_FORMAT_BYTE) {
 
-					pthread_mutex_lock(&m.mutex_check_file_cache);
-					if (m.file_cache_bytes.find(path) == m.file_cache_bytes.end()) { // check file cache
+					pthread_mutex_lock(&m->mutex_check_file_cache);
+					if (m->file_cache_bytes.find(path) == m->file_cache_bytes.end()) { // check file cache
 						string *file_content = new string();
 						readFile(path, *file_content);
-						m.file_cache_bytes[path] = file_content;	
+						m->file_cache_bytes[path] = file_content;
 					} 
-					pthread_mutex_unlock(&m.mutex_check_file_cache);
+					pthread_mutex_unlock(&m->mutex_check_file_cache);
 
-					ret = m.file_cache_bytes[path]->substr(offset, length);
+					ret = m->file_cache_bytes[path]->substr(offset, length);
 				} else {
-					pthread_mutex_lock(&m.mutex_check_file_cache);
-					if (m.file_cache_lines.find(path) == m.file_cache_lines.end()) { // check file cache
+					pthread_mutex_lock(&m->mutex_check_file_cache);
+					if (m->file_cache_lines.find(path) == m->file_cache_lines.end()) { // check file cache
 						vector<string> *file_content = new vector<string>();
 						readFileToLines(path, *file_content);
-						m.file_cache_lines[path] = file_content;
+						m->file_cache_lines[path] = file_content;
 					} 
-					pthread_mutex_unlock(&m.mutex_check_file_cache);
+					pthread_mutex_unlock(&m->mutex_check_file_cache);
 
 					unsigned end_line = offset+length;
-					for (unsigned int i=offset; i<end_line && i<m.file_cache_lines[path]->size(); i++) {
-						ret += (*m.file_cache_lines[path])[i];
+					for (unsigned int i=offset; i<end_line && i<m->file_cache_lines[path]->size(); i++) {
+						ret += (*m->file_cache_lines[path])[i];
 						ret += "\n";
 					}
 				}
@@ -333,36 +347,36 @@ void* messageHandler(void *data)
 			    vector<string> allFileNames;
 				listAllFileNamesContain(dir, allFileNames, "shuffleTaskFile");
 
-				pthread_mutex_lock(&m.mutex_check_file_cache);
+				pthread_mutex_lock(&m->mutex_check_file_cache);
 				//map< long, vector< vector<string>* > > fetch_content_local; // !global shuffle cache data map(fetch_content) will cause segmentation fault!
-				map< long, vector< vector<string>* > >::iterator it = m.fetch_content_local.find(shuffleID);
-				if(it == m.fetch_content_local.end())
+				map< long, vector< vector<string>* > >::iterator it = m->fetch_content_local.find(shuffleID);
+				if(it == m->fetch_content_local.end())
 				{
 					// this shuffle has not  been cached, read it
-					m.fetch_content_local[shuffleID] = vector< vector<string>* >();
+					m->fetch_content_local[shuffleID] = vector< vector<string>* >();
 					for(unsigned int i=0; i<allFileNames.size(); i++)
 					{
 						string content;
 						readFile(dir+allFileNames[i], content);
 						vector<string> *lines = new vector<string>();
 						splitString(content, *lines, SHUFFLETASK_PARTITION_DELIMITATION);
-						m.fetch_content_local[shuffleID].push_back(lines);
+						m->fetch_content_local[shuffleID].push_back(lines);
 					}
 				}
-				pthread_mutex_unlock(&m.mutex_check_file_cache);
+				pthread_mutex_unlock(&m->mutex_check_file_cache);
 
 				//organize send message
 				string senMsg;
-				for(unsigned int i=0; i<m.fetch_content_local[shuffleID].size()-1; i++)
-					senMsg += (*(m.fetch_content_local[shuffleID][i]))[partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
-				senMsg += (*(m.fetch_content_local[shuffleID].back()))[partitionID];
+				for(unsigned int i=0; i<m->fetch_content_local[shuffleID].size()-1; i++)
+					senMsg += (*(m->fetch_content_local[shuffleID][i]))[partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
+				senMsg += (*(m->fetch_content_local[shuffleID].back()))[partitionID];
 
 				send(td->client_sockfd, senMsg.c_str(), senMsg.length(), 0);
 			}
 
 			close(td->client_sockfd);
 		} else if(msgType == FILE_INFO || msgType > 999999) { // sunwaymrhelper file sending
-			m.messageReceived(td->local_port, td->ip, msgType, msgContent);
+			m->messageReceived(td->local_port, td->ip, msgType, msgContent);
 			string reply = "0";
 			send(td->client_sockfd, reply.c_str(), reply.length(), 0);
 
@@ -370,12 +384,11 @@ void* messageHandler(void *data)
 		} else {
 			close(td->client_sockfd); // close socket
 
-			m.messageReceived(td->local_port, td->ip, msgType, msgContent);
+			m->messageReceived(td->local_port, td->ip, msgType, msgContent);
 		}
 	} else {
 		close(td->client_sockfd);
 	}
-
 
 	pthread_exit(NULL);
 }

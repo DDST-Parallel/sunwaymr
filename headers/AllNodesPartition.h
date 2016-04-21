@@ -14,16 +14,19 @@
 
 #include "IteratorSeq.h"
 #include "Partition.h"
+#include "PointerContainer.h"
 using std::vector;
 
+template <class T>
 class AllNodesPartition : public Partition {
 public:
-	AllNodesPartition(long rddID, int partitionID, IteratorSeq<void *> &values);
-	IteratorSeq<void *> iteratorSeq();
+	AllNodesPartition(long rddID, int partitionID, IteratorSeq<PointerContainer <T> > *values);
+	~AllNodesPartition();
+	IteratorSeq<PointerContainer <T> > * iteratorSeq();
 
 	long rddID;
 	int partitionID;
-	IteratorSeq<void *> &values;
+	IteratorSeq<PointerContainer <T> > *values;
 };
 
 

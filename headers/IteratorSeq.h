@@ -1,21 +1,18 @@
 /*
  * IteratorSeq.h
  *
- * Just like Collection in Java
- * Return type of RDD::iteratorSeq
+ * Just like Iterable in Java.
+ * Abstract super class of VectorIteratorSeq & RangeIteratorSeq.
  *
- *  Created on: Dec 2, 2015
+ *  Created on: Jan 28, 2016
  *      Author: yupeng
  */
 
-#ifndef ITERATORSEQ_H_
-#define ITERATORSEQ_H_
+#ifndef HEADERS_ITERATORSEQ_H_
+#define HEADERS_ITERATORSEQ_H_
 
-#include <vector>
 #include <iostream>
-#include "AbstractIteratorSeq.h"
-#include "RangeIteratorSeq.h"
-#include "VectorIteratorSeq.h"
+#include <vector>
 using std::vector;
 using std::istream;
 using std::ostream;
@@ -30,29 +27,20 @@ using std::ostream;
 template <class T>
 class IteratorSeq {
 public:
-	IteratorSeq();
-	IteratorSeq(T start, T end, T step);
-	IteratorSeq(T start, T end, T step, bool inclusive);
-	IteratorSeq(vector<T> &v);
-	IteratorSeq(RangeIteratorSeq<T> *r);
-	IteratorSeq(VectorIteratorSeq<T> *v);
-	~IteratorSeq();
-	void init(vector<T> &v);
-	int type; // 0: range, 1: vector
+	virtual ~IteratorSeq();
+	virtual int getType() = 0;
+	virtual size_t size() const = 0;
+	virtual T at(size_t index) const = 0;
+	virtual vector<T> getVector() = 0;
+	virtual vector<T> reduceLeft(T (*g)(T&, T&)) = 0;
 
-	long size() const;
-	T at(long index) const;
-	vector<T> getVector();
-	template <class U> IteratorSeq<U> map(U (*f)(T));
-	template <class U> IteratorSeq<U> flatMap(vector<U> (*f)(T));
-	vector<T>& reduceLeft(T (*g)(T,T));
+	template <class U> IteratorSeq<U> * map(U (*f)(T&));
+	template <class U> IteratorSeq<U> * flatMap(vector<U> (*f)(T&));
+
 	template <class U>
 	friend ostream& operator<< (ostream &out, const IteratorSeq<U> &s);
-	template <class U>
-	friend istream& operator>> (istream &in, IteratorSeq<U> &s);
-
-private:
-	AbstractIteratorSeq<T> *iterator;
 };
 
-#endif /* ITERATORSEQ_H_ */
+
+
+#endif /* HEADERS_ITERATORSEQ_H_ */

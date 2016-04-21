@@ -16,14 +16,14 @@
 #include "Utils.hpp"
 using std::stringstream;
 
-template <class T> ReduceTask<T>::ReduceTask(RDD<T> &r, Partition &p, T (*g)(T, T))
+template <class T> ReduceTask<T>::ReduceTask(RDD<T> *r, Partition *p, T (*g)(T&, T&))
 :RDDTask< T, vector<T> >::RDDTask(r, p), g(g)  {
 
 }
 
-template <class T> vector<T>&  ReduceTask<T>::run() {
-	IteratorSeq<T> iter = RDDTask< T, vector<T> >::rdd.iteratorSeq(RDDTask< T, vector<T> >::partition);
-	return iter.reduceLeft(g);
+template <class T> vector<T> ReduceTask<T>::run() {
+	IteratorSeq<T> *iter = RDDTask< T, vector<T> >::rdd->iteratorSeq(RDDTask< T, vector<T> >::partition);
+	return iter->reduceLeft(g);
 }
 
 template <class T> string ReduceTask<T>::serialize(vector<T> &t) {
@@ -35,8 +35,8 @@ template <class T> string ReduceTask<T>::serialize(vector<T> &t) {
 	return ss.str();
 }
 
-template <class T> vector<T>& ReduceTask<T>::deserialize(string s) {
-	vector<T> *elems = new vector<T>;
+template <class T> vector<T> ReduceTask<T>::deserialize(string &s) {
+	vector<T> elems;
 	vector<string> vs;
 	splitString(s, vs, REDUCE_TASK_DELIMITATION);
 
@@ -44,9 +44,9 @@ template <class T> vector<T>& ReduceTask<T>::deserialize(string s) {
 		std::stringstream ss(vs[i]);
 		T t;
 		ss >> t;
-		elems->push_back(t);
+		elems.push_back(t);
 	}
-	return *elems;
+	return elems;
 
 //	std::stringstream ss(s);
 //	std::string item;

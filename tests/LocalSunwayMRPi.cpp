@@ -35,7 +35,7 @@ double compute(long count, int slice)
 
 	SunwayMRContext sc("hostFilePath", "127.0.0.1", "knshen", 8080);
 
-	ParallelArray<long> pa = sc.parallelize(1L, count, slice);
+	ParallelArrayRDD<long> pa = sc.parallelize(1L, count, slice);
 	MappedRDD<long, long> map_rdd = pa.map(map_f);
 	int num = map_rdd.reduce(reduce_f);
 	double ret = (4.0 * num / count);

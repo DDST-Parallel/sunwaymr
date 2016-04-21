@@ -12,17 +12,26 @@
 #define HEADERS_VECTORITERATORSEQ_H_
 
 #include <vector>
-#include "AbstractIteratorSeq.h"
+#include "IteratorSeq.h"
 using std::vector;
 
 template <class T>
-class VectorIteratorSeq : public AbstractIteratorSeq<T> {
+class VectorIteratorSeq : public IteratorSeq<T> {
 public:
+	VectorIteratorSeq();
 	VectorIteratorSeq(vector<T> &v);
-	long size();
-	T at(long index);
+	void clear();
+	void push_back(T t);
+	void push_back(vector<T> &v);
+	void reserve(size_t size);
+	int getType();
+	size_t size() const;
+	T at(size_t index) const;
 	vector<T> getVector();
-	vector<T>& reduceLeft(T (*g)(T,T));
+	vector<T> reduceLeft(T (*g)(T&, T&));
+
+	template <class U>
+	friend istream& operator>> (istream &in, VectorIteratorSeq<U> &s);
 
 private:
 	vector<T> v;

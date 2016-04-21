@@ -39,29 +39,40 @@ long XYZ_CURRENT_RDD_ID = 1; // id counter
 template <class T>
 class RDD {
 public:
-	RDD(SunwayMRContext &c);
-	RDD<T> & operator=(const RDD<T> &p);
+	RDD(SunwayMRContext *c);
+	RDD<T> & operator=(const RDD<T> &r);
 	virtual ~RDD();
 	virtual void initRDDFrom(const RDD<T> &r);
 	virtual vector<Partition*> getPartitions()=0;
-	virtual vector<string> preferredLocations(Partition &p)=0;
-	virtual IteratorSeq<T> iteratorSeq(Partition &p)=0;
+	virtual vector<string> preferredLocations(Partition *p)=0;
+	virtual IteratorSeq<T> * iteratorSeq(Partition *p)=0;
 
-	template <class U> MappedRDD<U, T> & map(U (*f)(T));
-	template <class U> FlatMappedRDD<U, T> & flatMap(vector<U> (*f)(T));
-	template <class K, class V> PairRDD<K, V, T> & mapToPair(Pair<K, V> (*f)(T));
-	T reduce(T (*g)(T, T));
+	template <class U> MappedRDD<U, T> * map(U (*f)(T&));
+	template <class U> FlatMappedRDD<U, T> * flatMap(vector<U> (*f)(T&));
+	template <class K, class V> PairRDD<K, V, T> * mapToPair(Pair<K, V> (*f)(T&));
+	T reduce(T (*g)(T&, T&));
 	virtual void shuffle();
 
-	MappedRDD<T, Pair< T, int > > & distinct(int newNumSlices);
-	MappedRDD<T, Pair< T, int > > & distinct(); // by default, newNumSlices = partitions.size()
-	vector<T>& collect();
+	MappedRDD<T, Pair< T, int > > * distinct(int newNumSlices);
+	MappedRDD<T, Pair< T, int > > * distinct(); // by default, newNumSlices = partitions.size()
+	vector<T> collect();
 
-	UnionRDD<T> & unionRDD(RDD<T> *other);
+	UnionRDD<T> * unionRDD(RDD<T> *other);
 
-	SunwayMRContext &context;
-	vector<Partition*> partitions;
+	SunwayMRContext *context;
+	vector<Partition *> partitions;
 	long rddID;
+
+	bool isSticky();
+	void setSticky(bool s);
+protected:
+	vector<IteratorSeq<T> *> iteratorSeqs;
+
+private:
+	bool sticky;
+
+	void deletePartitions();
+	void deleteIteratorSeqs();
 };
 
 

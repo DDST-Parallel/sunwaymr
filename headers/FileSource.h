@@ -31,7 +31,7 @@ public:
 	FileSource(string source, string path, FileSourceFormat format = FILE_SOURCE_FORMAT_BYTE); // source: */[IP]/[DFS server]
 	FileSource(const FileSource &f);
 	string serialize(string delim) const;
-	void deserialize(string s, string delim);
+	void deserialize(string &s, string delim);
 	friend ostream& operator<< (ostream &out, const FileSource &fs);
 	friend istream& operator>> (istream &in, FileSource &fs);
 

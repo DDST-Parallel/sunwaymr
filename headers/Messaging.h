@@ -33,12 +33,12 @@ enum ListenStatus {
 
 class Messaging;
 struct xyz_messaging_listen_thread_data_ {
-	Messaging &mess;
+	Messaging *mess;
 	int local_port;
 	string ip;
 	int client_sockfd;
 
-	xyz_messaging_listen_thread_data_(Messaging &mess, int port, string ip, int client_sockfd)
+	xyz_messaging_listen_thread_data_(Messaging *mess, int port, string ip, int client_sockfd)
 	: mess(mess), local_port(port), ip(ip), client_sockfd(client_sockfd) { }
 };
 
@@ -50,12 +50,16 @@ public:
 	Messaging();
 	virtual ~Messaging();
 
+	void clearAllCache();
+	void clearFileCache();
+	void clearShuffleCache();
+
 	/*
 	 send message in a new thread.
 	*/
-	bool sendMessage(string addr, int targetPort, int msgType, string msg);
+	bool sendMessage(string addr, int targetPort, int msgType, string &msg);
 
-	bool sendMessageForReply(string addr, int targetPort, int msgType, string msg, string &reply);
+	bool sendMessageForReply(string addr, int targetPort, int msgType, string &msg, string &reply);
 
 	/*
 	 listen a port.
@@ -65,7 +69,7 @@ public:
 	void listenMessage(int listenPort);
 	int getListenStatus();
 
-	virtual void messageReceived(int localListenPort, string fromHost, int msgType, string msg) = 0;
+	virtual void messageReceived(int localListenPort, string fromHost, int msgType, string &msg) = 0;
 
 	pthread_mutex_t mutex_listen_status, mutex_check_file_cache;
 

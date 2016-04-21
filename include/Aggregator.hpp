@@ -11,7 +11,7 @@
 #include "Aggregator.h"
 
 template <class V, class C>
-Aggregator<V, C>::Aggregator(C (*cc)(V), C (*mc)(C, C))
+Aggregator<V, C>::Aggregator(C (*cc)(V&), C (*mc)(C&, C&))
 {
 	createCombiner = cc;
 	mergeCombiners = mc;

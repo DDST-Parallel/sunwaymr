@@ -25,7 +25,7 @@ Pair<K, V>::Pair()
 }
 
 template <class K, class V>
-Pair<K, V>::Pair(K k, V v)
+Pair<K, V>::Pair(K &k, V &v)
 : v1(k), v2(v), valid(true)
 {
 

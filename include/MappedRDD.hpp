@@ -11,35 +11,44 @@
 using namespace std;
 
 template <class U, class T>
-MappedRDD<U, T>::MappedRDD(RDD<T> &prev, U (*f)(T))
-:RDD<U>::RDD(prev.context), prevRDD(prev)
+MappedRDD<U, T>::MappedRDD(RDD<T> *prev, U (*f)(T&))
+:RDD<U>::RDD(prev->context), prevRDD(prev)
 {
 	mappedFunction = f;
 }
 
 template <class U, class T>
+MappedRDD<U, T>::~MappedRDD()
+{
+	if(!this->prevRDD->isSticky()) {
+		delete this->prevRDD;
+	}
+}
+
+template <class U, class T>
 void MappedRDD<U, T>::shuffle()
 {
-	prevRDD.shuffle();
+	prevRDD->shuffle();
 }
 
 template <class U, class T>
 vector<Partition*> MappedRDD<U, T>::getPartitions()
 {
-	return prevRDD.getPartitions();
+	return prevRDD->getPartitions();
 }
 
 template <class U, class T>
-vector<string> MappedRDD<U, T>::preferredLocations(Partition &p)
+vector<string> MappedRDD<U, T>::preferredLocations(Partition *p)
 {
-	return prevRDD.preferredLocations(p);
+	return prevRDD->preferredLocations(p);
 }
 
 template <class U, class T>
-IteratorSeq<U>  MappedRDD<U, T>::iteratorSeq(Partition &p)
+IteratorSeq<U> * MappedRDD<U, T>::iteratorSeq(Partition *p)
 {
-	IteratorSeq<T> seq1 = prevRDD.iteratorSeq(p);
-	return seq1.map(mappedFunction);
+	IteratorSeq<U> *ret = prevRDD->iteratorSeq(p)->map(mappedFunction);
+	this->iteratorSeqs.push_back(ret); // for garbage collection
+	return ret;
 }
 
 

@@ -20,12 +20,14 @@ using std::vector;
 template <class T>
 class ParallelArrayPartition: public Partition {
 public:
-	ParallelArrayPartition(long rddID, int partitionID, IteratorSeq<T> &values);
-	IteratorSeq<T> iteratorSeq();
+	ParallelArrayPartition(long rddID, int partitionID, IteratorSeq<T> *values);
+	~ParallelArrayPartition();
+	IteratorSeq<T> * iteratorSeq();
 
 	long rddID;
 	int partitionID;
-	IteratorSeq<T> &values;
+private:
+	IteratorSeq<T> *values;
 };
 
 

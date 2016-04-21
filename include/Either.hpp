@@ -17,13 +17,13 @@ Either<L, R>::Either() {
 	right = R();
 }
 template <class L, class R>
-void Either<L, R>::initLeft(L l) {
+void Either<L, R>::initLeft(L &l) {
 	left = l;
 	type = EITHER_TYPE_LEFT;
 }
 
 template <class L, class R>
-void Either<L, R>::initRight(R r) {
+void Either<L, R>::initRight(R &r) {
 	right = r;
 	type = EITHER_TYPE_RIGHT;
 }

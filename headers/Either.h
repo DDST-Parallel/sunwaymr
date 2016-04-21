@@ -30,8 +30,8 @@ template <class L, class R>
 class Either {
 public:
 	Either();
-	void initLeft(L l);
-	void initRight(R r);
+	void initLeft(L &l);
+	void initRight(R &r);
 	template <class T, class U>
 	friend ostream& operator<< (ostream &out, const Either<T, U> &e);
 	template <class T, class U>

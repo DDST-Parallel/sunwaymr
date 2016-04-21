@@ -24,15 +24,16 @@ template <class T> class RDD;
 template <class U, class T>
 class FlatMappedRDD : public RDD<U> {
 public:
-	FlatMappedRDD(RDD<T> &prev, vector<U> (*f)(T));
-	vector<Partition*> getPartitions();
-	vector<string> preferredLocations(Partition &p);
-	IteratorSeq<U> iteratorSeq(Partition &p);
+	FlatMappedRDD(RDD<T> *prev, vector<U> (*f)(T&));
+	~FlatMappedRDD();
+	vector<Partition *> getPartitions();
+	vector<string> preferredLocations(Partition *p);
+	IteratorSeq<U> * iteratorSeq(Partition *p);
 	void shuffle();
 
 private:
-	RDD<T> &prevRDD;
-	vector<U> (*mappedFunction)(T);
+	RDD<T> *prevRDD;
+	vector<U> (*mappedFunction)(T&);
 };
 
 

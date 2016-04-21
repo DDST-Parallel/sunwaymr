@@ -12,7 +12,7 @@
 
 #include "Task.hpp"
 
-template <class T> TaskResult<T>::TaskResult(Task<T> &t, T &result)
+template <class T> TaskResult<T>::TaskResult(Task<T> *t, T &result)
 : task(t), value(result) {
 
 }

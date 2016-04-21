@@ -14,10 +14,10 @@ template <class V, class C>
 class Aggregator
 {
 public:
-	Aggregator(C (*cc)(V), C (*mc)(C, C));
+	Aggregator(C (*cc)(V&), C (*mc)(C&, C&));
 
-	C (*createCombiner)(V);
-	C (*mergeCombiners)(C, C);
+	C (*createCombiner)(V&);
+	C (*mergeCombiners)(C&, C&);
 };
 
 

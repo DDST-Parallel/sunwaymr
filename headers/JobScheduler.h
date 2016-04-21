@@ -30,6 +30,7 @@ class JobScheduler : public Messaging {
 public:
 	JobScheduler();
 	JobScheduler(string hostFilePath, string master, string appName, int listenPort);
+	~JobScheduler();
 
 	virtual bool start(); // may fail to start if listenPort is in use
 	int getListenPort();
@@ -45,14 +46,14 @@ private:
 	vector<string> IPVector;
 	vector<int> threadCountVector;
 	vector<int> memoryVector;
-	vector<Scheduler*> taskSchedulers;
+	vector<Scheduler *> taskSchedulers;
 
 	pthread_mutex_t mutex_job_scheduler;
 	int nextJobID;
 	vector<string> taskResultWorksOfNextJob;
 	vector<string> taskResultsOfNextJob;
 
-	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
+	void messageReceived(int localListenPort, string fromHost, int msgType, string &msg);
 };
 
 

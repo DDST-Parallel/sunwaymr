@@ -18,6 +18,7 @@
 #include "AllNodesPartition.h"
 #include "RDD.h"
 #include "SunwayMRContext.h"
+#include "PointerContainer.h"
 using std::vector;
 using std::string;
 
@@ -25,15 +26,17 @@ template <class T> class RDD;
 template <class U, class T> class MappedRDD;
 class SunwayMRContext;
 
-class AllNodesRDD : public RDD<void *> {
+template <class T>
+class AllNodesRDD : public RDD<PointerContainer <T> > {
 public:
-	AllNodesRDD(SunwayMRContext &c, IteratorSeq<void *> &seq);
+	AllNodesRDD(SunwayMRContext *c, IteratorSeq<PointerContainer <T> > *seq);
+	~AllNodesRDD();
 	vector<Partition*> getPartitions();
-	vector<string> preferredLocations(Partition &p);
-	IteratorSeq<void *> iteratorSeq(Partition &p);
+	vector<string> preferredLocations(Partition *p);
+	IteratorSeq<PointerContainer <T> > * iteratorSeq(Partition *p);
 
 	//data
-	IteratorSeq<void *> &seq;
+	IteratorSeq<PointerContainer <T> > *seq;
 	long rdd_id;
 };
 

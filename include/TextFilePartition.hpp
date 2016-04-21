@@ -18,13 +18,13 @@
 using namespace std;
 
 
-TextFilePartition::TextFilePartition(long _rddID, int _partitionID, IteratorSeq<TextFileBlock> &_values)
+TextFilePartition::TextFilePartition(long _rddID, int _partitionID, IteratorSeq<TextFileBlock> *_values)
 : rddID(_rddID), partitionID(_partitionID), values(_values)
 {
 	// map block locations
 	map<string, int> locationMap;
-	for(int i=0; i<values.size(); i++) {
-		TextFileBlock block = values.at(i);
+	for(unsigned int i=0; i<values->size(); i++) {
+		TextFileBlock block = values->at(i);
 		if(locationMap.find(block.location) != locationMap.end()) {
 			locationMap[block.location] = locationMap[block.location] + 1;
 		} else {
@@ -57,7 +57,11 @@ TextFilePartition::TextFilePartition(long _rddID, int _partitionID, IteratorSeq<
 	}
 }
 
-IteratorSeq<TextFileBlock> TextFilePartition::iteratorSeq()
+TextFilePartition::~TextFilePartition() {
+	delete values;
+}
+
+IteratorSeq<TextFileBlock> * TextFilePartition::iteratorSeq()
 {
 	return values;
 }

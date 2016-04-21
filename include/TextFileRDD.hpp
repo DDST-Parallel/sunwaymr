@@ -12,10 +12,12 @@
 
 #include <iostream>
 #include <sstream>
+#include <memory>
 #include <stdlib.h>
 #include <limits.h>
 
 #include "IteratorSeq.hpp"
+#include "VectorIteratorSeq.hpp"
 #include "RDD.hpp"
 #include "Partition.hpp"
 #include "SunwayMRContext.hpp"
@@ -24,15 +26,16 @@
 #include "FileSource.hpp"
 #include "AllNodesRDD.hpp"
 #include "Utils.hpp"
+#include "PointerContainer.hpp"
 using namespace std;
 
-TextFileRDD::TextFileRDD(SunwayMRContext &c, vector<FileSource> files, int numSlices, FileSourceFormat format)
-: RDD<TextFileBlock>::RDD (c), files(files), numSlices(numSlices), format(format) {
+TextFileRDD::TextFileRDD(SunwayMRContext *c, vector<FileSource> &files, int numSlices, FileSourceFormat format)
+: RDD<TextFileBlock>::RDD (c), numSlices(numSlices), format(format) {
 	//textFileRDD_id = RDD<TextFileBlock>::current_id++;
 	textFileRDD_id = RDD<TextFileBlock>::rddID;
 	// calculate partitions
 	vector<Partition*> partitions;
-	vector< IteratorSeq<TextFileBlock>* > slices = slice();
+	vector< IteratorSeq<TextFileBlock>* > slices = slice(files);
 
 	if(slices.size() < 1) {
 		exit(104);
@@ -41,32 +44,31 @@ TextFileRDD::TextFileRDD(SunwayMRContext &c, vector<FileSource> files, int numSl
 	//construct partitions
 	for (unsigned int i = 0; i < slices.size(); i++)
 	{
-		Partition* partition = new TextFilePartition(textFileRDD_id, i, *slices[i]);
+		Partition* partition = new TextFilePartition(textFileRDD_id, i, slices[i]);
 		partitions.push_back(partition);
 	}
 
 	RDD<TextFileBlock>::partitions = partitions;
 }
 
-
 vector<Partition*> TextFileRDD::getPartitions() {
 	return RDD<TextFileBlock>::partitions;
 }
 
-vector<string> TextFileRDD::preferredLocations(Partition &p) {
-	TextFilePartition &partition = dynamic_cast<TextFilePartition&>(p);
-	return partition.blockLocations;
+vector<string> TextFileRDD::preferredLocations(Partition *p) {
+	TextFilePartition *partition = dynamic_cast<TextFilePartition * >(p);
+	return partition->blockLocations;
 }
 
-IteratorSeq<TextFileBlock> TextFileRDD::iteratorSeq(Partition &p) {
-	TextFilePartition &pap = dynamic_cast<TextFilePartition&>(p);
-	return pap.iteratorSeq();
+IteratorSeq<TextFileBlock> * TextFileRDD::iteratorSeq(Partition *p) {
+	TextFilePartition *pap = dynamic_cast<TextFilePartition * >(p);
+	return pap->iteratorSeq();
 }
 
 string master_ip;
 int scheduler_listen_port;
-FileSource getFileSize(void *file) {
-	FileSource* fs = (FileSource*)file;
+FileSource getFileSize(PointerContainer<FileSource> &file) {
+	FileSource *fs = file.get();
 	string selfIP = getLocalHost();
 
 	if(fs->source=="*" || fs->source==selfIP) {
@@ -93,17 +95,20 @@ FileSource getFileSize(void *file) {
 }
 
 
-vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
-	vector<void *> seq;
+vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice(vector<FileSource> &files) {
+	vector< PointerContainer<FileSource> > seq;
 	for(unsigned int i=0; i<files.size(); i++) {
 		files[i].format = this->format;
-		seq.push_back(&files[i]);
+		seq.push_back(PointerContainer<FileSource>(&files[i], false));
 	}
-	master_ip = RDD<TextFileBlock>::context.getMaster();
-	scheduler_listen_port = RDD<TextFileBlock>::context.getListenPort();
+	master_ip = RDD<TextFileBlock>::context->getMaster();
+	scheduler_listen_port = RDD<TextFileBlock>::context->getListenPort();
 	// collect all file sizes
-	IteratorSeq<void *> *is = new IteratorSeq<void *>(seq);
-	vector<FileSource> fileSources = RDD<TextFileBlock>::context.allNodes(*is).map(getFileSize).collect();
+	IteratorSeq< PointerContainer<FileSource> > *is = new VectorIteratorSeq< PointerContainer<FileSource> >(seq);
+	AllNodesRDD<FileSource> *allNodesRDD = RDD<TextFileBlock>::context->allNodes(is);
+	MappedRDD<FileSource, PointerContainer<FileSource> > * mappedAllNodesRDD = allNodesRDD->map(getFileSize);
+	auto_ptr< MappedRDD<FileSource,  PointerContainer<FileSource> > > auto_ptr1(mappedAllNodesRDD); // auto_ptr
+	vector<FileSource> fileSources = mappedAllNodesRDD->collect();
 
 	long total_length = 0, total_bytes = 0, total_lines = 0;
 	for(unsigned int i=0; i<fileSources.size(); i++) {
@@ -117,7 +122,8 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 	if(total_length > 0) {
 		// calculate block length
 		int max_block_size = MAX_TEXT_FILE_BLOCK_SIZE_BYTE;
-		if (this->format == FILE_SOURCE_FORMAT_LINE) max_block_size = MAX_TEXT_FILE_BLOCK_SIZE_BYTE / (total_bytes / total_lines);
+		if (this->format == FILE_SOURCE_FORMAT_LINE) max_block_size =
+				MAX_TEXT_FILE_BLOCK_SIZE_BYTE / (total_bytes / total_lines);
 		long b = total_length / numSlices;
 		b += 1;
 		if (b > max_block_size) b = max_block_size;
@@ -231,7 +237,7 @@ vector< IteratorSeq<TextFileBlock>* > TextFileRDD::slice() {
 
 		// done
 		for (unsigned int i=0; i<allBlocks.size(); i++) {
-			IteratorSeq<TextFileBlock> *it = new IteratorSeq<TextFileBlock>(allBlocks[i]);
+			IteratorSeq<TextFileBlock> *it = new VectorIteratorSeq<TextFileBlock>(allBlocks[i]);
 			ret.push_back(it);
 		}
 

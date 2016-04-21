@@ -19,13 +19,13 @@ using std::vector;
 template <class T>
 class ReduceTask : public RDDTask< T, vector<T> > {
 public:
-	ReduceTask(RDD<T> &r, Partition &p, T (*g)(T, T));
-	vector<T>& run();
+	ReduceTask(RDD<T> *r, Partition *p, T (*g)(T&, T&));
+	vector<T> run();
 	string serialize(vector<T> &t);
-	vector<T>& deserialize(string s);
+	vector<T> deserialize(string &s);
 
 private:
-	T (*g)(T, T);
+	T (*g)(T&, T&);
 };
 
 

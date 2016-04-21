@@ -21,12 +21,13 @@ using std::string;
 
 class TextFilePartition: public Partition {
 public:
-	TextFilePartition(long rddID, int partitionID, IteratorSeq<TextFileBlock> &values);
-	IteratorSeq<TextFileBlock> iteratorSeq();
+	TextFilePartition(long rddID, int partitionID, IteratorSeq<TextFileBlock> *values);
+	~TextFilePartition();
+	IteratorSeq<TextFileBlock> * iteratorSeq();
 
 	long rddID;
 	int partitionID;
-	IteratorSeq<TextFileBlock> &values;
+	IteratorSeq<TextFileBlock> *values;
 	vector<string> blockLocations;
 };
 

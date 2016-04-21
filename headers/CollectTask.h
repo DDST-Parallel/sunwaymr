@@ -17,12 +17,13 @@ template <class T>
 class CollectTask : public RDDTask< T, vector<T> >
 {
 public:
-	    CollectTask(RDD<T> &r, Partition &p);
-		vector<T>& run();
+	    CollectTask(RDD<T> *r, Partition *p);
+		vector<T> run();
 		string serialize(vector<T> &t);
-		vector<T>& deserialize(string s);
+		vector<T> deserialize(string &s);
 
 private:
+
 };
 
 #endif

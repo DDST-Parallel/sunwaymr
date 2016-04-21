@@ -28,10 +28,11 @@ class SunwayMRContext;
 template <class T>
 class UnionRDD : public RDD<T> {
 public:
-	UnionRDD(SunwayMRContext &context, vector< RDD<T>* > rdds);
+	UnionRDD(SunwayMRContext *context, vector< RDD<T>* > &rdds);
+	~UnionRDD();
 	vector<Partition*> getPartitions();
-	vector<string> preferredLocations(Partition &p);
-	IteratorSeq<T> iteratorSeq(Partition &p);
+	vector<string> preferredLocations(Partition *p);
+	IteratorSeq<T> * iteratorSeq(Partition *p);
 	void shuffle();
 
 private:

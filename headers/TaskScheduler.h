@@ -25,14 +25,16 @@ int XYZ_TASK_SCHEDULER_RUN_TASK_MODE = 1; // 0: fork, 1: pthread
 template <class T>
 class TaskScheduler : public Messaging, public Scheduler {
 public:
-	TaskScheduler(int jobID, string selfIP, int selfIPIndex, string master, string appName, int listenPort, vector<string> ip, vector<int> threads, vector<int> memory);
+	TaskScheduler(int jobID, string selfIP, int selfIPIndex,
+			string master, string appName, int listenPort,
+			vector<string> &ip, vector<int> &threads, vector<int> &memory);
 	~TaskScheduler();
 	void preRunTasks(vector< Task<T>* > &tasks);
 	vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 	void finishTask(int task, T &value);
 
-	void messageReceived(int localListenPort, string fromHost, int msgType, string msg); // override Messaging
-	void handleMessage(int localListenPort, string fromHost, int msgType, string msg, int &retValue); // override Scheduler
+	void messageReceived(int localListenPort, string fromHost, int msgType, string &msg); // override Messaging
+	void handleMessage(int localListenPort, string fromHost, int msgType, string &msg, int &retValue); // override Scheduler
 	void increaseRunningThreadNum();
 	void decreaseRunningThreadNum();
 	bool getTaskResultString(int job, int task, string &result);

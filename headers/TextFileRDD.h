@@ -29,15 +29,14 @@ class SunwayMRContext;
 
 class TextFileRDD : public RDD<TextFileBlock> {
 public:
-	TextFileRDD(SunwayMRContext &c, vector<FileSource> files, int numSlices, FileSourceFormat format = FILE_SOURCE_FORMAT_BYTE);
+	TextFileRDD(SunwayMRContext *c, vector<FileSource> &files, int numSlices,
+			FileSourceFormat format = FILE_SOURCE_FORMAT_BYTE);
 	vector<Partition*> getPartitions();
-	vector<string> preferredLocations(Partition &p);
-	IteratorSeq<TextFileBlock> iteratorSeq(Partition &p);
-	vector< IteratorSeq<TextFileBlock>* > slice();
+	vector<string> preferredLocations(Partition *p);
+	IteratorSeq<TextFileBlock> * iteratorSeq(Partition *p);
+	vector< IteratorSeq<TextFileBlock>* > slice(vector<FileSource> &files);
 
 	//data
-	//IteratorSeq<TextFileBlock> &seq;
-	vector<FileSource> files;
 	int numSlices;
 	FileSourceFormat format;
 	long textFileRDD_id;

@@ -19,40 +19,52 @@
 #include "Partition.hpp"
 #include "SunwayMRContext.hpp"
 #include "AllNodesPartition.hpp"
+#include "PointerContainer.hpp"
 using namespace std;
 
-AllNodesRDD::AllNodesRDD(SunwayMRContext &c, IteratorSeq<void *> &seq)
-: RDD<void *>::RDD (c) , seq(seq){
-	//rdd_id = RDD<void *>::current_id++;
-	rdd_id = RDD<void *>::rddID;
+template <class T>
+AllNodesRDD<T>::AllNodesRDD(SunwayMRContext *c, IteratorSeq<PointerContainer <T> > *seq)
+: RDD<PointerContainer <T> >::RDD (c) , seq(seq){
+	rdd_id = RDD<PointerContainer <T> >::rddID;
 
-	vector<Partition*> partitions;
-	vector<string> hosts = c.getHosts();
+	vector<Partition *> partitions;
+	vector<string> hosts = c->getHosts();
 	for (unsigned int i=0; i<hosts.size(); i++) {
-		Partition* partition = new AllNodesPartition(rdd_id, i, seq);
+		Partition* partition = new AllNodesPartition<T>(rdd_id, i, seq);
 		partitions.push_back(partition);
 	}
 
-	RDD<void *>::partitions = partitions;
+	RDD<PointerContainer <T> >::partitions = partitions;
 }
 
-vector<Partition*> AllNodesRDD::getPartitions() {
-	return RDD<void *>::partitions;
+template <class T>
+AllNodesRDD<T>::~AllNodesRDD() {
+//	for(size_t i = 0; i < seq->size(); i++) {
+//		delete seq->at(i); // undefined
+//	}
+//	delete seq;
 }
 
-vector<string> AllNodesRDD::preferredLocations(Partition &p) {
+template <class T>
+vector<Partition*> AllNodesRDD<T>::getPartitions() {
+	return RDD<PointerContainer <T> >::partitions;
+}
+
+template <class T>
+vector<string> AllNodesRDD<T>::preferredLocations(Partition *p) {
 	vector<string> ret;
 
-	vector<string> hosts = RDD<void *>::context.getHosts();
-	AllNodesPartition &partition = dynamic_cast<AllNodesPartition&>(p);
-	ret.push_back(hosts[partition.partitionID]);
+	vector<string> hosts = RDD<PointerContainer <T> >::context->getHosts();
+	AllNodesPartition<T> *partition = dynamic_cast<AllNodesPartition<T> *>(p);
+	ret.push_back(hosts[partition->partitionID]);
 
 	return ret;
 }
 
-IteratorSeq<void *> AllNodesRDD::iteratorSeq(Partition &p) {
-	AllNodesPartition &partition = dynamic_cast<AllNodesPartition&>(p);
-	return partition.iteratorSeq();
+template <class T>
+IteratorSeq<PointerContainer <T> > * AllNodesRDD<T>::iteratorSeq(Partition *p) {
+	AllNodesPartition<T> *partition = dynamic_cast<AllNodesPartition<T> *>(p);
+	return partition->iteratorSeq();
 }
 
 #endif /* ALLNODESRDD_HPP_ */

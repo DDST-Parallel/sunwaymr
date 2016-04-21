@@ -25,7 +25,7 @@ template <class K, class V>
 class Pair {
 public:
 	Pair();
-	Pair(K k, V v);
+	Pair(K &k, V &v);
 	~Pair();
 	bool operator<(const Pair< K, V >& p) const;
 	void fromString(string &s, stringstream &ss);

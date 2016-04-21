@@ -18,15 +18,15 @@ using namespace std;
 
 
 template <class T>
-CollectTask<T>::CollectTask(RDD<T> &r, Partition &p)
+CollectTask<T>::CollectTask(RDD<T> *r, Partition *p)
 :RDDTask< T, vector<T> >::RDDTask(r, p)
 {
 }
 
 template <class T>
-vector<T>& CollectTask<T>::run()
+vector<T> CollectTask<T>::run()
 {
-	IteratorSeq<T> iter = RDDTask< T, vector<T> >::rdd.iteratorSeq(RDDTask< T, vector<T> >::partition);
+	IteratorSeq<T> *iter = RDDTask< T, vector<T> >::rdd->iteratorSeq(RDDTask< T, vector<T> >::partition);
 //	if(iter.type == 0)
 //	{
 //		vector<T> *tmp = new vector<T>;
@@ -43,8 +43,7 @@ vector<T>& CollectTask<T>::run()
 //		return *tmp;
 //	}
 //	// type = 1
-	vector<T> *ret = new vector<T>(iter.getVector());
-	return *ret;
+	return iter->getVector();
 }
 
 template <class T>
@@ -59,9 +58,9 @@ string CollectTask<T>::serialize(vector<T> &t)
 }
 
 template <class T>
-vector<T>& CollectTask<T>::deserialize(string s)
+vector<T> CollectTask<T>::deserialize(string &s)
 {
-	vector<T> *elems = new vector<T>;
+	vector<T> elems;
 	vector<string> vs;
 	splitString(s, vs, COLLECT_TASK_DELIMITATION);
 
@@ -69,9 +68,9 @@ vector<T>& CollectTask<T>::deserialize(string s)
 		std::stringstream ss(vs[i]);
 		T t;
 		ss >> t;
-		elems->push_back(t);
+		elems.push_back(t);
 	}
-	return *elems;
+	return elems;
 
 //	std::stringstream ss(s);
 //	std::string item;

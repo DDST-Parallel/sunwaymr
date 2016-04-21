@@ -19,7 +19,7 @@
 using namespace std;
 
 template <class T>
-UnionRDD<T>::UnionRDD(SunwayMRContext &context, vector< RDD<T>* > rdds)
+UnionRDD<T>::UnionRDD(SunwayMRContext *context, vector< RDD<T>* > &rdds)
 :RDD<T>::RDD(context), rdds(rdds) {
 	long unionRDD_id = RDD<T>::rddID;
 	vector<Partition*> partitions;
@@ -41,15 +41,15 @@ vector<Partition*> UnionRDD<T>::getPartitions() {
 }
 
 template <class T>
-vector<string> UnionRDD<T>::preferredLocations(Partition &p) {
-	UnionPartition<T> &up = dynamic_cast<UnionPartition<T>&>(p);
-	return up.preferredLocations();
+vector<string> UnionRDD<T>::preferredLocations(Partition *p) {
+	UnionPartition<T> *up = dynamic_cast<UnionPartition<T> * >(p);
+	return up->preferredLocations();
 }
 
 template <class T>
-IteratorSeq<T> UnionRDD<T>::iteratorSeq(Partition &p) {
-	UnionPartition<T> &up = dynamic_cast<UnionPartition<T>&>(p);
-	return up.iteratorSeq();
+IteratorSeq<T> * UnionRDD<T>::iteratorSeq(Partition *p) {
+	UnionPartition<T> *up = dynamic_cast<UnionPartition<T> * >(p);
+	return up->iteratorSeq();
 }
 
 template <class T>
@@ -57,6 +57,16 @@ void UnionRDD<T>::shuffle() {
 	for(unsigned int i=0; i<rdds.size(); i++) {
 		rdds[i]->shuffle();
 	}
+}
+
+template <class T>
+UnionRDD<T>::~UnionRDD() {
+	for(unsigned int i=0; i<rdds.size(); i++) {
+		if(!this->rdds[i]->isSticky()) {
+			delete this->rdds[i];
+		}
+	}
+	rdds.clear();
 }
 
 #endif /* INCLUDE_UNIONRDD_HPP_ */

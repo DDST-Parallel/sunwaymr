@@ -42,12 +42,12 @@ int main()
 
 
 	SunwayMRContext sc("hostFilePath", "127.0.0.1", "knshen", 8080);
-	ParallelArray<int> parallel_array1 = sc.parallelize(data1, 10);
-	ParallelArray<int> parallel_array2 = sc.parallelize(data2, 10);
-	ParallelArray<int> parallel_array3 = sc.parallelize(data3, 10);
+	ParallelArrayRDD<int> parallel_array1 = sc.parallelize(data1, 10);
+	ParallelArrayRDD<int> parallel_array2 = sc.parallelize(data2, 10);
+	ParallelArrayRDD<int> parallel_array3 = sc.parallelize(data3, 10);
 
 	IteratorSeq<int> iter(1, 100, 2);
-	ParallelArray<int> range = sc.parallelize(iter, 10);
+	ParallelArrayRDD<int> range = sc.parallelize(iter, 10);
 
 	vector<Partition*> p1 = parallel_array1.getPartitions();
 	vector<Partition*> p2 = parallel_array2.getPartitions();

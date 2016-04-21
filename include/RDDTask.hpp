@@ -15,7 +15,7 @@
 #include "RDD.hpp"
 #include "Task.hpp"
 
-template <class T, class U> RDDTask<T, U>::RDDTask(RDD<T> &r, Partition &p)
+template <class T, class U> RDDTask<T, U>::RDDTask(RDD<T> *r, Partition *p)
 : rdd(r), partition(p) {
 }
 
@@ -24,7 +24,7 @@ template <class T, class U> RDDTask<T, U>::~RDDTask () {
 }
 
 template <class T, class U> vector<string> RDDTask<T, U>::preferredLocations() {
-	return rdd.preferredLocations(partition);
+	return rdd->preferredLocations(partition);
 }
 
 

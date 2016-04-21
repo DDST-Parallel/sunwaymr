@@ -47,7 +47,7 @@ private:
 
 	bool init(); // start listening
 	bool initListening(int port);
-	void messageReceived(int localListenPort, string fromHost, int msgType, string msg);
+	void messageReceived(int localListenPort, string fromHost, int msgType, string &msg);
 	void update(HostResource hr);
 	void saveLocalHostFile();
 	void saveAllHostsFile();

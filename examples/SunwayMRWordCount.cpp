@@ -18,7 +18,7 @@ using std::endl;
 using std::vector;
 using std::stringstream;
 
-vector<string> flat_map_f1(TextFileBlock t) {
+vector<string> flat_map_f1(TextFileBlock &t) {
 	vector<string> ret;
 	string data = t.blockData();
 	stringstream ss(data);
@@ -29,35 +29,38 @@ vector<string> flat_map_f1(TextFileBlock t) {
 	return ret;
 }
 
-Pair<string, int> mapToPair_f(string s) {
+Pair<string, int> mapToPair_f(string &s) {
 	int i = 1;
 	return Pair<string, int>(s, i);
 }
 
-Pair<string, int> reduceByKey_f (Pair<string, int> p1, Pair<string, int> p2) {
+Pair<string, int> reduceByKey_f (Pair<string, int> &p1, Pair<string, int> &p2) {
 	int i = p1.v2+p2.v2;
 	return Pair<string, int>(p1.v1, i);
 }
 
 int main(int argc, char *argv[]) {
+	string start = currentDateTime();
 
 	cout << endl << "SunwayMR Word Count" << endl << endl;
 
 	SunwayMRContext sc("SunwayMRWordCount", argc, argv);
 	vector<FileSource> fsv;
-	FileSource fs = FileSource("192.168.99.13", "/tmp/1.txt");
+	FileSource fs = FileSource("192.168.1.165", "/opt/test-data/wc/1.txt");
 	fsv.push_back(fs);
 	vector< Pair<string, int> > wc = sc.textFile(fsv, FILE_SOURCE_FORMAT_LINE)
-			.flatMap(flat_map_f1)
-			.mapToPair(mapToPair_f)
-			.reduceByKey(reduceByKey_f)
-			.collect();
+			->flatMap(flat_map_f1)
+			->mapToPair(mapToPair_f)
+			->reduceByKey(reduceByKey_f)
+			->collect();
 
 	cout << "Result: " << endl;
 	for (unsigned int i=0; i<wc.size(); i++) {
 		cout << wc[i].v1 << ": " << wc[i].v2 << endl;
 	}
 
+	Logging::logInfo(start);
+	Logging::logInfo(currentDateTime());
 	return 0;
 }
 

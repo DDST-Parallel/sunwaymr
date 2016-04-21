@@ -55,7 +55,7 @@ string FileSource::serialize(string delim) const {
 	return ss.str();
 }
 
-void FileSource::deserialize(string s, string delim) {
+void FileSource::deserialize(string &s, string delim) {
 	vector<string> vs;
 	splitString(s, vs, delim);
 	if(vs.size()>=8) {
