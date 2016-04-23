@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <errno.h>
 
 #include <iostream>
 #include <cstring>
@@ -68,57 +69,6 @@ void Messaging::clearShuffleCache() {
 	fetch_content_local.clear();
 }
 
-bool Messaging::sendMessage(string addr, int targetPort, int msgType, string &msg)
-{
-	// !!! logging removed since invoked in fork !!!
-
-	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-	if (sockfd < 0)
-	{
-		Logging::logError("Messaging: sendMessage: failed to initialize socket");
-		return false;
-	}
-
-	struct sockaddr_in address;
-	bzero(&address, sizeof(address));
-	address.sin_family = AF_INET;
-	address.sin_port = htons(targetPort);  // set port no.
-
-	inet_pton(AF_INET, addr.c_str(), &address.sin_addr);  // translate IP Address
-	int len = sizeof(address);
-
-	// connect
-	int conn = connect(sockfd, (struct sockaddr *)&address, len);
-	if (conn < 0)
-	{
-		Logging::logWarning("Messaging: sendMessage: connect fail! will try again");
-		while (conn < 0) {
-			usleep(300000 + rand()%300000); // sleep & reconnect later
-			conn = connect(sockfd, (struct sockaddr *)&address, len);
-		}
-	}
-
-	// reorganize packet
-	string send_data = "";
-	stringstream stream;
-	stream << msgType;
-	send_data += stream.str() + "$" + msg;
-
-	// send data
-	const char* ch = send_data.c_str();
-	int byte = send(sockfd, ch, send_data.length(), 0);
-	if (byte < 0)
-	{
-		Logging::logError("Messaging: sendMessage: send fail!");
-		return false;
-	}
-
-	// release socket
-	close(sockfd);
-	return true;
-}
-
 void readSocket(int socketfd, string &ret) {
 	//int MAX_MESSAGE_SIZE = 1024 * 1024 * 1024; // TODO configuration out of code
 	int BUFFER_SIZE = 1024 * 1024 * 4; // TODO configuration out of code
@@ -148,18 +98,7 @@ void readSocket(int socketfd, string &ret) {
 	ret = msgStream.str();
 }
 
-bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, string &msg, string &reply)
-{
-	// !!! logging removed since invoked in fork !!!
-
-	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-	if (sockfd < 0)
-	{
-		//Logging::logError("Messaging: sendMessage: failed to initialize socket");
-		return false;
-	}
-
+bool Messaging::sendMessageInternal(int socket_fd, string addr, int targetPort, int msgType, string &msg) {
 	struct sockaddr_in address;
 	bzero(&address, sizeof(address));
 	address.sin_family = AF_INET;
@@ -169,25 +108,58 @@ bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, st
 	int len = sizeof(address);
 
 	// connect
-	int conn = connect(sockfd, (struct sockaddr *)&address, len);
+	int conn = connect(socket_fd, (struct sockaddr *)&address, len);
 	if (conn < 0)
 	{
-		//Logging::logError("Messaging: sendMessage: connect fail!");
-		return false;
+		Logging::logWarning("Messaging: sendMessage: connect fail! will try again");
+		while (conn < 0) {
+			usleep(300000 + rand()%300000); // sleep & reconnect later
+			conn = connect(socket_fd, (struct sockaddr *)&address, len);
+		}
 	}
 
 	// reorganize packet
 	string send_data = "";
 	stringstream stream;
 	stream << msgType;
-	send_data += stream.str() + "$" + msg + END_OF_MESSAGE;
+	send_data += stream.str() + "$";
 
 	// send data
-	const char* ch = send_data.c_str();
-	int byte = send(sockfd, ch, send_data.length(), 0);
-	if (byte < 0)
+	const char* ch1 = send_data.c_str();
+	int ret = send(socket_fd, ch1, send_data.length(), 0);
+	if (ret < 0)
 	{
-		//Logging::logError("Messaging: sendMessage: send fail!");
+		Logging::logError("Messaging: sendMessage: failed to send[1]!");
+		return false;
+	}
+	const char* ch2 = msg.c_str();
+	ret = send(socket_fd, ch2, msg.length(), 0);
+	if (ret < 0)
+	{
+		Logging::logError("Messaging: sendMessage: failed to send[2]!");
+		return false;
+	}
+	const char* ch3 = END_OF_MESSAGE;
+	ret = send(socket_fd, ch3, strlen(ch3), 0);
+	if (ret < 0)
+	{
+		Logging::logError("Messaging: sendMessage: failed to send[3]!");
+		return false;
+	}
+	return true;
+}
+
+bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, string &msg, string &reply)
+{
+	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if (sockfd < 0)
+	{
+		Logging::logError("Messaging: sendMessage: failed to initialize socket");
+		return false;
+	}
+
+	if(!sendMessageInternal(sockfd, addr, targetPort, msgType, msg)) {
 		return false;
 	}
 
@@ -196,6 +168,25 @@ bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, st
 
 	// release socket
 	close(sockfd);
+	return true;
+}
+
+bool Messaging::sendMessage(string addr, int targetPort, int msgType, string &msg)
+{
+	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if (sockfd < 0)
+	{
+		Logging::logError("Messaging: sendMessage: failed to initialize socket");
+		return false;
+	}
+
+	if(!sendMessageInternal(sockfd, addr, targetPort, msgType, msg)) {
+		return false;
+	}
+
+	// release socket
+	// close(sockfd); // closed by server
 	return true;
 }
 
@@ -247,8 +238,12 @@ void Messaging::listenMessage(int listenPort)
 	int client_len = sizeof(sockaddr_in);
 	while (1) {
 		int client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, (socklen_t *)&client_len);
-		if (client_sockfd < 0)
+		if (client_sockfd < 0) {
+			stringstream ss;
+			ss << "Messaging::listenMessage: accept failed, errno: " << errno;
+			Logging::logWarning(ss.str());
 			continue;
+		}
 		string ip = inet_ntoa(client_address.sin_addr);
 		// thread data encapsulation
 		struct xyz_messaging_listen_thread_data_ *td =
@@ -320,12 +315,19 @@ void* messageHandler(void *data)
 						ret += "\n";
 					}
 				}
-				int byte = send(td->client_sockfd, ret.c_str(), ret.length(), 0);
-				if (byte < 0) {
+				int rsend = send(td->client_sockfd, ret.c_str(), ret.length(), 0);
+				if (rsend < 0) {
 					// send failed
+					Logging::logError("Messaging::messageHandler: reply FILE_BLOCK_REQUEST, failed to send[1]");
+				}
+				const char* ch = END_OF_MESSAGE;
+				rsend = send(td->client_sockfd, ch, strlen(ch), 0);
+				if (rsend < 0)
+				{
+					Logging::logError("Messaging: messageHandler: reply FILE_BLOCK_REQUEST, failed to send[2]!");
 				}
 			}
-			close(td->client_sockfd);
+			//close(td->client_sockfd); // closed by client
 		} else if(msgType == FETCH_REQUEST) {
 
 			//cout << "CONTEXT ID: " << SUNWAYMR_CONTEXT_ID << endl;
@@ -353,15 +355,16 @@ void* messageHandler(void *data)
 				if(it == m->fetch_content_local.end())
 				{
 					// this shuffle has not  been cached, read it
-					m->fetch_content_local[shuffleID] = vector< vector<string>* >();
+					vector< vector<string>* > vvs;
 					for(unsigned int i=0; i<allFileNames.size(); i++)
 					{
-						string content;
-						readFile(dir+allFileNames[i], content);
-						vector<string> *lines = new vector<string>();
-						splitString(content, *lines, SHUFFLETASK_PARTITION_DELIMITATION);
-						m->fetch_content_local[shuffleID].push_back(lines);
+							string content;
+							readFile(dir+allFileNames[i], content);
+							vector<string> *lines = new vector<string>();
+							splitString(content, *lines, SHUFFLETASK_PARTITION_DELIMITATION);
+							vvs.push_back(lines);
 					}
+					m->fetch_content_local[shuffleID] = vvs;
 				}
 				pthread_mutex_unlock(&m->mutex_check_file_cache);
 
@@ -371,16 +374,35 @@ void* messageHandler(void *data)
 					senMsg += (*(m->fetch_content_local[shuffleID][i]))[partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
 				senMsg += (*(m->fetch_content_local[shuffleID].back()))[partitionID];
 
-				send(td->client_sockfd, senMsg.c_str(), senMsg.length(), 0);
+				int rsend = send(td->client_sockfd, senMsg.c_str(), senMsg.length(), 0);
+				if (rsend < 0) {
+					// send failed
+					Logging::logError("Messaging::messageHandler: reply FETCH_REQUEST, failed to send[1]");
+				}
+				const char* ch = END_OF_MESSAGE;
+				rsend = send(td->client_sockfd, ch, strlen(ch), 0);
+				if (rsend < 0)
+				{
+					Logging::logError("Messaging: messageHandler: reply FETCH_REQUEST, failed to send[2]!");
+				}
 			}
 
-			close(td->client_sockfd);
+			// close(td->client_sockfd); // closed by client
 		} else if(msgType == FILE_INFO || msgType > 999999) { // sunwaymrhelper file sending
 			m->messageReceived(td->local_port, td->ip, msgType, msgContent);
 			string reply = "0";
-			send(td->client_sockfd, reply.c_str(), reply.length(), 0);
-
-			close(td->client_sockfd); // close socket
+			int rsend = send(td->client_sockfd, reply.c_str(), reply.length(), 0);
+			if (rsend < 0) {
+				// send failed
+				Logging::logError("Messaging::messageHandler: reply FILE_INFO/FILE_UID, failed to send[1]");
+			}
+			const char* ch = END_OF_MESSAGE;
+			rsend = send(td->client_sockfd, ch, strlen(ch), 0);
+			if (rsend < 0)
+			{
+				Logging::logError("Messaging: messageHandler: reply FILE_INFO/FILE_UID, failed to send[2]!");
+			}
+			// close(td->client_sockfd); // closed by client
 		} else {
 			close(td->client_sockfd); // close socket
 

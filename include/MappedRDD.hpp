@@ -47,7 +47,7 @@ template <class U, class T>
 IteratorSeq<U> * MappedRDD<U, T>::iteratorSeq(Partition *p)
 {
 	IteratorSeq<U> *ret = prevRDD->iteratorSeq(p)->map(mappedFunction);
-	this->iteratorSeqs.push_back(ret); // for garbage collection
+	this->addIteratorSeq(ret); // for garbage collection
 	return ret;
 }
 

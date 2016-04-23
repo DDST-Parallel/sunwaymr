@@ -71,7 +71,7 @@ template <class K, class V, class T>
 IteratorSeq< Pair<K, V> > * PairRDD<K, V, T>::iteratorSeq(Partition *p)
 {
 	IteratorSeq< Pair<K, V> > * ret = prevRDD->iteratorSeq(p)->map(mapToPairFunction);
-	this->iteratorSeqs.push_back(ret); // for garbage collection
+	this->addIteratorSeq(ret); // for garbage collection
 	return ret;
 }
 

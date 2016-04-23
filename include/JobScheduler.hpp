@@ -163,16 +163,24 @@ vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
 	ts->preRunTasks(tasks);
 
 	// handle pre-arrived task results
-	for (unsigned int i=0; i<taskResultWorksOfNextJob.size(); i++) {
-		int ret = 0;
-		ts->handleMessage(listenPort, taskResultWorksOfNextJob[i], A_TASK_RESULT, taskResultsOfNextJob[i], ret);
+	size_t n = taskResultWorksOfNextJob.size();
+	if(n > 0) {
+		for (unsigned int i=0; i<n; i++) {
+			int ret = 0;
+			ts->handleMessage(listenPort, taskResultWorksOfNextJob[i], A_TASK_RESULT, taskResultsOfNextJob[i], ret);
+		}
+
+		taskResultWorksOfNextJob.clear();
+		taskResultsOfNextJob.clear();
+
+		stringstream ss;
+		ss << "JobScheduler::runTasks: [" << n << "] pre-arrived task results";
+		Logging::logDebug(ss.str());
 	}
-	taskResultWorksOfNextJob.clear();
-	taskResultsOfNextJob.clear();
 
 	pthread_mutex_unlock(&mutex_job_scheduler);
 
-	if (taskSchedulers.size() > 1) {
+	if (taskSchedulers.size() > 2) {
 		delete(taskSchedulers.front());
 		taskSchedulers.erase(taskSchedulers.begin());
 	}
@@ -197,9 +205,7 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 		{
 			if (taskSchedulers.size() > 0) {
 				int ret = 0;
-				pthread_mutex_lock(&mutex_job_scheduler);
 				taskSchedulers.back()->handleMessage(localListenPort, fromHost, msgType, msg, ret);
-				pthread_mutex_unlock(&mutex_job_scheduler);
 
 				if (ret > 0) { // task scheduler handle failed
 					pthread_mutex_lock(&mutex_job_scheduler);
@@ -208,6 +214,9 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 						// save the result
 						taskResultWorksOfNextJob.push_back(fromHost);
 						taskResultsOfNextJob.push_back(msg);
+					}
+					else if(ret == this->nextJobID - 1) {
+						taskSchedulers.back()->handleMessage(localListenPort, fromHost, msgType, msg, ret);
 					}
 					pthread_mutex_unlock(&mutex_job_scheduler);
 				}

@@ -28,6 +28,7 @@ RDD<T>::RDD(SunwayMRContext *c)
 : context(c), sticky(false)
 {
 	rddID = XYZ_CURRENT_RDD_ID++;
+	pthread_mutex_init(&mutex_iterator_seqs, NULL);
 }
 
 template <class T>
@@ -36,7 +37,7 @@ RDD<T> & RDD<T>::operator=(const RDD<T> &r) {
 		return *this;
 	}
 
-	this->deletePartitions();
+	this->clean();
 	this->initRDDFrom(r);
 	return *this;
 }
@@ -46,13 +47,14 @@ void RDD<T>::initRDDFrom(const RDD<T> &r) {
 	this->context = r.context;
 	this->partitions = r.partitions;
 	this->rddID = r.rddID;
+	this->iteratorSeqs = r.iteratorSeqs;
+	this->sticky = r.sticky;
 }
 
 template <class T>
 RDD<T>::~RDD()
 {
-	this->deletePartitions();
-	this->deleteIteratorSeqs();
+	this->clean();
 }
 
 template <class T>
@@ -63,6 +65,20 @@ bool RDD<T>::isSticky() {
 template <class T>
 void RDD<T>::setSticky(bool s) {
 	sticky = s;
+}
+
+template <class T>
+void RDD<T>::addIteratorSeq(IteratorSeq<T> * i) {
+	pthread_mutex_lock(&mutex_iterator_seqs);
+	this->iteratorSeqs.push_back(i);
+	pthread_mutex_unlock(&mutex_iterator_seqs);
+}
+
+template <class T>
+void RDD<T>::clean() {
+	this->deletePartitions();
+	this->deleteIteratorSeqs();
+	pthread_mutex_destroy(&mutex_iterator_seqs);
 }
 
 template <class T>

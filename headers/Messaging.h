@@ -54,12 +54,8 @@ public:
 	void clearFileCache();
 	void clearShuffleCache();
 
-	/*
-	 send message in a new thread.
-	*/
-	bool sendMessage(string addr, int targetPort, int msgType, string &msg);
-
 	bool sendMessageForReply(string addr, int targetPort, int msgType, string &msg, string &reply);
+	bool sendMessage(string addr, int targetPort, int msgType, string &msg);
 
 	/*
 	 listen a port.
@@ -85,6 +81,8 @@ public:
 	map< long, vector< vector<string>* > > fetch_content_local;
 private:
 	int listenStatus;
+
+	bool sendMessageInternal(int socket_fd, string addr, int targetPort, int msgType, string &msg);
 };
 
 

@@ -51,16 +51,18 @@ private:
 	vector<string> taskOnIPVector;
 	int isMaster;
 
-	int runningThreadNum;
+	volatile int runningThreadNum;
 	vector<pthread_t> startedThreads;
 	vector<bool> resultReceived;
-	int receivedTaskResultNum;
+	volatile int receivedTaskResultNum;
 	bool allTaskResultsReceived;
+    bool taskResultListSent;
 	vector< Task<T>* > tasks;
     vector< TaskResult<T>* > taskResults;
 
     pthread_mutex_t mutex_handle_message_ready;
     pthread_mutex_t mutex_all_tasks_received;
+    pthread_mutex_t mutex_task_scheduler;
 };
 
 

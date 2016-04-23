@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include <pthread.h>
 
 #include "IteratorSeq.h"
 #include "MappedRDD.h"
@@ -66,11 +67,14 @@ public:
 	bool isSticky();
 	void setSticky(bool s);
 protected:
-	vector<IteratorSeq<T> *> iteratorSeqs;
+	void addIteratorSeq(IteratorSeq<T> * i);
 
 private:
+	vector<IteratorSeq<T> *> iteratorSeqs;
 	bool sticky;
+	pthread_mutex_t mutex_iterator_seqs;
 
+	void clean();
 	void deletePartitions();
 	void deleteIteratorSeqs();
 };

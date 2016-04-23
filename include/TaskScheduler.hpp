@@ -41,9 +41,11 @@ TaskScheduler<T>::TaskScheduler(int jobID, string selfIP, int selfIPIndex,
 	}
 	runningThreadNum = 0;
 	allTaskResultsReceived = false;
+	taskResultListSent = false;
 	receivedTaskResultNum = 0;
 	pthread_mutex_init(&mutex_handle_message_ready, NULL);
 	pthread_mutex_lock(&mutex_handle_message_ready);
+	pthread_mutex_init(&mutex_task_scheduler, NULL);
 }
 
 template<class T>
@@ -258,7 +260,10 @@ void TaskScheduler<T>::finishTask(int task, T &value) {
 		usleep(rand()%500000); // delay sending result
 		string msg = ss.str();
 		this->sendMessage(this->master, this->listenPort, A_TASK_RESULT, msg);
-		this->decreaseRunningThreadNum();
+		if(XYZ_TASK_SCHEDULER_RUN_TASK_MODE == 1) {
+			this->decreaseRunningThreadNum();
+		}
+
 	}
 }
 
@@ -278,7 +283,7 @@ void TaskScheduler<T>::handleMessage(
 
 	switch (msgType) {
 	case A_TASK_RESULT: {
-		if (isMaster == 1 && (unsigned)receivedTaskResultNum < tasks.size()) {
+		if (isMaster == 1) { // && (unsigned)receivedTaskResultNum < tasks.size()) {
 
 			// add task result to taskResults, if not duplicate
 			vector<string> vs;
@@ -300,9 +305,10 @@ void TaskScheduler<T>::handleMessage(
 						taskResults[taskID] =
 								new TaskResult<T>(tasks[taskID], value);
 					}
+
+					pthread_mutex_lock(&mutex_task_scheduler);
 					resultReceived[taskID] = true;
 					receivedTaskResultNum++;
-
 					stringstream receivedDebug;
 					receivedDebug
 							<< "TaskScheduler: master: a task result of job["
@@ -310,13 +316,16 @@ void TaskScheduler<T>::handleMessage(
 							<< receivedTaskResultNum << " results of "
 							<< tasks.size() << " tasks received";
 					Logging::logDebug(receivedDebug.str());
+					pthread_mutex_unlock(&mutex_task_scheduler);
 				} else if (jobID > this->jobID) {
 					retValue = jobID;
+					break;
 				}
 			}
 
 			// check if all task results received
-			if ((unsigned)receivedTaskResultNum == tasks.size()) {
+			pthread_mutex_lock(&mutex_task_scheduler);
+			if (!taskResultListSent && (unsigned)receivedTaskResultNum == tasks.size()) {
 				allTaskResultsReceived = true;
 				Logging::logInfo(
 						"TaskScheduler: master: sending out results...");
@@ -326,12 +335,15 @@ void TaskScheduler<T>::handleMessage(
 				this->getTaskResultListString(this->jobID, msg);
 
 				for (unsigned int i = 0; i < IPVector.size(); i++) {
+					if(IPVector[i] == selfIP) continue;
 					sendMessage(IPVector[i], listenPort, TASK_RESULT_LIST, msg);
 				}
+				taskResultListSent = true;
 
 				Logging::logInfo("TaskScheduler: results sent");
 				pthread_mutex_unlock(&mutex_all_tasks_received);
 			}
+			pthread_mutex_unlock(&mutex_task_scheduler);
 		}
 
 		break;
@@ -417,12 +429,16 @@ void TaskScheduler<T>::handleMessage(
 
 template<class T>
 void TaskScheduler<T>::increaseRunningThreadNum() {
+	pthread_mutex_lock(&mutex_task_scheduler);
 	runningThreadNum++;
+	pthread_mutex_unlock(&mutex_task_scheduler);
 }
 
 template<class T>
 void TaskScheduler<T>::decreaseRunningThreadNum() {
+	pthread_mutex_lock(&mutex_task_scheduler);
 	runningThreadNum--;
+	pthread_mutex_unlock(&mutex_task_scheduler);
 }
 
 template<class T>
