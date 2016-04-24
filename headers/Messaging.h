@@ -21,6 +21,9 @@ using namespace std;
 #ifndef END_OF_MESSAGE
 #define END_OF_MESSAGE "\aEND_OF_MESSAGE\a"
 #endif
+#ifndef EMPTY_MESSAGE
+#define EMPTY_MESSAGE "\aEMPTY_MESSAGE\a"
+#endif
 #ifndef FILE_BLOCK_REQUEST_DELIMITATION
 #define FILE_BLOCK_REQUEST_DELIMITATION "\aFILE_BLOCK_REQUEST\a"
 #endif

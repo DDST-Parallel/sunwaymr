@@ -75,27 +75,28 @@ void readSocket(int socketfd, string &ret) {
 
 	char buffer[BUFFER_SIZE];
 	ssize_t total = 0;
-	stringstream msgStream;
-	memset(buffer, 0, BUFFER_SIZE);
-	ssize_t received = read(socketfd, buffer, BUFFER_SIZE);
-	while (received > 0) { // && total < MAX_MESSAGE_SIZE
-		string sb(buffer);
-		string::size_type end = sb.find(END_OF_MESSAGE);
-		if (end != string::npos) {
-			sb = sb.substr(0, end);
-			total += end;
-			msgStream << sb;
-			break;
-		}
+	vector<string> strs;
+	while (true) { // && total < MAX_MESSAGE_SIZE
+		memset(buffer, 0, BUFFER_SIZE);
+		ssize_t received = recv(socketfd, buffer, BUFFER_SIZE - 1, 0);
+
+		if(received <= 0) break;
 
 		total += received;
-		msgStream << buffer;
-
-		memset(buffer, 0, BUFFER_SIZE);
-		received = read(socketfd, buffer, BUFFER_SIZE);
+		strs.push_back(buffer);
 	}
 
-	ret = msgStream.str();
+	ret = "";
+	for(unsigned int i = 0; i < strs.size(); i++) {
+		ret += strs[i];
+	}
+
+//	string::size_type end = ret.find(END_OF_MESSAGE);
+//	if (end != string::npos) {
+//		total = end;
+//		ret = ret.substr(0, end);
+//	}
+
 }
 
 bool sendEndOfMessage(int socket_fd) {
@@ -130,27 +131,24 @@ bool Messaging::sendMessageInternal(int socket_fd, string addr, int targetPort, 
 	}
 
 	// reorganize packet
-	string send_data = "";
-	stringstream stream;
-	stream << msgType;
-	send_data += stream.str() + "$";
+	char buffer [33];
+	memset(buffer, 0, sizeof(buffer));
+	snprintf(buffer, sizeof(buffer), "%d$", msgType);
+	string content = buffer;
+	content += msg;
 
 	// send data
-	const char* ch1 = send_data.c_str();
-	int ret = send(socket_fd, ch1, send_data.length(), 0);
+	const char* ch1 = content.c_str();
+	int ret = send(socket_fd, ch1, content.length(), 0);
 	if (ret < 0)
 	{
-		Logging::logError("Messaging: sendMessageInternal: failed to send[1]!");
+		Logging::logError("Messaging: sendMessageInternal: failed to send");
 		return false;
 	}
-	const char* ch2 = msg.c_str();
-	ret = send(socket_fd, ch2, msg.length(), 0);
+	ret = shutdown(socket_fd, SHUT_WR);
 	if (ret < 0)
 	{
-		Logging::logError("Messaging: sendMessageInternal: failed to send[2]!");
-		return false;
-	}
-	if(!sendEndOfMessage(socket_fd)) {
+		Logging::logError("Messaging: sendMessageInternal: failed to shutdown!");
 		return false;
 	}
 	return true;
@@ -158,24 +156,52 @@ bool Messaging::sendMessageInternal(int socket_fd, string addr, int targetPort, 
 
 bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, string &msg, string &reply)
 {
-	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	int empty_reply_time = 0;
+	int empty_reply_time_max = 100;
+	bool ret = false;
+	while(empty_reply_time < empty_reply_time_max) {
+		int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (sockfd < 0)
-	{
-		Logging::logError("Messaging: sendMessageForReply: failed to initialize socket");
-		return false;
+		if (sockfd < 0)
+		{
+			Logging::logError("Messaging::sendMessageForReply: failed to initialize socket");
+			return false;
+		}
+
+		if(!sendMessageInternal(sockfd, addr, targetPort, msgType, msg)) {
+			return false;
+		}
+
+		// read replied data
+		readSocket(sockfd, reply);
+
+		if(reply == "") { // failed
+			empty_reply_time++;
+			// release socket
+			close(sockfd);
+			usleep(300000 + rand()%300000); // sleep & reconnect later
+			continue;
+		}
+		if(reply == EMPTY_MESSAGE) {
+			reply = "";
+		}
+		ret = true;
+		// release socket
+		close(sockfd);
+		break;
+	}
+	if(!ret) {
+		char buffer[256];
+		memset(buffer, 0, sizeof(buffer));
+		snprintf(buffer,
+				sizeof(buffer),
+				"Messaging::sendMessageForReply: failed to send after recv %d empty reply",
+				empty_reply_time_max);
+		string log = buffer;
+		Logging::logError(log);
 	}
 
-	if(!sendMessageInternal(sockfd, addr, targetPort, msgType, msg)) {
-		return false;
-	}
-
-	// read replied data
-	readSocket(sockfd, reply);
-
-	// release socket
-	close(sockfd);
-	return true;
+	return ret;
 }
 
 bool Messaging::sendMessage(string addr, int targetPort, int msgType, string &msg)
@@ -186,8 +212,6 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string &ms
 		return false;
 	}
 
-	// release socket
-	// close(sockfd); // closed by server
 	return true;
 }
 
@@ -220,7 +244,7 @@ void Messaging::listenMessage(int listenPort)
 	}
 
 	//listen
-	int n = listen(server_sockfd, 10);
+	int n = listen(server_sockfd, 36);
 	if (n < 0)
 	{
 		listenStatus = FAILURE;
@@ -262,6 +286,21 @@ void Messaging::listenMessage(int listenPort)
 
 int Messaging::getListenStatus() {
 	return listenStatus;
+}
+
+void send(int socket_fd, string &msg) {
+	int rsend = 0;
+	if(msg == "") {
+		string empty_msg = EMPTY_MESSAGE;
+		rsend = send(socket_fd, empty_msg.c_str(), empty_msg.length(), 0);
+	}
+	else {
+		rsend = send(socket_fd, msg.c_str(), msg.length(), 0);
+	}
+	if (rsend < 0) {
+		// send failed
+		Logging::logError("Messaging::messageHandler: reply FILE_BLOCK_REQUEST, failed to send");
+	}
 }
 
 // run of the thread
@@ -316,12 +355,7 @@ void* messageHandler(void *data)
 						ret += "\n";
 					}
 				}
-				int rsend = send(td->client_sockfd, ret.c_str(), ret.length(), 0);
-				if (rsend < 0) {
-					// send failed
-					Logging::logError("Messaging::messageHandler: reply FILE_BLOCK_REQUEST, failed to send");
-				}
-				sendEndOfMessage(td->client_sockfd);
+				send(td->client_sockfd, ret);
 				close(td->client_sockfd);
 			}
 		} else if(msgType == FETCH_REQUEST) {
@@ -370,32 +404,24 @@ void* messageHandler(void *data)
 					senMsg += (*(m->fetch_content_local[shuffleID][i]))[partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
 				senMsg += (*(m->fetch_content_local[shuffleID].back()))[partitionID];
 
-				int rsend = send(td->client_sockfd, senMsg.c_str(), senMsg.length(), 0);
-				if (rsend < 0) {
-					// send failed
-					Logging::logError("Messaging::messageHandler: reply FETCH_REQUEST, failed to send");
-				}
+				send(td->client_sockfd, senMsg);
 			}
-			sendEndOfMessage(td->client_sockfd);
 			close(td->client_sockfd);
 		} else if(msgType == FILE_INFO || msgType > 999999) { // sunwaymrhelper file sending
 			m->messageReceived(td->local_port, td->ip, msgType, msgContent);
 			string reply = "0";
-			int rsend = send(td->client_sockfd, reply.c_str(), reply.length(), 0);
-			if (rsend < 0) {
-				// send failed
-				Logging::logError("Messaging::messageHandler: reply FILE_INFO/FILE_UID, failed to send");
-			}
-			sendEndOfMessage(td->client_sockfd);
+			send(td->client_sockfd, reply);
 			close(td->client_sockfd);
 		} else {
-			sendEndOfMessage(td->client_sockfd);
+			string reply = "";
+			send(td->client_sockfd, reply);
 			close(td->client_sockfd);
 
 			m->messageReceived(td->local_port, td->ip, msgType, msgContent);
 		}
 	} else {
-		sendEndOfMessage(td->client_sockfd);
+		string reply = "";
+		send(td->client_sockfd, reply);
 		close(td->client_sockfd);
 	}
 

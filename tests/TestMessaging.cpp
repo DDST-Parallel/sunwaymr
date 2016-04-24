@@ -8,13 +8,16 @@
 #include "Messaging.hpp"
 #include <pthread.h>
 
-int messageReceivedNum = 0;
+volatile int messageReceivedNum = 0;
+pthread_mutex_t mutex_num;
 
 class TestMessaging : public Messaging {
 public:
 	void messageReceived(int localListenPort, string fromHost, int msgType, string &msg) {
+		pthread_mutex_lock(&mutex_num);
 		messageReceivedNum++;
 		cout << messageReceivedNum << " received : " << msg << endl;
+		pthread_mutex_unlock(&mutex_num);
 	}
 };
 
@@ -35,9 +38,13 @@ void *startHelperListening(void *data) {
 	pthread_exit(NULL);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+	pthread_mutex_init(&mutex_num, NULL);
 	TestMessaging *t = new TestMessaging();
-	int listenPort = 32643;
+	int listenPort = 32633;
+	if(argc > 1) {
+		listenPort = atoi(argv[1]);
+	}
 
 //	for (int i=1; i<=1000; i++) {
 //		stringstream ss;
@@ -61,13 +68,13 @@ int main() {
 
 	if(t->getListenStatus() == SUCCESS) {
 
-		for (int i=1; i<=1000; i++) {
-			stringstream ss;
-			ss << "hello " << i;
-			string s = ss.str();
-			t->sendMessage("192.168.1.165", listenPort, 0, s);
-			cout << i << " sent" << endl;
-		}
+//		for (int i=3331001; i<=3332000; i++) {
+//			stringstream ss;
+//			ss << "hello " << i;
+//			string s = ss.str();
+//			t->sendMessage("192.168.1.165", listenPort, 0, s);
+//			//cout << i << " sent" << endl;
+//		}
 
 		void *status;
 		pthread_join(thread, &status); // always listen

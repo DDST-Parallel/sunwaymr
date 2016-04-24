@@ -55,11 +55,8 @@ int splitString(const std::string& str, std::vector<std::string>& ret, const std
 
 
 std::vector<std::string> &splitString(const std::string &s, char delim, std::vector<std::string> &elems) {
-    std::stringstream ss(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
+    string ch = string(1, delim);
+    splitString(s, elems, ch);
     return elems;
 }
 
@@ -312,10 +309,9 @@ void mkdirRecursive(const char *dir) {
 
 bool writeFile(string dir, string fileName, string content) {
 	mkdirRecursive(dir.c_str());
-	stringstream path;
-	path << dir << fileName;
 	ofstream file;
-	file.open(path.str().c_str(), ios::out | ios::trunc);
+	string fullPath = dir + fileName;
+	file.open(fullPath.c_str(), ios::out | ios::trunc);
 	if (file.is_open()) {
 		file << content;
 		file.close();
@@ -424,19 +420,17 @@ bool getFileLineNumber(string path,  long &size) {
 }
 
 string num2string(int val) {
-	string str;
-	stringstream ss;
-	ss<<val;
-	ss>>str;
-	return str;
+	char buffer [33];
+	memset(buffer, 0, sizeof(buffer));
+	snprintf(buffer, sizeof(buffer), "%d", val);
+	return buffer;
 }
 
 string num2string(long val) {
-	string str;
-	stringstream ss;
-	ss<<val;
-	ss>>str;
-	return str;
+	char buffer [33];
+	memset(buffer, 0, sizeof(buffer));
+	snprintf(buffer, sizeof(buffer), "%ld", val);
+	return buffer;
 }
 
 // return value: start position of right side delimitation
