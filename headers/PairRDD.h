@@ -26,6 +26,7 @@ using std::vector;
 using std::string;
 
 template <class T> class RDD;
+template <class U, class T> class MappedRDD;
 
 template <class K, class V, class T>
 class PairRDD : public RDD< Pair<K, V> > {

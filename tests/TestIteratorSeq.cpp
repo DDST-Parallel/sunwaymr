@@ -7,19 +7,20 @@
 
 #include <iostream>
 #include "IteratorSeq.hpp"
+#include "RangeIteratorSeq.hpp"
 
 using namespace std;
 
-int print(int x) {
+int print(int &x) {
 	cout << x << endl;
 	return x;
 }
 
-int doubleInt(int x) {
+int doubleInt(int &x) {
 	return x * 2;
 }
 
-int sum(int x, int y) {
+int sum(int &x, int &y) {
 	return x + y;
 }
 
@@ -27,17 +28,17 @@ int main() {
 
 	cout << "hello" << endl;
 
-	IteratorSeq<int> seq = IteratorSeq<int>(1, 10, 1);
+	IteratorSeq<int> *seq = new RangeIteratorSeq<int>(1, 10, 1);
 
-	cout << seq.size() << endl;
+	cout << seq->size() << endl;
 
-	seq.map<int>(print);
+	seq->map<int>(print);
 
-	IteratorSeq<int> newSeq = seq.map<int>(doubleInt);
+	IteratorSeq<int> *newSeq = seq->map<int>(doubleInt);
 
-	newSeq.map<int>(print);
+	newSeq->map<int>(print);
 
-	vector<int> r = newSeq.reduceLeft(sum);
+	vector<int> r = newSeq->reduceLeft(sum);
 
 	if (r.size() > 0) cout << r[0] << endl;
 
