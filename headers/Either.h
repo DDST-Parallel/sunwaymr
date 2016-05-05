@@ -10,7 +10,6 @@
 #ifndef HEADERS_EITHER_H_
 #define HEADERS_EITHER_H_
 
-#include <iostream>
 using namespace std;
 
 #ifndef EITHER_DELIMITATION_LEFT
@@ -32,10 +31,6 @@ public:
 	Either();
 	void initLeft(L &l);
 	void initRight(R &r);
-	template <class T, class U>
-	friend ostream& operator<< (ostream &out, const Either<T, U> &e);
-	template <class T, class U>
-	friend istream& operator>> (istream &in, Either<T, U> &e);
 
 	EitherType type;
 	L left;

@@ -13,6 +13,7 @@
 #include "FileSource.hpp"
 #include "Messaging.hpp"
 #include "Utils.hpp"
+#include "StringConvertion.hpp"
 
 TextFileBlock::TextFileBlock()
 : file(FileSource()), location(""), offset(0), length(0), format(FILE_SOURCE_FORMAT_BYTE) {
@@ -35,7 +36,6 @@ void TextFileBlock::messageReceived(int localListenPort, string fromHost, int ms
 
 string TextFileBlock::blockData() {
 	// retrieve data
-	// TODO check local file system
 
 	string ret;
 	if (file.source == "[DFS server]") {
@@ -49,14 +49,21 @@ string TextFileBlock::blockData() {
 			}
 		} else {
 			// send file block request
-			stringstream request;
-			request << file.path << FILE_BLOCK_REQUEST_DELIMITATION
-					<< offset << FILE_BLOCK_REQUEST_DELIMITATION
-					<< length << FILE_BLOCK_REQUEST_DELIMITATION
-					<< format;
-			string msg = request.str();
-			sendMessageForReply(location, file.listenPort,
-					FILE_BLOCK_REQUEST, msg, ret);
+			string msg = "";
+			msg = msg + file.path
+					+ FILE_BLOCK_REQUEST_DELIMITATION
+					+ to_string(offset)
+					+ FILE_BLOCK_REQUEST_DELIMITATION
+					+ to_string(length)
+					+ FILE_BLOCK_REQUEST_DELIMITATION
+					+ to_string(format);
+			if(location == ".") { // file on every node
+				sendMessageForReply(getLocalHost(), file.listenPort,
+						FILE_BLOCK_REQUEST, msg, ret);
+			} else {
+				sendMessageForReply(location, file.listenPort,
+						FILE_BLOCK_REQUEST, msg, ret);
+			}
 		}
 	}
 

@@ -28,19 +28,16 @@ template <class T>
 class IteratorSeq {
 public:
 	virtual ~IteratorSeq();
-	virtual int getType() = 0;
+	virtual int getType() const = 0;
 	virtual size_t size() const = 0;
 	virtual T at(size_t index) const = 0;
-	virtual vector<T> getVector() = 0;
+	virtual vector<T> getVector() const = 0;
 	virtual vector<T> reduceLeft(T (*g)(T&, T&)) = 0;
 
 	template <class U> IteratorSeq<U> * map(U (*f)(T&));
 	template <class U> IteratorSeq<U> * flatMap(vector<U> (*f)(T&));
 
-	template <class U>
-	friend ostream& operator<< (ostream &out, const IteratorSeq<U> &s);
+	bool operator==(const IteratorSeq<T> &s) const;
 };
-
-
 
 #endif /* HEADERS_ITERATORSEQ_H_ */

@@ -21,7 +21,7 @@ template <class T> RangeIteratorSeq<T>::RangeIteratorSeq(T start, T end, T step,
 : start(start), end(end), step(step), inclusive(inclusive) {
 }
 
-template <class T> int RangeIteratorSeq<T>::getType() {
+template <class T> int RangeIteratorSeq<T>::getType() const {
 	return 0;
 }
 
@@ -44,7 +44,7 @@ template <class T> T RangeIteratorSeq<T>::at(size_t index) const {
 	return start + index * step;
 }
 
-template <class T> vector<T> RangeIteratorSeq<T>:: getVector() {
+template <class T> vector<T> RangeIteratorSeq<T>:: getVector() const {
 	vector<T> ret;
 
 	for (size_t i=0; i<this->size(); i++) {

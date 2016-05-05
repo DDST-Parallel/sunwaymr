@@ -20,7 +20,6 @@
 
 #include <vector>
 #include <string>
-#include <sstream>
 #include <fstream>
 using namespace std;
 
@@ -28,8 +27,8 @@ template <class T, class U> ShuffledTask<T, U>::ShuffledTask(
 		RDD<T> *r, Partition *p, long shID, int nPs,
 		HashDivider &hashDivider,
 		Aggregator<T, U> &aggregator,
-		long (*hFunc)(U &u, stringstream &ss),
-		string (*sf)(U &u, stringstream &ss))
+		long (*hFunc)(U &u),
+		string (*sf)(U &u))
 :RDDTask< T, int >::RDDTask(r, p), hd(hashDivider), agg(aggregator)
 {
 	shuffleID = shID;
@@ -40,7 +39,6 @@ template <class T, class U> ShuffledTask<T, U>::ShuffledTask(
 
 template <class T, class U> int ShuffledTask<T, U>::run()
 {
-	stringstream thread_sstream;
 	// get current RDD value
 	IteratorSeq<T> *iter = RDDTask< T, int >::rdd->iteratorSeq(RDDTask< T, int >::partition);
 	vector<T> datas = iter->getVector();
@@ -60,9 +58,9 @@ template <class T, class U> int ShuffledTask<T, U>::run()
 
 	for(unsigned int i=0; i<datas.size(); i++)
 	{
-		long hashCode = hashFunc(datas1[i], thread_sstream);
+		long hashCode = hashFunc(datas1[i]);
 		int pos = hd.getPartition(hashCode); // get the new partition index
-		list[pos].push_back(strFunc(datas1[i], thread_sstream));
+		list[pos].push_back(strFunc(datas1[i]));
 	}
 	//merge data to a string
 	string fileContent;
@@ -99,20 +97,13 @@ template <class T, class U> int ShuffledTask<T, U>::run()
 
 template <class T, class U> string ShuffledTask<T, U>::serialize(int &t)
 {
-	stringstream ss;
-	string str;
-	ss<<t;
-	ss>>str;
-	return str;
+	return to_string(t);
 }
 
 template <class T, class U> int ShuffledTask<T, U>::deserialize(string &s)
 {
 	int val = 0;
-	stringstream ss;
-	ss<<s;
-	ss>>val;
-
+	from_string(val, s);
 	return val;
 }
 

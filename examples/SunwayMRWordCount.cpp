@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 
 	cout << "Result: " << endl;
 	for (unsigned int i=0; i<wc.size(); i++) {
-		cout << wc[i].v1 << ": " << wc[i].v2 << endl;
+		cout << "[" << i << "] " << wc[i].v1 << ": " << wc[i].v2 << endl;
 	}
 
 	Logging::logInfo(start);

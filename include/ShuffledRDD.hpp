@@ -8,13 +8,11 @@
 #ifndef INCLUDE_SHUFFLEDRDD_HPP_
 #define INCLUDE_SHUFFLEDRDD_HPP_
 
-#include <ShuffledTask.hpp>
 #include "ShuffledRDD.h"
 
 #include <ctime>
 #include <cstdlib>
 #include <map>
-#include <sstream>
 #include <new>
 
 #include "IteratorSeq.hpp"
@@ -23,6 +21,7 @@
 #include "RDD.hpp"
 #include "Pair.hpp"
 #include "SunwayMRContext.hpp"
+#include "ShuffledTask.hpp"
 #include "ShuffledRDDPartition.hpp"
 #include "Aggregator.hpp"
 #include "HashDivider.hpp"
@@ -40,9 +39,9 @@ template <class K, class V, class C>
 ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > *_prevRDD,
 		Aggregator< Pair<K, V>, Pair<K, C> > &_agg,
 		HashDivider &_hd,
-		long (*hf)(Pair<K, C> &p, stringstream &ss),
-		string (*strf)(Pair<K, C> &p, stringstream &ss),
-		Pair<K, C> (*_recoverFunc)(string &s, stringstream &ss))
+		long (*hf)(Pair<K, C> &p),
+		string (*strf)(Pair<K, C> &p),
+		Pair<K, C> (*_recoverFunc)(string &s))
 : RDD< Pair<K, C> >::RDD(_prevRDD->context), prevRDD(_prevRDD), agg(_agg), hd(_hd)
 {
 	hashFunc = hf;
@@ -154,12 +153,12 @@ IteratorSeq< Pair<K, C> > * ShuffledRDD<K, V, C>::iteratorSeq(Partition *p)
 	// merge
 	vector< Pair<K, C> > ret;
 	VectorIteratorSeq< Pair<K, C> > *retIt = new VectorIteratorSeq< Pair<K, C> >(ret);
-	map<K, C> combiners;
+	unordered_map<K, C> combiners;
 	merge(replys, combiners);
 	replys.clear();
 
 	// making result 
-	typename map<K, C>::iterator it;
+	typename unordered_map<K, C>::iterator it;
 	for(it=combiners.begin(); it!=combiners.end(); it++)
 	{
 		K k = it->first;
@@ -175,11 +174,38 @@ IteratorSeq< Pair<K, C> > * ShuffledRDD<K, V, C>::iteratorSeq(Partition *p)
 	return retIt;
 }
 
+namespace std {
+	namespace tr1 {
+		template <class K, class V>
+		struct hash< Pair<K, V> > : public std::unary_function<Pair<K, V>, size_t>
+	    {
+	      size_t
+	      operator()(const Pair<K, V> &p) const {
+	    	  return std::tr1::hash<K>()(p.v1) ^ (std::tr1::hash<V>()(p.v2) << 1);
+	      }
+	    };
+
+		template <class T>
+		struct hash< IteratorSeq<T> > : public std::unary_function<IteratorSeq<T>, size_t>
+		{
+		  size_t
+		  operator()(const IteratorSeq<T> &s) const {
+			  size_t ret = std::tr1::hash<size_t>()(s.size());
+			  if(s.size() > 0) {
+				  for(size_t i = 0; i < s.size(); i++) {
+					  ret ^ std::tr1::hash<T>()(s.at(i));
+				  }
+			  }
+			  return ret;
+		  }
+		};
+	}
+}
+
 template <class K, class V, class C>
-void ShuffledRDD<K, V, C>::merge(vector<string> &replys, map<K, C> &combiners)
+void ShuffledRDD<K, V, C>::merge(vector<string> &replys, unordered_map<K, C> &combiners)
 {
 	int invalid = 0;
-	stringstream thread_sstream;
 	for(unsigned int i=0; i<replys.size(); i++)
 	{
 		vector<string> pairs;
@@ -189,10 +215,10 @@ void ShuffledRDD<K, V, C>::merge(vector<string> &replys, map<K, C> &combiners)
 			if(pairs[j] == string(SHUFFLETASK_EMPTY_DELIMITATION))
 				continue;
 
-			typename map<K, C>::iterator iter;
+			typename unordered_map<K, C>::iterator iter;
 			Pair<K, C> p;
 			try {
-				p = recoverFunc(pairs[j], thread_sstream);
+				p = recoverFunc(pairs[j]);
 			} catch (std::bad_alloc& ba) {
 				invalid ++;
 				continue; // converting from string failed

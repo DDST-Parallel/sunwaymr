@@ -43,14 +43,21 @@ template <class U> IteratorSeq<U> * IteratorSeq<T>::flatMap(vector<U> (*f)(T&)) 
 	return ret;
 }
 
+//template <class T>
+//ostream& operator<< (ostream &out, const IteratorSeq<T> &s) {
+//	for(size_t i=0; i<s.size(); i++) {
+//		out << ITERATORSEQ_DELIMITATION_LEFT
+//				<< s.at(i)
+//				<< ITERATORSEQ_DELIMITATION_RIGHT;
+//	}
+//	return out;
+//}
+
 template <class T>
-ostream& operator<< (ostream &out, const IteratorSeq<T> &s) {
-	for(size_t i=0; i<s.size(); i++) {
-		out << ITERATORSEQ_DELIMITATION_LEFT
-				<< s.at(i)
-				<< ITERATORSEQ_DELIMITATION_RIGHT;
-	}
-	return out;
+bool IteratorSeq<T>::operator==(const IteratorSeq<T> &s) const {
+	return (this->getType() == s.getType()
+			&& this->size() == s.size()
+			&& this->getVector() == s.getVector());
 }
 
 #endif /* INCLUDE_ITERATORSEQ_HPP_ */

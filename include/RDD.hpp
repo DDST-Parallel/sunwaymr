@@ -1,11 +1,9 @@
 #ifndef RDD_HPP_
 #define RDD_HPP_
 
-#include <ShuffledTask.hpp>
 #include "RDD.h"
 
 #include <iostream>
-#include <sstream>
 
 #include "ReduceTask.hpp"
 #include "Task.hpp"
@@ -21,6 +19,7 @@
 #include "Pair.hpp"
 #include "UnionRDD.hpp"
 #include "VectorAutoPointer.hpp"
+#include "StringConvertion.hpp"
 using namespace std;
 
 template <class T>
@@ -173,23 +172,18 @@ Pair< T, int> distinct_inner_reduce_f (Pair< T, int > &p1, Pair< T, int > &p2) {
 
 template <class T>
 long distinct_inner_hash_f (Pair< T, int > &p) {
-	stringstream ss;
-	ss << p.v1;
-	return hash(ss.str());
+	return std::tr1::hash<string>()(to_string(p));
 }
 
 template <class T>
 string distinct_inner_toString_f (Pair< T, int > &p) {
-	stringstream ss;
-	ss << p;
-	return ss.str();
+	return to_string(p);
 }
 
 template <class T>
 Pair< T, int > distinct_inner_fromString_f (string &s) {
 	Pair< T, int > p;
-	stringstream ss(s);
-	ss >> p;
+	from_string(p, s);
 	return p;
 }
 

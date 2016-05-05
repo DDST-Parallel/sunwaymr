@@ -25,7 +25,9 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <tr1/unordered_map>
 using namespace std;
+using std::tr1::unordered_map;
 
 template <class K, class V, class C>
 
@@ -35,9 +37,9 @@ public:
 	ShuffledRDD(RDD< Pair<K, V> > *_prevRDD,
 			Aggregator< Pair<K, V>, Pair<K, C> > &_agg,
 			HashDivider &_hd,
-			long (*hf)(Pair<K, C> &p, stringstream &ss),
-			string (*strf)(Pair<K, C> &p, stringstream &ss),
-			Pair<K, C> (*_recoverFunc)(string &s, stringstream &ss));
+			long (*hf)(Pair<K, C> &p),
+			string (*strf)(Pair<K, C> &p),
+			Pair<K, C> (*_recoverFunc)(string &s));
 	~ShuffledRDD();
 	vector<Partition*> getPartitions();
 	vector<string> preferredLocations(Partition *p);
@@ -49,14 +51,14 @@ private:
 	RDD< Pair<K, V> > *prevRDD;
 	Aggregator< Pair<K, V>, Pair<K, C> > agg;
 	HashDivider hd;
-	long (*hashFunc)(Pair<K, C> &p, stringstream &ss); // function to compute hashCode of a pair
-    string (*strFunc)(Pair<K, C> &p, stringstream &ss); // function  to serialize a pair to string (to save to file)
-    Pair<K, C> (*recoverFunc)(string &s, stringstream &ss); // function to deserialize a string to a pair
+	long (*hashFunc)(Pair<K, C> &p); // function to compute hashCode of a pair
+    string (*strFunc)(Pair<K, C> &p); // function  to serialize a pair to string (to save to file)
+    Pair<K, C> (*recoverFunc)(string &s); // function to deserialize a string to a pair
     long shuffleID;
     bool shuffleFinished;
     map<int, IteratorSeq< Pair<K, C> >* > shuffleCache;
 
-	void merge(vector<string> &replys, map<K, C> &combiners);
+	void merge(vector<string> &replys, unordered_map<K, C> &combiners);
 };
 
 

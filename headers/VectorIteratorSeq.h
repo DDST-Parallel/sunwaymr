@@ -24,14 +24,11 @@ public:
 	void push_back(T t);
 	void push_back(vector<T> &v);
 	void reserve(size_t size);
-	int getType();
+	int getType() const;
 	size_t size() const;
 	T at(size_t index) const;
-	vector<T> getVector();
+	vector<T> getVector() const;
 	vector<T> reduceLeft(T (*g)(T&, T&));
-
-	template <class U>
-	friend istream& operator>> (istream &in, VectorIteratorSeq<U> &s);
 
 private:
 	vector<T> v;

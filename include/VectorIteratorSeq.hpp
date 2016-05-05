@@ -35,14 +35,14 @@ template <class T> void VectorIteratorSeq<T>::push_back(T t) {
 }
 
 template <class T> void VectorIteratorSeq<T>::push_back(vector<T> &v) {
-	this->v.insert(this->v.begin(), v.begin(), v.end());
+	this->v.insert(this->v.end(), v.begin(), v.end());
 }
 
 template <class T> void VectorIteratorSeq<T>::reserve(size_t size) {
 	this->v.reserve(size);
 }
 
-template <class T> int VectorIteratorSeq<T>::getType() {
+template <class T> int VectorIteratorSeq<T>::getType() const {
 	return 1;
 }
 
@@ -54,7 +54,7 @@ template <class T> T VectorIteratorSeq<T>::at(size_t index) const {
 	return v.at(index);
 }
 
-template <class T> vector<T> VectorIteratorSeq<T>::getVector() {
+template <class T> vector<T> VectorIteratorSeq<T>::getVector() const {
 	return v;
 }
 
@@ -75,21 +75,5 @@ template <class T> vector<T> VectorIteratorSeq<T>::reduceLeft(T (*g)(T&, T&)) {
 	return ret;
 }
 
-template <class T>
-istream& operator>> (istream &in, VectorIteratorSeq<T> &s) {
-	std::stringstream buffer;
-	buffer << in.rdbuf();
-	string str(buffer.str());
-	vector<string> vs;
-	s.clear();
-	vs = splitStringByDelimitationCouple(str, ITERATORSEQ_DELIMITATION_LEFT, ITERATORSEQ_DELIMITATION_RIGHT);
-	for (unsigned int i=0; i<vs.size(); i++) {
-		stringstream ss(vs[i]);
-		T t;
-		ss >> t;
-		s.push_back(t);
-	}
-	return in;
-}
 
 #endif /* INCLUDE_VECTORITERATORSEQ_HPP_ */

@@ -21,6 +21,7 @@
 #include "Utils.hpp"
 #include "Task.hpp"
 #include "TaskResult.hpp"
+#include "StringConvertion.hpp"
 
 using namespace std;
 
@@ -250,15 +251,14 @@ template <class T>
 void TaskScheduler<T>::finishTask(int task, T &value) {
 	if (task>=0 && (unsigned)task<this->tasks.size()) {
 		// send out task result
-		stringstream ss;
-		ss << this->jobID
-				<< TASK_RESULT_DELIMITATION
-				<< task
-				<<TASK_RESULT_DELIMITATION
-				<< this->tasks[task]->serialize(value);
+		string msg = "";
+		msg = msg + to_string(this->jobID)
+				+ TASK_RESULT_DELIMITATION
+				+ to_string(task)
+				+ TASK_RESULT_DELIMITATION
+				+ this->tasks[task]->serialize(value);
 
 		usleep(rand()%500000); // delay sending result
-		string msg = ss.str();
 		this->sendMessage(this->master, this->listenPort, A_TASK_RESULT, msg);
 		if(XYZ_TASK_SCHEDULER_RUN_TASK_MODE == 1) {
 			this->decreaseRunningThreadNum();
@@ -312,9 +312,9 @@ void TaskScheduler<T>::handleMessage(
 					stringstream receivedDebug;
 					receivedDebug
 							<< "TaskScheduler: master: a task result of job["
-							<< jobID << "] received, totally "
-							<< receivedTaskResultNum << " results of "
-							<< tasks.size() << " tasks received";
+							<< jobID << "] received, totally ["
+							<< receivedTaskResultNum << "/"
+							<< tasks.size() << "] received";
 					Logging::logDebug(receivedDebug.str());
 					pthread_mutex_unlock(&mutex_task_scheduler);
 				} else if (jobID > this->jobID) {
@@ -448,13 +448,12 @@ bool TaskScheduler<T>::getTaskResultString(int job, int task, string &result) {
 			|| !this->resultReceived[task]) return false;
 	if (this->taskResults[task] != NULL) {
 		T& value = taskResults[task]->value;
-		stringstream ss;
-		ss<< jobID
-				<< TASK_RESULT_DELIMITATION
-				<< task
-				<< TASK_RESULT_DELIMITATION
-				<< tasks[task]->serialize(value);
-		result = ss.str();
+		result = "";
+		result = result + to_string(jobID)
+				+ TASK_RESULT_DELIMITATION
+				+ to_string(task)
+				+ TASK_RESULT_DELIMITATION
+				+ tasks[task]->serialize(value);
 		return true;
 	}
 	return false;
@@ -465,16 +464,15 @@ bool TaskScheduler<T>::getTaskResultListString(int job, string &result) {
 	if (job != this->jobID) return false;
 	if (!this->allTaskResultsReceived) return false;
 
-	stringstream ss;
+	result = "";
 	for (unsigned int i=0; i<this->tasks.size(); i++) {
 		string tr;
 		this->getTaskResultString(job, i, tr);
-		ss << tr;
+		result += tr;
 		if (i != this->tasks.size()-1) {
-			ss << TASK_RESULT_LIST_DELIMITATION;
+			result += TASK_RESULT_LIST_DELIMITATION;
 		}
 	}
-	result = ss.str();
 	return true;
 }
 

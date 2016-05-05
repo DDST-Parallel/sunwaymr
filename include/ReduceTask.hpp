@@ -9,12 +9,10 @@
 
 #include "ReduceTask.h"
 
-#include <sstream>
-
 #include "IteratorSeq.hpp"
 #include "RDDTask.hpp"
 #include "Utils.hpp"
-using std::stringstream;
+#include "StringConvertion.hpp"
 
 template <class T> ReduceTask<T>::ReduceTask(RDD<T> *r, Partition *p, T (*g)(T&, T&))
 :RDDTask< T, vector<T> >::RDDTask(r, p), g(g)  {
@@ -27,12 +25,12 @@ template <class T> vector<T> ReduceTask<T>::run() {
 }
 
 template <class T> string ReduceTask<T>::serialize(vector<T> &t) {
-	stringstream ss;
+	string ret = "";
 	for (unsigned int i=0; i<t.size(); i++) {
-		ss << t[i];
-		if (i != t.size()-1) ss << REDUCE_TASK_DELIMITATION;
+		ret += to_string(t[i]);
+		if (i != t.size()-1) ret += REDUCE_TASK_DELIMITATION;
 	}
-	return ss.str();
+	return ret;
 }
 
 template <class T> vector<T> ReduceTask<T>::deserialize(string &s) {
@@ -41,22 +39,12 @@ template <class T> vector<T> ReduceTask<T>::deserialize(string &s) {
 	splitString(s, vs, REDUCE_TASK_DELIMITATION);
 
 	for(unsigned int i=0; i<vs.size(); i++) {
-		std::stringstream ss(vs[i]);
 		T t;
-		ss >> t;
+		from_string(t, vs[i]);
 		elems.push_back(t);
 	}
 	return elems;
 
-//	std::stringstream ss(s);
-//	std::string item;
-//	while (std::getline(ss, item, ' ')) {
-//		std::stringstream ss2(item);
-//		T t;
-//		ss2 >> t;
-//		elems->push_back(t);
-//	}
-//	return *elems;
 }
 
 

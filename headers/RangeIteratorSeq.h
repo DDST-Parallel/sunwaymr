@@ -20,10 +20,10 @@ class RangeIteratorSeq : public IteratorSeq<T> {
 public:
 	RangeIteratorSeq(T start, T end, T step);
 	RangeIteratorSeq(T start, T end, T step, bool inclusive);
-	int getType();
+	int getType() const;
 	size_t size() const;
 	T at(size_t index) const;
-	vector<T> getVector();
+	vector<T> getVector() const;
 	vector<T> reduceLeft(T (*g)(T&, T&));
 
 //	T getStart();

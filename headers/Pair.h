@@ -11,7 +11,6 @@
 #define HEADERS_PAIR_H_
 
 #include <iostream>
-#include <sstream>
 using namespace std;
 
 #ifndef PAIR_DELIMITATION_LEFT
@@ -27,13 +26,8 @@ public:
 	Pair();
 	Pair(K &k, V &v);
 	~Pair();
-	bool operator<(const Pair< K, V >& p) const;
-	void fromString(string &s, stringstream &ss);
-
-	template <class T, class U>
-	friend ostream& operator<< (ostream &out, const Pair<T, U> &p);
-	template <class T, class U>
-	friend istream& operator>> (istream &in, Pair<T, U> &p);
+	bool operator<(const Pair< K, V > &p) const;
+	bool operator==(const Pair< K, V > &p) const;
 
 	K v1;
 	V v2;

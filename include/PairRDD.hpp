@@ -23,6 +23,7 @@
 #include "Either.hpp"
 #include "MappedRDD.hpp"
 #include "UnionRDD.hpp"
+#include "StringConvertion.hpp"
 
 using namespace std;
 
@@ -99,29 +100,20 @@ MappedRDD<V, Pair< K, V > > * PairRDD<K, V, T>::values() {
 }
 
 template <class K, class C>
-long xyz_pair_rdd_combineByKey_inner_hash_f (Pair<K, C> &p, stringstream &ss) {
-	ss << p.v1;
-	long ret = hash(ss.str());
-	ss.str(string());
-	ss.clear();
+long xyz_pair_rdd_combineByKey_inner_hash_f (Pair<K, C> &p) {
+	long ret = std::tr1::hash<string>()(to_string(p.v1));
 	return ret;
 }
 
 template <class K, class C>
-string xyz_pair_rdd_combineByKey_inner_to_string_f (Pair<K, C> &p, stringstream &ss) {
-	ss << p;
-	string ret = ss.str();
-	ss.str(string());
-	ss.clear();
-	return ret;
+string xyz_pair_rdd_combineByKey_inner_to_string_f (Pair<K, C> &p) {
+	return to_string(p);
 }
 
 template <class K, class C>
-Pair<K, C> xyz_pair_rdd_combineByKey_inner_from_string_f (string &s, stringstream &ss) {
+Pair<K, C> xyz_pair_rdd_combineByKey_inner_from_string_f (string &s) {
 	Pair<K, C> p;
-	p.fromString(s, ss);
-	ss.str(string());
-	ss.clear();
+	from_string(p, s);
 	return p;
 }
 

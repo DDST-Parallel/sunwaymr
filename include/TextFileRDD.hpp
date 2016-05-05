@@ -85,6 +85,20 @@ FileSource getFileSize(PointerContainer<FileSource> &file) {
 		} else {
 			fs->length = lines;
 		}
+	} else if(fs->source=="." && selfIP==master_ip) {
+		fs->location = ".";
+		fs->listenPort = scheduler_listen_port;
+
+		long bytes, lines;
+		getFileLength(fs->path, bytes);
+		getFileLineNumber(fs->path, lines);
+		fs->bytes = bytes;
+		fs->lines = lines;
+		if (fs->format == FILE_SOURCE_FORMAT_BYTE) {
+			fs->length = bytes;
+		} else {
+			fs->length = lines;
+		}
 	} else if (fs->source=="[DFS-server]" && selfIP==master_ip) {
 		// TODO DFS file
 

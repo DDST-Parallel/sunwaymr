@@ -20,13 +20,13 @@ using std::stringstream;
 
 vector< Pair<string, string> > flat_map_f1(TextFileBlock &t) {
 	vector< Pair<string, string> > ret;
-	string data = t.blockData(), line, word1, word2;
+	string data = t.blockData(), line;
+	char buffer1[128], buffer2[128];
 	stringstream ss1(data);
 	while (std::getline(ss1, line)) {
 		if (line.empty()) continue;
-		stringstream ss2(line);
-		ss2 >> word1;
-		ss2 >> word2;
+		sscanf(line.c_str(), "%s %s", buffer1, buffer2);
+		string word1 = buffer1, word2 = buffer2;
 		ret.push_back(Pair<string, string>(word1, word2));
 	}
 	return ret;
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 
 	cout << "Result: " << endl;
 	for (unsigned int i=0; i<output.size(); i++) {
-		cout << output[i].v1 << " has rank: " << output[i].v2 << endl;
+		cout << "[" << i << "] " << output[i].v1 << " has rank: " << output[i].v2 << endl;
 	}
 
 	Logging::logInfo(start);

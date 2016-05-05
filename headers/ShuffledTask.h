@@ -20,7 +20,6 @@
 
 #include <iostream>
 #include <string>
-#include <sstream>
 using namespace std;
 
 template <class T, class U>
@@ -29,8 +28,8 @@ public:
 	ShuffledTask(RDD<T> *r, Partition *p, long shID, int nPs,
 			HashDivider &hashDivider,
 			Aggregator<T, U> &aggregator,
-			long (*hFunc)(U &u, stringstream &ss),
-			string (*sf)(U &u, stringstream &ss));
+			long (*hFunc)(U &u),
+			string (*sf)(U &u));
 	int run();
 	string serialize(int &t);
 	int deserialize(string &s);
@@ -40,8 +39,8 @@ private:
 	int numPartitions;
 	HashDivider hd;
 	Aggregator<T, U> agg;
-	long (*hashFunc)(U &u, stringstream &ss);
-	string (*strFunc)(U &u, stringstream &ss);
+	long (*hashFunc)(U &u);
+	string (*strFunc)(U &u);
 };
 
 #endif /* HEADERS_SHUFFLEDTASK_H_ */
