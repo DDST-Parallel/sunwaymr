@@ -16,6 +16,9 @@
 using std::vector;
 using std::string;
 
+/*
+ * default constructor
+ */
 FileSource::FileSource() {
 	source = "";
 	path = "";
@@ -27,6 +30,14 @@ FileSource::FileSource() {
 	lines = 0;
 }
 
+/*
+ * initializing a file source.
+ * accepted source types: *|.|[IP]|[DFS server]
+ *   1) *              every node has a file path, the file content may be different
+ *   2) .              every node has a same copy of file content
+ *   3) [IP]           the file content is at the host [IP]
+ *   4) [DFS server]   the file content is in some kind of distributed file system
+ */
 FileSource::FileSource(string source, string path, FileSourceFormat format)
 : source(source), path(path), format(format) {
 	length = 0;
@@ -36,6 +47,9 @@ FileSource::FileSource(string source, string path, FileSourceFormat format)
 	lines = 0;
 }
 
+/*
+ * copy constructor
+ */
 FileSource::FileSource(const FileSource &f)
 : source(f.source), path(f.path), format(f.format) {
 	length = f.length;

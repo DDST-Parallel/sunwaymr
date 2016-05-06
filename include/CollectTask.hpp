@@ -9,43 +9,38 @@
 #define COLLECTTASK_HPP_
 
 #include "CollectTask.h"
+
 #include "IteratorSeq.hpp"
 #include "RDDTask.hpp"
-#include "StringConvertion.hpp"
+#include "StringConversion.hpp"
 
 #include <string>
 using namespace std;
 
-
+/*
+ * constructor
+ */
 template <class T>
 CollectTask<T>::CollectTask(RDD<T> *r, Partition *p)
 :RDDTask< T, vector<T> >::RDDTask(r, p)
 {
 }
 
+/*
+ * running the task.
+ * for CollectTask, just return the partition data in vector.
+ */
 template <class T>
 vector<T> CollectTask<T>::run()
 {
 	IteratorSeq<T> *iter = RDDTask< T, vector<T> >::rdd->iteratorSeq(RDDTask< T, vector<T> >::partition);
-//	if(iter.type == 0)
-//	{
-//		vector<T> *tmp = new vector<T>;
-//		T start = iter.getStart();
-//		T end = iter.getEnd();
-//		T step = iter.getStep();
-//		T i = start;
-//		for(; i<end; i+=step)
-//			tmp->push_back(i);
-//
-//		if(i == end && iter.isInclusive() == 1)
-//			tmp->push_back(end);
-//
-//		return *tmp;
-//	}
-//	// type = 1
 	return iter->getVector();
 }
 
+/*
+ * serializing the task result.
+ * the data set in vector are split by pre-defined delimitation.
+ */
 template <class T>
 string CollectTask<T>::serialize(vector<T> &t)
 {
@@ -57,6 +52,12 @@ string CollectTask<T>::serialize(vector<T> &t)
 	return ret;
 }
 
+/*
+ * deserializing task result from string.
+ * firstly, split the string by delimitation,
+ * then, convert the string to object of type T,
+ * return all the objects in vector.
+ */
 template <class T>
 vector<T> CollectTask<T>::deserialize(string &s)
 {

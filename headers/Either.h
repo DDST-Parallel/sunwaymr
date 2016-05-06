@@ -1,8 +1,6 @@
 /*
  * Either.h
  *
- * Containing a value of class L or R.
- *
  *  Created on: Feb 26, 2016
  *      Author: yupeng
  */
@@ -25,6 +23,9 @@ enum EitherType {
 	EITHER_TYPE_RIGHT
 };
 
+/*
+ * Containing a value of class L or R.
+ */
 template <class L, class R>
 class Either {
 public:
@@ -32,7 +33,7 @@ public:
 	void initLeft(L &l);
 	void initRight(R &r);
 
-	EitherType type;
+	EitherType type; // indicating the value type of stored data
 	L left;
 	R right;
 

@@ -1,10 +1,6 @@
 /*
  * ShuffledRDD.h
  *
- * ShuffledRDD means partition values of previous RDD will be redistributed in new partitions.
- * PairRDD::combineByKey, PairRDD::reduceByKey, PairRDD::groupByKey will generate ShuffledRDD.
- *
- *
  *  Created on: 2016年2月23日
  *      Author: knshen
  */
@@ -18,9 +14,9 @@
 #include "RDD.h"
 #include "Pair.h"
 #include "SunwayMRContext.h"
-#include "ShuffledRDDPartition.h"
 #include "Aggregator.h"
 #include "HashDivider.h"
+#include "ShuffledPartition.h"
 
 #include <string>
 #include <vector>
@@ -31,6 +27,10 @@ using std::tr1::unordered_map;
 
 template <class K, class V, class C>
 
+/*
+ * ShuffledRDD means partition values of previous RDD will be redistributed in new partitions.
+ * PairRDD::combineByKey, PairRDD::reduceByKey, PairRDD::groupByKey will generate ShuffledRDD.
+ */
 class ShuffledRDD : public RDD< Pair<K, C> >, public Messaging
 {
 public:
@@ -56,9 +56,9 @@ private:
     Pair<K, C> (*recoverFunc)(string &s); // function to deserialize a string to a pair
     long shuffleID;
     bool shuffleFinished;
-    map<int, IteratorSeq< Pair<K, C> >* > shuffleCache;
+    map<int, IteratorSeq< Pair<K, C> >* > shuffleCache; // cache for iteratorSeq()
 
-	void merge(vector<string> &replys, unordered_map<K, C> &combiners);
+	void merge(vector<string> &replys, unordered_map<K, C> &combiners); // merge fetched combiners
 };
 
 

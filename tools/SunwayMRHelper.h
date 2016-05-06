@@ -15,6 +15,9 @@
 using std::vector;
 using std::map;
 
+/*
+ * struct of host resource information
+ */
 struct HostResource {
 	string host;
 	int threads;
@@ -22,11 +25,20 @@ struct HostResource {
 	int listenPort;
 };
 
+/*
+ * file saving directory and names
+ */
 const string fileSaveDir = "sunwaymrhelper/";
 const string localHostFileName = "local.lst";
 const string allHostsFileName = "all.lst";
 const string CXX = "gcc";
 
+/*
+ * SunwayMRHelper is the listener of starting applications.
+ * All the host resource information are managed by this helper.
+ * SunwayMRHelper is responsible for sending application and resource files,
+ * and run shell commands of compiling and start user applications.
+ */
 class SunwayMRHelper : public Messaging {
 public:
 	SunwayMRHelper(bool forUserApp);

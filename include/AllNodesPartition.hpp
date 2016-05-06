@@ -16,6 +16,9 @@
 #include "PointerContainer.hpp"
 using namespace std;
 
+/*
+ * constructor
+ */
 template <class T>
 AllNodesPartition<T>::AllNodesPartition(long _rddID, int _partitionID, IteratorSeq<PointerContainer <T> > *_values)
 : rddID(_rddID), partitionID(_partitionID), values(_values)
@@ -23,11 +26,18 @@ AllNodesPartition<T>::AllNodesPartition(long _rddID, int _partitionID, IteratorS
 
 }
 
+/*
+ * destructor
+ */
 template <class T>
 AllNodesPartition<T>::~AllNodesPartition() {
-	// values will be deleted in AllNodesRDD's destructor
+	// values will be deleted in AllNodesRDD's destructor.
+	// so, do nothing here.
 }
 
+/*
+ * to obtain data stored in this partition
+ */
 template <class T>
 IteratorSeq<PointerContainer <T> > * AllNodesPartition<T>::iteratorSeq()
 {

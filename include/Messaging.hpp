@@ -24,12 +24,17 @@
 #include "SunwayMRContext.h"
 using namespace std;
 
-
+/*
+ * constructor
+ */
 Messaging::Messaging() {
 	listenStatus = NA;
 	pthread_mutex_init(&mutex_check_file_cache, NULL);
 }
 
+/*
+ * destructor
+ */
 Messaging::~Messaging()
 {
 	// clear cached data
@@ -37,11 +42,17 @@ Messaging::~Messaging()
 
 }
 
+/*
+ * clear all cache, both file cache and shuffle cache
+ */
 void Messaging::clearAllCache() {
 	this->clearFileCache();
 	this->clearShuffleCache();
 }
 
+/*
+ * clear file cache, both cache read by byte and cache read by line
+ */
 void Messaging::clearFileCache() {
 	// file content
 	map<string, string* >::iterator it1;
@@ -57,6 +68,9 @@ void Messaging::clearFileCache() {
 	file_cache_lines.clear();
 }
 
+/*
+ * clear shuffle cache
+ */
 void Messaging::clearShuffleCache() {
 	// fetch content
 	map< long, vector< vector<string>* > >::iterator it3;
@@ -69,14 +83,17 @@ void Messaging::clearShuffleCache() {
 	fetch_content_local.clear();
 }
 
+/*
+ * read message from a socket file descriptor, save the message to the second parameter ret
+ */
 void readSocket(int socketfd, string &ret) {
 	//int MAX_MESSAGE_SIZE = 1024 * 1024 * 1024; // TODO configuration out of code
-	int BUFFER_SIZE = 1024 * 1024 * 4; // TODO configuration out of code
+	int BUFFER_SIZE = 1024 * 1024 * 4; // receive buffer TODO configuration out of code
 
 	char buffer[BUFFER_SIZE];
 	ssize_t total = 0;
 	vector<string> strs;
-	while (true) { // && total < MAX_MESSAGE_SIZE
+	while (true) {
 		memset(buffer, 0, BUFFER_SIZE);
 		ssize_t received = recv(socketfd, buffer, BUFFER_SIZE - 1, 0);
 
@@ -91,14 +108,11 @@ void readSocket(int socketfd, string &ret) {
 		ret += strs[i];
 	}
 
-//	string::size_type end = ret.find(END_OF_MESSAGE);
-//	if (end != string::npos) {
-//		total = end;
-//		ret = ret.substr(0, end);
-//	}
-
 }
 
+/*
+ * send a end flag of messaging, so that the receiver will know the termination of message
+ */
 bool sendEndOfMessage(int socket_fd) {
 	const char* ch = END_OF_MESSAGE;
 	int rsend = send(socket_fd, ch, strlen(ch), 0);
@@ -110,6 +124,9 @@ bool sendEndOfMessage(int socket_fd) {
 	return true;
 }
 
+/*
+ * the internal sending function
+ */
 bool Messaging::sendMessageInternal(int socket_fd, string addr, int targetPort, int msgType, string &msg) {
 	struct sockaddr_in address;
 	bzero(&address, sizeof(address));
@@ -119,18 +136,18 @@ bool Messaging::sendMessageInternal(int socket_fd, string addr, int targetPort, 
 	inet_pton(AF_INET, addr.c_str(), &address.sin_addr);  // translate IP Address
 	int len = sizeof(address);
 
-	// connect
+	// connect to address
 	int conn = connect(socket_fd, (struct sockaddr *)&address, len);
 	if (conn < 0)
 	{
 		Logging::logWarning("Messaging: sendMessageInternal: connect fail! will try again");
-		while (conn < 0) {
+		while (conn < 0) { // reconnection
 			usleep(300000 + rand()%300000); // sleep & reconnect later
 			conn = connect(socket_fd, (struct sockaddr *)&address, len);
 		}
 	}
 
-	// reorganize packet
+	// organizing message
 	char buffer [33];
 	memset(buffer, 0, sizeof(buffer));
 	snprintf(buffer, sizeof(buffer), "%d$", msgType);
@@ -145,7 +162,7 @@ bool Messaging::sendMessageInternal(int socket_fd, string addr, int targetPort, 
 		Logging::logError("Messaging: sendMessageInternal: failed to send");
 		return false;
 	}
-	ret = shutdown(socket_fd, SHUT_WR);
+	ret = shutdown(socket_fd, SHUT_WR); // shutdown the data transmission
 	if (ret < 0)
 	{
 		Logging::logError("Messaging: sendMessageInternal: failed to shutdown!");
@@ -154,6 +171,9 @@ bool Messaging::sendMessageInternal(int socket_fd, string addr, int targetPort, 
 	return true;
 }
 
+/*
+ * send message and wait a reply
+ */
 bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, string &msg, string &reply)
 {
 	int empty_reply_time = 0;
@@ -182,7 +202,7 @@ bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, st
 			usleep(300000 + rand()%300000); // sleep & reconnect later
 			continue;
 		}
-		if(reply == EMPTY_MESSAGE) {
+		if(reply == EMPTY_MESSAGE) { // succeeded
 			reply = "";
 		}
 		ret = true;
@@ -204,6 +224,9 @@ bool Messaging::sendMessageForReply(string addr, int targetPort, int msgType, st
 	return ret;
 }
 
+/*
+ * send message
+ */
 bool Messaging::sendMessage(string addr, int targetPort, int msgType, string &msg)
 {
 	string reply;
@@ -215,6 +238,10 @@ bool Messaging::sendMessage(string addr, int targetPort, int msgType, string &ms
 	return true;
 }
 
+/*
+ * to create a server socket and listen on the port.
+ * this function shall be called in another thread if the main thread need do other work
+ */
 void Messaging::listenMessage(int listenPort)
 {
 	listenStatus = NA;
@@ -261,7 +288,7 @@ void Messaging::listenMessage(int listenPort)
 
 	struct sockaddr_in client_address;
 	int client_len = sizeof(sockaddr_in);
-	while (1) {
+	while (1) { // always accept
 		int client_sockfd = accept(server_sockfd, (struct sockaddr *)&client_address, (socklen_t *)&client_len);
 		if (client_sockfd < 0) {
 			stringstream ss;
@@ -274,7 +301,7 @@ void Messaging::listenMessage(int listenPort)
 		struct xyz_messaging_listen_thread_data_ *td =
 				new xyz_messaging_listen_thread_data_(
 						this, listenPort, ip, client_sockfd);
-		// create a thread
+		// create a thread to handle socket connection
 		pthread_t worker;
 		if (pthread_create(&worker, NULL, messageHandler, (void *)td) != 0) {
 			Logging::logError("Messaging: failed to create new thread while listening");
@@ -284,10 +311,16 @@ void Messaging::listenMessage(int listenPort)
 
 }
 
+/*
+ * get the listening status
+ */
 int Messaging::getListenStatus() {
 	return listenStatus;
 }
 
+/*
+ * just write the msg to a socket
+ */
 void send(int socket_fd, string &msg) {
 	int rsend = 0;
 	if(msg == "") {
@@ -303,7 +336,9 @@ void send(int socket_fd, string &msg) {
 	}
 }
 
-// run of the thread
+/*
+ * thread function for socket connection handling
+ */
 void* messageHandler(void *data)
 {
 	// parse data
@@ -311,41 +346,40 @@ void* messageHandler(void *data)
 	Messaging *m = td->mess;
 
 	string msg;
-	readSocket(td->client_sockfd, msg);
+	readSocket(td->client_sockfd, msg); // read data from socket
 
 	string::size_type pos;
 	pos=msg.find('$', 0);
 	if (pos !=  string::npos) {
 		string typeStr = msg.substr(0, pos);
-		int msgType = atoi(typeStr.c_str());
+		int msgType = atoi(typeStr.c_str()); // message type
 		string msgContent=msg.substr(pos+1);
 
-		if(msgType == FILE_BLOCK_REQUEST) { // reply file block
+		if(msgType == FILE_BLOCK_REQUEST) { // the socket is requesting a file block
 			vector<string> vs;
 			splitString(msgContent, vs, FILE_BLOCK_REQUEST_DELIMITATION);
 			if(vs.size() >= 4) {
 				string ret;
-				string path = vs[0];
-				int offset = atoi(vs[1].c_str());
-				int length = atoi(vs[2].c_str());
+				string path = vs[0]; // file path
+				int offset = atoi(vs[1].c_str()); // offset
+				int length = atoi(vs[2].c_str()); // requested length
 				FileSourceFormat format = static_cast<FileSourceFormat>(atoi(vs[3].c_str()));
-				if (format == FILE_SOURCE_FORMAT_BYTE) {
-
+				if (format == FILE_SOURCE_FORMAT_BYTE) { // requesting bytes data
 					pthread_mutex_lock(&m->mutex_check_file_cache);
 					if (m->file_cache_bytes.find(path) == m->file_cache_bytes.end()) { // check file cache
 						string *file_content = new string();
-						readFile(path, *file_content);
-						m->file_cache_bytes[path] = file_content;
+						readFile(path, *file_content); // read file by byte
+						m->file_cache_bytes[path] = file_content; // save file content in cache
 					} 
 					pthread_mutex_unlock(&m->mutex_check_file_cache);
 
 					ret = m->file_cache_bytes[path]->substr(offset, length);
-				} else {
+				} else { // requesting lines of content
 					pthread_mutex_lock(&m->mutex_check_file_cache);
 					if (m->file_cache_lines.find(path) == m->file_cache_lines.end()) { // check file cache
 						vector<string> *file_content = new vector<string>();
-						readFileToLines(path, *file_content);
-						m->file_cache_lines[path] = file_content;
+						readFileToLines(path, *file_content); // read file
+						m->file_cache_lines[path] = file_content; // save cache in memory
 					} 
 					pthread_mutex_unlock(&m->mutex_check_file_cache);
 
@@ -359,9 +393,6 @@ void* messageHandler(void *data)
 				close(td->client_sockfd);
 			}
 		} else if(msgType == FETCH_REQUEST) {
-
-			//cout << "CONTEXT ID: " << SUNWAYMR_CONTEXT_ID << endl;
-
 			vector<string> paras;
 			splitString(msgContent, paras, ",");
 			if(paras.size() == 2)
@@ -369,22 +400,23 @@ void* messageHandler(void *data)
 				long shuffleID = atol(paras[0].c_str());
 				int partitionID = atoi(paras[1].c_str());
 
-				// send back data
-				string base_dir = "cache/shuffle/";
-				string app_id = num2string(SUNWAYMR_CONTEXT_ID);
-			    string shuffle_id = num2string(shuffleID);
-
-			    string dir = app_id.append("/shuffle-") + shuffle_id.append("/");
-			    dir = base_dir + dir;
-			    vector<string> allFileNames;
-				listAllFileNamesContain(dir, allFileNames, "shuffleTaskFile");
-
+				// checking cache
 				pthread_mutex_lock(&m->mutex_check_file_cache);
-				//map< long, vector< vector<string>* > > fetch_content_local; // !global shuffle cache data map(fetch_content) will cause segmentation fault!
 				map< long, vector< vector<string>* > >::iterator it = m->fetch_content_local.find(shuffleID);
 				if(it == m->fetch_content_local.end())
 				{
 					// this shuffle has not  been cached, read it
+					// shuffle files directory
+					string base_dir = "cache/shuffle/";
+					string app_id = num2string(SUNWAYMR_CONTEXT_ID);
+				    string shuffle_id = num2string(shuffleID);
+
+				    string dir = app_id.append("/shuffle-") + shuffle_id.append("/");
+				    dir = base_dir + dir;
+				    vector<string> allFileNames;
+					listAllFileNamesContain(dir, allFileNames, "shuffleTaskFile");
+
+					// read file content from every shuffle task file
 					vector< vector<string>* > vvs;
 					for(unsigned int i=0; i<allFileNames.size(); i++)
 					{
@@ -394,32 +426,33 @@ void* messageHandler(void *data)
 							splitString(content, *lines, SHUFFLETASK_PARTITION_DELIMITATION);
 							vvs.push_back(lines);
 					}
-					m->fetch_content_local[shuffleID] = vvs;
+					m->fetch_content_local[shuffleID] = vvs; // save shuffle cache
 				}
 				pthread_mutex_unlock(&m->mutex_check_file_cache);
 
-				//organize send message
+				// organize message
 				string senMsg;
 				for(unsigned int i=0; i<m->fetch_content_local[shuffleID].size()-1; i++)
 					senMsg += (*(m->fetch_content_local[shuffleID][i]))[partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
 				senMsg += (*(m->fetch_content_local[shuffleID].back()))[partitionID];
 
+				// sending back result
 				send(td->client_sockfd, senMsg);
 			}
 			close(td->client_sockfd);
-		} else if(msgType == FILE_INFO || msgType > 999999) { // sunwaymrhelper file sending
+		} else if(msgType == FILE_INFO || msgType > 999999) { // file transmission of sunwaymrhelper
 			m->messageReceived(td->local_port, td->ip, msgType, msgContent);
 			string reply = "0";
 			send(td->client_sockfd, reply);
 			close(td->client_sockfd);
-		} else {
+		} else { // messages that will be handled by implementation sub-class of Messaging
 			string reply = "";
 			send(td->client_sockfd, reply);
 			close(td->client_sockfd);
 
 			m->messageReceived(td->local_port, td->ip, msgType, msgContent);
 		}
-	} else {
+	} else { // invalid socket connection
 		string reply = "";
 		send(td->client_sockfd, reply);
 		close(td->client_sockfd);

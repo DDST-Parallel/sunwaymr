@@ -1,12 +1,14 @@
 /*
- * StringConvertion.hpp
+ * StringConversion.hpp
+ *
+ * This is a utility functions collection for string conversion of types
  *
  *  Created on: May 5, 2016
  *      Author: yupeng
  */
 
-#ifndef INCLUDE_STRINGCONVERTION_HPP_
-#define INCLUDE_STRINGCONVERTION_HPP_
+#ifndef INCLUDE_STRINGCONVERSION_HPP_
+#define INCLUDE_STRINGCONVERSION_HPP_
 
 #include <string>
 
@@ -316,4 +318,4 @@ void from_string(FileSource &fs, string s) {
 }
 
 
-#endif /* INCLUDE_STRINGCONVERTION_HPP_ */
+#endif /* INCLUDE_STRINGCONVERSION_HPP_ */

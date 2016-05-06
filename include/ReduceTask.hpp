@@ -12,18 +12,27 @@
 #include "IteratorSeq.hpp"
 #include "RDDTask.hpp"
 #include "Utils.hpp"
-#include "StringConvertion.hpp"
+#include "StringConversion.hpp"
 
+/*
+ * constructor
+ */
 template <class T> ReduceTask<T>::ReduceTask(RDD<T> *r, Partition *p, T (*g)(T&, T&))
 :RDDTask< T, vector<T> >::RDDTask(r, p), g(g)  {
 
 }
 
+/*
+ * to run the reduce function on the data in the corresponding partition
+ */
 template <class T> vector<T> ReduceTask<T>::run() {
 	IteratorSeq<T> *iter = RDDTask< T, vector<T> >::rdd->iteratorSeq(RDDTask< T, vector<T> >::partition);
 	return iter->reduceLeft(g);
 }
 
+/*
+ * to serialize the task result
+ */
 template <class T> string ReduceTask<T>::serialize(vector<T> &t) {
 	string ret = "";
 	for (unsigned int i=0; i<t.size(); i++) {
@@ -33,6 +42,9 @@ template <class T> string ReduceTask<T>::serialize(vector<T> &t) {
 	return ret;
 }
 
+/*
+ * to deserialize a string to task result
+ */
 template <class T> vector<T> ReduceTask<T>::deserialize(string &s) {
 	vector<T> elems;
 	vector<string> vs;

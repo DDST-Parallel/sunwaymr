@@ -16,17 +16,26 @@
 #include "Partition.hpp"
 using namespace std;
 
+/*
+ * constructor
+ */
 template <class T>
 UnionPartition<T>::UnionPartition(long rddID, int partitionID, RDD<T> *rdd, Partition *partition)
 :rddID(rddID), partitionID(partitionID), rdd(rdd), partition(partition) {
 
 }
 
+/*
+ * to get data of this partition
+ */
 template <class T>
 IteratorSeq<T> * UnionPartition<T>::iteratorSeq() {
 	return rdd->iteratorSeq(partition);
 }
 
+/*
+ * to get preferred locations of this partition
+ */
 template <class T>
 vector<string> UnionPartition<T>::preferredLocations() {
 	return rdd->preferredLocations(partition);

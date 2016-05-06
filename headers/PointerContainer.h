@@ -8,16 +8,19 @@
 #ifndef HEADERS_POINTERCONTAINER_H_
 #define HEADERS_POINTERCONTAINER_H_
 
+/*
+ * A PointerContainer hold a pointer to anything(eg. data, function)
+ */
 template <class T>
 class PointerContainer{
 public:
 	PointerContainer(T *ptr, bool autoDelete);
 	~PointerContainer();
-	T *get();
+	T *get(); // get saved pointer
 
 private:
 	T *ptr;
-	bool autoDelete;
+	bool autoDelete; // set deleting pointer in deconstructor or not
 };
 
 

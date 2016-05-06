@@ -1,8 +1,6 @@
 /*
  * TextFilePartition.h
  *
- * Partition of TextFileRDD, with several TextFileBlocks
- *
  *  Created on: Jan 13, 2016
  *      Author: yupeng
  */
@@ -19,6 +17,9 @@
 using std::vector;
 using std::string;
 
+/*
+ * Partition of TextFileRDD, with several TextFileBlocks
+ */
 class TextFilePartition: public Partition {
 public:
 	TextFilePartition(long rddID, int partitionID, IteratorSeq<TextFileBlock> *values);

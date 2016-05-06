@@ -1,13 +1,6 @@
 /*
  * RDD.h
  *
- * Abstract super class of all other RDD classes.
- * With some general interfaces of RDD.
- * So, every RDD has operator: map, flatmap, mapToPair,
- * 		reduce , shuffle, distinct, collect, unionRDD
- *
- * Some operator will return a new RDD.
- *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */
@@ -37,6 +30,14 @@ class SunwayMRContext;
 
 long XYZ_CURRENT_RDD_ID = 1; // id counter
 
+/*
+ * Abstract super class of all other RDD classes.
+ * With some general interfaces of RDD.
+ * So, every RDD has operator: map, flatmap, mapToPair,
+ * 		reduce , shuffle, distinct, collect, unionRDD
+ *
+ * Some operator will return a new RDD.
+ */
 template <class T>
 class RDD {
 public:

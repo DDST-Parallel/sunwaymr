@@ -1,9 +1,6 @@
 /*
  * IteratorSeq.h
  *
- * Just like Iterable in Java.
- * Abstract super class of VectorIteratorSeq & RangeIteratorSeq.
- *
  *  Created on: Jan 28, 2016
  *      Author: yupeng
  */
@@ -24,6 +21,10 @@ using std::ostream;
 #define ITERATORSEQ_DELIMITATION_RIGHT "\a)\a"
 #endif
 
+/*
+ * Just like Iterable in Java.
+ * Abstract super class of VectorIteratorSeq & RangeIteratorSeq.
+ */
 template <class T>
 class IteratorSeq {
 public:

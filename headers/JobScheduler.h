@@ -1,10 +1,6 @@
 /*
  * JobScheduler.h
  *
- * A context will have only on JobScheduler.
- * JobScheduler will listen message,
- * and create new TaskSchedulers when context::runTasks() is invoked.
- *
  *  Created on: Dec 10, 2015
  *      Author: yupeng
  */
@@ -26,6 +22,11 @@ using std::vector;
 #define HOST_RESOURCE_DELIMITATION " "
 #endif
 
+/*
+ * A context will have only one JobScheduler.
+ * JobScheduler will listen message,
+ * and create new TaskSchedulers when context::runTasks() is invoked.
+ */
 class JobScheduler : public Messaging {
 public:
 	JobScheduler();

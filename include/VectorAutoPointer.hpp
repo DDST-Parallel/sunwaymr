@@ -13,12 +13,18 @@
 #include <iostream>
 using namespace std;
 
+/*
+ * constructor
+ */
 template <class T>
 VectorAutoPointer<T>::VectorAutoPointer(vector<T *> &v)
 :pointers(v) {
 
 }
 
+/*
+ * destructor, deleting all pointers
+ */
 template <class T>
 VectorAutoPointer<T>::~VectorAutoPointer() {
 	for(unsigned int i = 0; i < this->pointers.size(); i++) {

@@ -1,8 +1,6 @@
 /*
  * Messaging.h
  *
- * A useful base class to send and listen socket messages.
- *
  *  Created on: Dec 8, 2015
  *      Author: yupeng
  */
@@ -35,6 +33,10 @@ enum ListenStatus {
 };
 
 class Messaging;
+
+/*
+ * thread data struct for listen threads
+ */
 struct xyz_messaging_listen_thread_data_ {
 	Messaging *mess;
 	int local_port;
@@ -48,6 +50,11 @@ struct xyz_messaging_listen_thread_data_ {
 
 void* messageHandler(void *fd);
 
+/*
+ *
+ * A useful base class to send and listen socket messages.
+ * Messaging is a base class for classes that need networking communication with socket.
+ */
 class Messaging {
 public:
 	Messaging();

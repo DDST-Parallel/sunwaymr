@@ -1,9 +1,6 @@
 /*
  * PairRDD.h
  *
- * Return type of RDD::mapToPair.
- * PairRDD values are all Pairs.
- *
  *  Created on: Jan 13, 2016
  *      Author: yupeng
  */
@@ -28,12 +25,15 @@ using std::string;
 template <class T> class RDD;
 template <class U, class T> class MappedRDD;
 
+/*
+ * Return type of RDD::mapToPair.
+ * PairRDD values are all Pairs.
+ */
 template <class K, class V, class T>
 class PairRDD : public RDD< Pair<K, V> > {
 public:
 	PairRDD(RDD<T> *prev, Pair<K, V> (*f)(T&));
 	~PairRDD();
-	//PairRDD<K, V, T> & operator=(const PairRDD<K, V, T> &p);
 	vector<Partition *> getPartitions();
 	vector<string> preferredLocations(Partition *p);
 	IteratorSeq< Pair<K, V> > * iteratorSeq(Partition *p);

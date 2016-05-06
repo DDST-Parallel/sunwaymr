@@ -1,8 +1,6 @@
 /*
  * Pair.h
  *
- * Duplicate class with pair class in C++.
- *
  *  Created on: Jan 13, 2016
  *      Author: yupeng
  */
@@ -20,6 +18,9 @@ using namespace std;
 #define PAIR_DELIMITATION_RIGHT "\a)\a"
 #endif
 
+/*
+ * Duplicate class with pair class in C++.
+ */
 template <class K, class V>
 class Pair {
 public:

@@ -21,6 +21,9 @@ using namespace std;
 
 /* JobScheduler member functions */
 
+/*
+ * default constructor
+ */
 JobScheduler::JobScheduler(){
 	hostFilePath="";
 	master="";
@@ -29,10 +32,13 @@ JobScheduler::JobScheduler(){
 	isMaster=0;
 	selfIPIndex = -1;
 	threadCountSum = 0;
-	pthread_mutex_init(&mutex_job_scheduler, NULL);
+	pthread_mutex_init(&mutex_job_scheduler, NULL); // initialization of mutex
 	nextJobID = 0;
 }
 
+/*
+ * constructor with host file path, master IP, application name and listen port
+ */
 JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 	//initialize
 	hostFilePath=hostFP;
@@ -45,7 +51,7 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 		isMaster = 1;
 	}
 
-	//read resource file
+	// read host resource file
 	string fileContent;
 	bool rd = readFile(hostFilePath, fileContent);
 	if (!rd) {
@@ -56,9 +62,10 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 	}
 
 	threadCountSum = 0;
-	pthread_mutex_init(&mutex_job_scheduler, NULL);
+	pthread_mutex_init(&mutex_job_scheduler, NULL); // initialization of mutex
 	nextJobID = 0;
 
+	// read lines in file content, each line stands for a host with resource information
 	stringstream fileContentStream(fileContent);
 	string line;
 	while(std::getline(fileContentStream,line,'\n')){
@@ -66,23 +73,26 @@ JobScheduler::JobScheduler(string hostFP, string mas, string appN, int listenP){
 		splitString(line, temp, HOST_RESOURCE_DELIMITATION);
         if(temp.size() < 4) continue;
         IPVector.push_back(temp[0]);
-        int tc = atoi(temp[1].c_str());
+        int tc = atoi(temp[1].c_str()); // available thread count
         threadCountVector.push_back(tc);
         threadCountSum += tc;
-        memoryVector.push_back(atoi(temp[2].c_str()));
+        memoryVector.push_back(atoi(temp[2].c_str())); // available memory
 	}
 
-	//vector <int> ::iterator s=find(IPVector.begin(),IPVector.end(),getLocalIP());
 	selfIPIndex = -1;
 	for(unsigned int i=0;i<IPVector.size();i++){
 		if (IPVector[i]==selfIP){
-			selfIPIndex=i;
+			selfIPIndex=i; // set the index of this host in IPVector
 			break;
 		}
 	}
 
 }
 
+/*
+ * destructor of JobScheduler.
+ * to delete all created TaskSchedulers
+ */
 JobScheduler::~JobScheduler() {
 	vector<Scheduler *>::iterator it;
 	for(it = this->taskSchedulers.begin(); it != this->taskSchedulers.end(); ++it) {
@@ -91,19 +101,28 @@ JobScheduler::~JobScheduler() {
 	this->taskSchedulers.clear();
 }
 
+/*
+ * to hold listening port information of JobScheduler.
+ */
 struct JobSchedulerThreadData {
 	JobScheduler *js;
 	int port;
 	JobSchedulerThreadData(JobScheduler *js, int port) : js(js), port(port) { }
 };
 
+/*
+ * thread function to start listening
+ */
 void *startSchedulerListening(void *data) {
 	JobSchedulerThreadData *d = (JobSchedulerThreadData *)data;
-	d->js->listenMessage(d->port);
+	d->js->listenMessage(d->port); // will block at this line if succeeding with listening
 
 	pthread_exit(NULL);
 }
 
+/*
+ * to start JobScheduler, mainly to start listening
+ */
 bool JobScheduler::start(){
 	pthread_t thread;
 	struct JobSchedulerThreadData *data = new JobSchedulerThreadData(this, listenPort);
@@ -124,10 +143,16 @@ bool JobScheduler::start(){
 	}
 }
 
+/*
+ * get the listening port of this JobScheduler
+ */
 int JobScheduler::getListenPort() {
 	return this->listenPort;
 }
 
+/*
+ * get the total number of threads to run tasks
+ */
 int JobScheduler::totalThreads(){
 
 	int ret=0;
@@ -145,11 +170,17 @@ int JobScheduler::totalThreads(){
 	return ret;
 }
 
+/*
+ * get the IPs of all hosts
+ */
 vector<string> JobScheduler::getHosts() {
 	return IPVector;
 }
 
-
+/*
+ * to run tasks.
+ * JobScheduler creates a new TaskScheduler for tasks of each Job.
+ */
 template <class T>
 vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
 	this->clearAllCache(); // clear cache of previous job
@@ -160,9 +191,9 @@ vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
 	TaskScheduler<T> *ts = new TaskScheduler<T>(jobID, selfIP, selfIPIndex, master, appName,
 			listenPort, IPVector, threadCountVector, memoryVector);
 	taskSchedulers.push_back(ts);
-	ts->preRunTasks(tasks);
+	ts->preRunTasks(tasks); // pre-run tasks, for preparation
 
-	// handle pre-arrived task results
+	// handle pre-arrived task results, some nodes may run faster than this node
 	size_t n = taskResultWorksOfNextJob.size();
 	if(n > 0) {
 		for (unsigned int i=0; i<n; i++) {
@@ -180,7 +211,7 @@ vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
 
 	pthread_mutex_unlock(&mutex_job_scheduler);
 
-	if (taskSchedulers.size() > 2) {
+	if (taskSchedulers.size() > 2) { // delete old task schedulers
 		delete(taskSchedulers.front());
 		taskSchedulers.erase(taskSchedulers.begin());
 	}
@@ -188,10 +219,14 @@ vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
 	return ts->runTasks(tasks);
 }
 
+/*
+ * messages are handled by JobSchduler firstly,
+ * and may be delivered to TaskScheduler if valid
+ */
 void JobScheduler::messageReceived(int localListenPort, string fromHost, int msgType, string &msg) {
 	if (localListenPort != this->listenPort || fromHost == "" || msg == "") return;
 
-	if(Logging::getMask() <= 0) {
+	if(Logging::getMask() <= 0) { // checkingg logging or not
 		stringstream received;
 		received << "JobScheduler: listening port: " << localListenPort
 				<< ", message received from: " << fromHost
@@ -207,7 +242,7 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 				int ret = 0;
 				taskSchedulers.back()->handleMessage(localListenPort, fromHost, msgType, msg, ret);
 
-				if (ret > 0) { // task scheduler handle failed
+				if (ret > 0) { // task scheduler handle failed, job id mismatches
 					pthread_mutex_lock(&mutex_job_scheduler);
 					if (ret == this->nextJobID) {
 						// a task result for next job. this occurs when master is slower than the slave
@@ -215,7 +250,7 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 						taskResultWorksOfNextJob.push_back(fromHost);
 						taskResultsOfNextJob.push_back(msg);
 					}
-					else if(ret == this->nextJobID - 1) {
+					else if(ret == this->nextJobID - 1) { // try again
 						taskSchedulers.back()->handleMessage(localListenPort, fromHost, msgType, msg, ret);
 					}
 					pthread_mutex_unlock(&mutex_job_scheduler);

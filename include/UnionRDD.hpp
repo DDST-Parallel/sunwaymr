@@ -18,10 +18,15 @@
 #include "UnionPartition.hpp"
 using namespace std;
 
+/*
+ * constructor
+ */
 template <class T>
 UnionRDD<T>::UnionRDD(SunwayMRContext *context, vector< RDD<T>* > &rdds)
 :RDD<T>::RDD(context), rdds(rdds) {
 	long unionRDD_id = RDD<T>::rddID;
+
+	// all the partitions are from previous rdds
 	vector<Partition*> partitions;
 	int partition_id = 0;
 	for (unsigned int i=0; i<rdds.size(); i++) {
@@ -35,23 +40,36 @@ UnionRDD<T>::UnionRDD(SunwayMRContext *context, vector< RDD<T>* > &rdds)
 	RDD<T>::partitions = partitions;
 }
 
+/*
+ * to get partitions of this RDD
+ */
 template <class T>
 vector<Partition*> UnionRDD<T>::getPartitions() {
 	return RDD<T>::partitions;
 }
 
+/*
+ * to get preferred locations of a partition
+ */
 template <class T>
 vector<string> UnionRDD<T>::preferredLocations(Partition *p) {
 	UnionPartition<T> *up = dynamic_cast<UnionPartition<T> * >(p);
 	return up->preferredLocations();
 }
 
+/*
+ * to get data of a partition
+ */
 template <class T>
 IteratorSeq<T> * UnionRDD<T>::iteratorSeq(Partition *p) {
 	UnionPartition<T> *up = dynamic_cast<UnionPartition<T> * >(p);
 	return up->iteratorSeq();
 }
 
+/*
+ * to shuffle.
+ * just do shuffle in each previous RDD.
+ */
 template <class T>
 void UnionRDD<T>::shuffle() {
 	for(unsigned int i=0; i<rdds.size(); i++) {
@@ -59,6 +77,9 @@ void UnionRDD<T>::shuffle() {
 	}
 }
 
+/*
+ * destructor, deleting previous RDDs if not sticky
+ */
 template <class T>
 UnionRDD<T>::~UnionRDD() {
 	for(unsigned int i=0; i<rdds.size(); i++) {

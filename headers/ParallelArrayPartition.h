@@ -1,9 +1,6 @@
 /*
  * ParallelArrayPartition.h
  *
- * RDD partition of ParallelArray (ParallelArray is a RDD type).
- * With a part of IteratorSeq values of ParallelArray.
- *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */
@@ -17,6 +14,10 @@
 #include "Partition.h"
 using std::vector;
 
+/*
+ * RDD partition of ParallelArray (ParallelArray is a RDD type).
+ * With a part of IteratorSeq values of ParallelArray.
+ */
 template <class T>
 class ParallelArrayPartition: public Partition {
 public:

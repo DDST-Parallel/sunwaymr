@@ -1,9 +1,6 @@
 /*
  * MessageType.h
  *
- * All message types are defined here.
- * MessageType will be used by Messaging when sending and receiving messages.
- *
  *  Created on: Dec 9, 2015
  *      Author: yupeng
  */
@@ -11,6 +8,10 @@
 #ifndef MESSAGETYPE_H_
 #define MESSAGETYPE_H_
 
+/*
+ * All message types are defined here.
+ * MessageType will be used by Messaging when sending and receiving messages.
+ */
 enum MessageType {
 	HOST_RESOURCE_INFO, // threads memory listenPort
 	FILE_INFO, // appUID fileUID fileName

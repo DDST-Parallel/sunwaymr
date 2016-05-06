@@ -18,11 +18,11 @@
 #include "IteratorSeq.hpp"
 #include "VectorIteratorSeq.hpp"
 #include "Partition.hpp"
+#include "ShuffledPartition.hpp"
 #include "RDD.hpp"
 #include "Pair.hpp"
 #include "SunwayMRContext.hpp"
 #include "ShuffledTask.hpp"
-#include "ShuffledRDDPartition.hpp"
 #include "Aggregator.hpp"
 #include "HashDivider.hpp"
 #include "TaskResult.hpp"
@@ -35,6 +35,9 @@
 
 using namespace std;
 
+/*
+ * constructor
+ */
 template <class K, class V, class C>
 ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > *_prevRDD,
 		Aggregator< Pair<K, V>, Pair<K, C> > &_agg,
@@ -54,12 +57,17 @@ ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > *_prevRDD,
 	vector<Partition*> parts;
 	for(int i=0; i<hd.getNumPartitions(); i++)
 	{
-		Partition *part = new ShuffledRDDPartition(this->rddID, i);
+		Partition *part = new ShuffledPartition(this->rddID, i);
 		parts.push_back(part);
 	}
 	this->partitions = parts;
 }
 
+/*
+ * destructor.
+ * deleting all the shuffle cache.
+ * deleting the previous RDD if that is not sticky.
+ */
 template <class K, class V, class C>
 ShuffledRDD<K, V, C>::~ShuffledRDD()
 {
@@ -74,12 +82,19 @@ ShuffledRDD<K, V, C>::~ShuffledRDD()
 	}
 }
 
+/*
+ * to get partitions of this RDD.
+ * as to ShuffledRDD, the partitions stored in itself, no its previous RDD.
+ */
 template <class K, class V, class C>
 vector<Partition*> ShuffledRDD<K, V, C>::getPartitions()
 {
 	return this->partitions;
 }
 
+/*
+ * to get the preferred locations of a partition
+ */
 template <class K, class V, class C>
 vector<string> ShuffledRDD<K, V, C>::preferredLocations(Partition *p)
 {
@@ -87,14 +102,18 @@ vector<string> ShuffledRDD<K, V, C>::preferredLocations(Partition *p)
 	return ve;
 }
 
+/*
+ * shuffle the data set of previous RDD.
+ * to create and run ShuffledTasks on previous RDD's partitions.
+ */
 template <class K, class V, class C>
 void ShuffledRDD<K, V, C>::shuffle()
 {
 	XYZ_TASK_SCHEDULER_RUN_TASK_MODE = 1;
 
-	if (shuffleFinished) return;
+	if (shuffleFinished) return; // shuffle was done before
 
-	prevRDD->shuffle();
+	prevRDD->shuffle(); // firstly, the previous RDD must do the shuffle
 
 	// construct tasks
 	vector< Task<int>* > tasks;
@@ -116,20 +135,27 @@ void ShuffledRDD<K, V, C>::shuffle()
 
 	this->shuffleFinished = true;
 
-	// !!!
+	// !!! as long as shuffle is done, the previous RDD can be destroyed
 	if(!this->prevRDD->isSticky()) {
 		delete this->prevRDD;
 		this->prevRDD = NULL;
 	}
 }
 
+/*
+ * to get data set of a partition.
+ * this is done by several steps:
+ *   1) to fetch combiners from other nodes
+ *   2) to merge the combiners with the same key by Aggregator::mergeCombiner
+ *   3) to same cache and return IteratorSeq of pairs after combination
+ *
+ * note: cannot save shuffle cache data in memory if using fork !
+ */
 template <class K, class V, class C>
 IteratorSeq< Pair<K, C> > * ShuffledRDD<K, V, C>::iteratorSeq(Partition *p)
 {
-	ShuffledRDDPartition *srp = dynamic_cast<ShuffledRDDPartition * >(p);
-
-	// !TODO cannot save shuffle cache data in memory if running in fork !
-	// now running tasks by pthread if shuffled (by change XYZ_TASK_SCHEDULER_RUN_TASK_MODE in shuffle())
+	ShuffledPartition *srp = dynamic_cast<ShuffledPartition * >(p);
+	// checking cache
 	if (shuffleCache.find(srp->partitionID) != shuffleCache.end()) {
 		return this->shuffleCache[srp->partitionID];
 	}
@@ -174,13 +200,15 @@ IteratorSeq< Pair<K, C> > * ShuffledRDD<K, V, C>::iteratorSeq(Partition *p)
 	return retIt;
 }
 
+/*
+ * definition of hash structs that may be used by unordered_map
+ */
 namespace std {
 	namespace tr1 {
 		template <class K, class V>
 		struct hash< Pair<K, V> > : public std::unary_function<Pair<K, V>, size_t>
 	    {
-	      size_t
-	      operator()(const Pair<K, V> &p) const {
+	      size_t operator()(const Pair<K, V> &p) const {
 	    	  return std::tr1::hash<K>()(p.v1) ^ (std::tr1::hash<V>()(p.v2) << 1);
 	      }
 	    };
@@ -188,8 +216,7 @@ namespace std {
 		template <class T>
 		struct hash< IteratorSeq<T> > : public std::unary_function<IteratorSeq<T>, size_t>
 		{
-		  size_t
-		  operator()(const IteratorSeq<T> &s) const {
+		  size_t operator()(const IteratorSeq<T> &s) const {
 			  size_t ret = std::tr1::hash<size_t>()(s.size());
 			  if(s.size() > 0) {
 				  for(size_t i = 0; i < s.size(); i++) {
@@ -202,6 +229,9 @@ namespace std {
 	}
 }
 
+/*
+ * to merge combiners fetched from other nodes
+ */
 template <class K, class V, class C>
 void ShuffledRDD<K, V, C>::merge(vector<string> &replys, unordered_map<K, C> &combiners)
 {
@@ -230,7 +260,7 @@ void ShuffledRDD<K, V, C>::merge(vector<string> &replys, unordered_map<K, C> &co
 			iter = combiners.find(p.v1);
 			if(iter != combiners.end())
 			{
-				// the key exist
+				// the key exists
 				Pair<K, C> origin(p.v1, combiners[p.v1]);
 				Pair<K, C> newPair = agg.mergeCombiners(origin, p);
 				combiners[p.v1] = newPair.v2;
@@ -248,6 +278,9 @@ void ShuffledRDD<K, V, C>::merge(vector<string> &replys, unordered_map<K, C> &co
 	}
 }
 
+/*
+ * for sub-class of Messaging, must override messageReceived
+ */
 template <class K, class V, class C>
 void ShuffledRDD<K, V, C>::messageReceived(int localListenPort, string fromHost, int msgType, string &msg)
 {

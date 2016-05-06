@@ -1,8 +1,6 @@
 /*
  * ParallelArrayRDD.h
  *
- * A RDD type with IteratorSeq values, e.g. 1...1000
- *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */
@@ -24,6 +22,9 @@ template <class T> class RDD;
 template <class U, class T> class MappedRDD;
 class SunwayMRContext;
 
+/*
+ * A RDD type with IteratorSeq values, e.g. 1...1000
+ */
 template <class T>
 class ParallelArrayRDD : public RDD<T> {
 public:

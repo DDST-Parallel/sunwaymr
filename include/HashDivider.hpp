@@ -10,16 +10,25 @@
 
 #include "HashDivider.h"
 
+/*
+ * constructor
+ */
 HashDivider::HashDivider(int partitions)
 {
 	numPartitions = partitions;
 }
 
+/*
+ * get the total number of partitions
+ */
 int HashDivider::getNumPartitions()
 {
 	return numPartitions;
 }
 
+/*
+ * get the new partition index for a hash code
+ */
 int HashDivider::getPartition(long hashcode)
 {
 	int mod = hashcode % numPartitions;
@@ -29,6 +38,9 @@ int HashDivider::getPartition(long hashcode)
 	return mod;
 }
 
+/*
+ * to determine the equality of two HashDividers
+ */
 bool HashDivider::equals(HashDivider hd)
 {
 	return numPartitions == hd.getNumPartitions();

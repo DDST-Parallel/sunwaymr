@@ -1,8 +1,6 @@
 /*
  * AllNodesPartition.h
  *
- *	Partition of AllNodesRDD
- *
  *  Created on: Jan 17, 2016
  *      Author: yupeng
  */
@@ -17,16 +15,19 @@
 #include "PointerContainer.h"
 using std::vector;
 
+/*
+ *	Partition of AllNodesRDD
+ */
 template <class T>
 class AllNodesPartition : public Partition {
 public:
 	AllNodesPartition(long rddID, int partitionID, IteratorSeq<PointerContainer <T> > *values);
 	~AllNodesPartition();
-	IteratorSeq<PointerContainer <T> > * iteratorSeq();
+	IteratorSeq<PointerContainer <T> > * iteratorSeq(); // get data
 
 	long rddID;
 	int partitionID;
-	IteratorSeq<PointerContainer <T> > *values;
+	IteratorSeq<PointerContainer <T> > *values; // array of PointerContainer.
 };
 
 

@@ -17,6 +17,9 @@
 #include "ParallelArrayPartition.hpp"
 using namespace std;
 
+/*
+ * constructor
+ */
 template <class T>
 ParallelArrayRDD<T>::ParallelArrayRDD(SunwayMRContext *c, IteratorSeq<T> *seq, int numSlices)
 	: RDD<T>::RDD (c), numSlices(numSlices)
@@ -31,7 +34,7 @@ ParallelArrayRDD<T>::ParallelArrayRDD(SunwayMRContext *c, IteratorSeq<T> *seq, i
 		exit(104);
 	}
 
-	//construct partitions
+	// create partitions
 	for (unsigned int i = 0; i < slices.size(); i++)
 	{
 		Partition* partition = new ParallelArrayPartition<T>(parallelArray_id, i, slices[i]);
@@ -41,12 +44,19 @@ ParallelArrayRDD<T>::ParallelArrayRDD(SunwayMRContext *c, IteratorSeq<T> *seq, i
 	RDD<T>::partitions = partitions;
 }
 
+/*
+ * to get partitions of this RDD
+ */
 template <class T>
 vector<Partition*> ParallelArrayRDD<T>::getPartitions()
 {
 	return RDD<T>::partitions;
 }
 
+/*
+ * to get preferred locations of a partition.
+ * as to ParallelArrayPartition, there is no preferred locations.
+ */
 template <class T>
 vector<string> ParallelArrayRDD<T>::preferredLocations(Partition *p)
 {
@@ -54,6 +64,9 @@ vector<string> ParallelArrayRDD<T>::preferredLocations(Partition *p)
 	return list;
 }
 
+/*
+ * to get data in a partition
+ */
 template <class T>
 IteratorSeq<T> * ParallelArrayRDD<T>::iteratorSeq(Partition *p)
 {
@@ -61,13 +74,15 @@ IteratorSeq<T> * ParallelArrayRDD<T>::iteratorSeq(Partition *p)
 	return pap->iteratorSeq();
 }
 
+/*
+ * split a IteratorSeq into a vector of IteratorSeqs for numbers of partitions
+ */
 template <class T>
 vector< IteratorSeq<T>* > ParallelArrayRDD<T>::slice(IteratorSeq<T> *seq)
 {
 	vector< IteratorSeq<T>* > slices;
 	if (numSlices < 1)
 	{
-//		logError("ParallelArray: slice number should be positive integer!");
 		return slices;
 	}
 
@@ -75,7 +90,7 @@ vector< IteratorSeq<T>* > ParallelArrayRDD<T>::slice(IteratorSeq<T> *seq)
 	long num_group = seqSize / numSlices;
 
 	if (seq->getType() == 0)
-	{
+	{ // type == 0, split range
 		T step = seq->at(1) - seq->at(0);
 		for (int i = 0; i < numSlices - 1; i++)
 		{
@@ -90,8 +105,7 @@ vector< IteratorSeq<T>* > ParallelArrayRDD<T>::slice(IteratorSeq<T> *seq)
 		slices.push_back(last);
 	}
 	else
-	{
-		// type == 1
+	{ // type == 1, split vector
 		for (int i = 0; i < numSlices - 1; i++)
 		{
 			vector<T> group;

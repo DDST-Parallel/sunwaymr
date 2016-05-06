@@ -17,11 +17,13 @@
 #include "TextFileBlock.h"
 using namespace std;
 
-
+/*
+ * constructor
+ */
 TextFilePartition::TextFilePartition(long _rddID, int _partitionID, IteratorSeq<TextFileBlock> *_values)
 : rddID(_rddID), partitionID(_partitionID), values(_values)
 {
-	// map block locations
+	// map of block locations
 	map<string, int> locationMap;
 	for(unsigned int i=0; i<values->size(); i++) {
 		TextFileBlock block = values->at(i);
@@ -32,7 +34,7 @@ TextFilePartition::TextFilePartition(long _rddID, int _partitionID, IteratorSeq<
 		}
 	}
 
-	// sort
+	// sort block locations by block count
 	map<string, int>::iterator it_m;
 	for(it_m=locationMap.begin(); it_m!=locationMap.end(); ++it_m) {
 		string lo = it_m->first;
@@ -57,10 +59,16 @@ TextFilePartition::TextFilePartition(long _rddID, int _partitionID, IteratorSeq<
 	}
 }
 
+/*
+ * destructor
+ */
 TextFilePartition::~TextFilePartition() {
 	delete values;
 }
 
+/*
+ * to get TextFileBlocks from this partition
+ */
 IteratorSeq<TextFileBlock> * TextFilePartition::iteratorSeq()
 {
 	return values;

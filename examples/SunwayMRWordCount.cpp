@@ -18,6 +18,9 @@ using std::endl;
 using std::vector;
 using std::stringstream;
 
+/*
+ * flat map text file block to words
+ */
 vector<string> flat_map_f1(TextFileBlock &t) {
 	vector<string> ret;
 	string data = t.blockData();
@@ -29,29 +32,38 @@ vector<string> flat_map_f1(TextFileBlock &t) {
 	return ret;
 }
 
-Pair<string, int> mapToPair_f(string &s) {
+/*
+ * map each word to pair
+ */
+Pair<string, int> map_to_pair_f(string &s) {
 	int i = 1;
 	return Pair<string, int>(s, i);
 }
 
-Pair<string, int> reduceByKey_f (Pair<string, int> &p1, Pair<string, int> &p2) {
+/*
+ * reduce function to sum counts of words
+ */
+Pair<string, int> reduce_by_key_f (Pair<string, int> &p1, Pair<string, int> &p2) {
 	int i = p1.v2+p2.v2;
 	return Pair<string, int>(p1.v1, i);
 }
 
+/*
+ * main function
+ */
 int main(int argc, char *argv[]) {
-	string start = currentDateTime();
-
+	string start = currentDateTime(); // logging start time of computation
 	cout << endl << "SunwayMR Word Count" << endl << endl;
 
+	// set environment variables from console parameters
 	SunwayMRContext sc("SunwayMRWordCount", argc, argv);
 	vector<FileSource> fsv;
 	FileSource fs = FileSource("192.168.1.165", "/opt/test-data/wc/1.txt");
 	fsv.push_back(fs);
 	vector< Pair<string, int> > wc = sc.textFile(fsv, FILE_SOURCE_FORMAT_LINE)
 			->flatMap(flat_map_f1)
-			->mapToPair(mapToPair_f)
-			->reduceByKey(reduceByKey_f)
+			->mapToPair(map_to_pair_f)
+			->reduceByKey(reduce_by_key_f)
 			->collect();
 
 	cout << "Result: " << endl;

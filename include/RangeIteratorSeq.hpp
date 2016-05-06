@@ -13,18 +13,30 @@
 #include <assert.h>
 #include "IteratorSeq.hpp"
 
+/*
+ * constructor
+ */
 template <class T> RangeIteratorSeq<T>::RangeIteratorSeq(T start, T end, T step)
 : start(start), end(end), step(step), inclusive(true) {
 }
 
+/*
+ * constructor
+ */
 template <class T> RangeIteratorSeq<T>::RangeIteratorSeq(T start, T end, T step, bool inclusive)
 : start(start), end(end), step(step), inclusive(inclusive) {
 }
 
+/*
+ * to get type of this IteratorSeq
+ */
 template <class T> int RangeIteratorSeq<T>::getType() const {
 	return 0;
 }
 
+/*
+ * to get size of this IteratorSeq
+ */
 template <class T> size_t RangeIteratorSeq<T>::size() const {
 	if (start == end) {
 		if (inclusive) return 1;
@@ -40,10 +52,16 @@ template <class T> size_t RangeIteratorSeq<T>::size() const {
 	}
 }
 
+/*
+ * to get element at index of this IteratorSeq
+ */
 template <class T> T RangeIteratorSeq<T>::at(size_t index) const {
 	return start + index * step;
 }
 
+/*
+ * to get vector of all elements of this IteratorSeq
+ */
 template <class T> vector<T> RangeIteratorSeq<T>:: getVector() const {
 	vector<T> ret;
 
@@ -54,6 +72,9 @@ template <class T> vector<T> RangeIteratorSeq<T>:: getVector() const {
 	return ret;
 }
 
+/*
+ * to reduce this IteratorSeq by a reducing function
+ */
 template <class T> vector<T> RangeIteratorSeq<T>::reduceLeft(T (*g)(T&, T&)) {
 	vector<T> ret;
 

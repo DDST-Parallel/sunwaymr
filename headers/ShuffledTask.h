@@ -1,10 +1,6 @@
 /*
  * ShuffledTask.h
  *
- * ShuffledRDD::shuffle will create and run ShuffleTasks.
- * ShuffledTask is designed to obtain partition values of ShuffledRDD from previous RDD.
- * Values above will be fetched in ShuffledRDD::iteratorSeq
- *
  *  Created on: 2016年2月22日
  *      Author: knshen
  */
@@ -22,6 +18,11 @@
 #include <string>
 using namespace std;
 
+/*
+ * ShuffledRDD::shuffle will create and run ShuffleTasks.
+ * ShuffledTask is designed to obtain partition data of ShuffledRDD from previous RDD.
+ * Values above will be fetched in ShuffledRDD::iteratorSeq
+ */
 template <class T, class U>
 class ShuffledTask : public RDDTask< T, int > {
 public:
@@ -35,7 +36,7 @@ public:
 	int deserialize(string &s);
 
 private:
-	long shuffleID; // == rddID
+	long shuffleID; // the same as rddID
 	int numPartitions;
 	HashDivider hd;
 	Aggregator<T, U> agg;

@@ -1,6 +1,8 @@
 /*
  * SunwayMRPi.cpp
  *
+ * Pi computation example of SunwayMR.
+ *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */
@@ -12,11 +14,17 @@ using std::endl;
 
 unsigned int seed = time(NULL);
 
+/*
+ * generate a random number between start and end
+ */
 double random(double start, double end)
 {
 	return start+(end-start)*rand_r(&seed)/(RAND_MAX + 1.0);
 }
 
+/*
+ * map function for every generated double number
+ */
 long map_f(long &i)
 {
 	double x = random(-1, 1);
@@ -26,15 +34,19 @@ long map_f(long &i)
 	return 0L;
 }
 
+/*
+ * sum the count of points inside the circle
+ */
 long reduce_f(long &x, long &y)
 {
 	return x + y;
 }
 
-
+/*
+ * main function
+ */
 int main(int argc, char *argv[]) {
-	string start = currentDateTime();
-
+	string start = currentDateTime(); // logging start time of computation
 	cout<< "SunwayMR Pi Calculation" << endl;
 
 	srand(unsigned(time(0)));

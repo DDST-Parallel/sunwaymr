@@ -1,11 +1,6 @@
 /*
  * TextFileBlock.h
  *
- * Context::textFile creates TextFileRDD.
- * TextFileRDD creates TextFileBlocks.
- * TextFileBlock keeps FileSource and duration information.
- * Member function blockData() does retrieve file data from file source.
- *
  *  Created on: Jan 15, 2016
  *      Author: yupeng
  */
@@ -20,6 +15,12 @@ using std::string;
 
 int MAX_TEXT_FILE_BLOCK_SIZE_BYTE = 3 * 1024 * 1024; // TODO configuration out of code
 
+/*
+ * Context::textFile creates TextFileRDD.
+ * TextFileRDD creates TextFileBlocks.
+ * TextFileBlock keeps FileSource and duration information.
+ * Member function blockData() does retrieve file data from file source.
+ */
 class TextFileBlock : public Messaging {
 public:
 	TextFileBlock();

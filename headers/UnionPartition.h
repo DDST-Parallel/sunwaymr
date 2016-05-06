@@ -1,10 +1,6 @@
 /*
  * UnionPartition.h
  *
- * Partition of UnionRDD.
- * Constructed from a pointer *RDD and a pointer *partition.
- * The RDD and partition above is from UnionRDD.
- *
  *  Created on: Feb 26, 2016
  *      Author: yupeng
  */
@@ -20,6 +16,11 @@
 using std::vector;
 using std::string;
 
+/*
+ * Partition of UnionRDD.
+ * Constructed from a pointer *RDD and a pointer *partition.
+ * The RDD and partition above is from UnionRDD.
+ */
 template <class T>
 class UnionPartition: public Partition {
 public:

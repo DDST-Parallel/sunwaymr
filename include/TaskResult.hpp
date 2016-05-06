@@ -12,6 +12,9 @@
 
 #include "Task.hpp"
 
+/*
+ * constructor
+ */
 template <class T> TaskResult<T>::TaskResult(Task<T> *t, T &result)
 : task(t), value(result) {
 

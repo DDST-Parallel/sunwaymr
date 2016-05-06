@@ -1,10 +1,6 @@
 /*
  * UnionRDD.h
  *
- * Return type of RDD::unionRDD.
- * To union numbers of RDDs.
- * Create UnionRDDPartitions for each RDD and each partition in RDDs.
- *
  *  Created on: Feb 26, 2016
  *      Author: yupeng
  */
@@ -25,6 +21,11 @@ using std::string;
 template <class T> class RDD;
 class SunwayMRContext;
 
+/*
+ * Return type of RDD::unionRDD.
+ * To union numbers of RDDs.
+ * Create UnionPartitions for each RDD and each partition in RDDs.
+ */
 template <class T>
 class UnionRDD : public RDD<T> {
 public:

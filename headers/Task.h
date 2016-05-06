@@ -1,9 +1,6 @@
 /*
  * Task.h
  *
- * Abstract super class of RDDTask.
- * Every action operator of RDD will create Tasks to run.
- *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */
@@ -40,6 +37,10 @@ using std::string;
 
 long XYZ_CURRENT_TASK_ID = 1; // task id counter
 
+/*
+ * Abstract super class of RDDTask.
+ * Every action operator of RDD will create Tasks to run.
+ */
 template <class T>
 class Task {
 public:

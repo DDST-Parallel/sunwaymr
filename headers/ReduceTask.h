@@ -1,8 +1,6 @@
 /*
  * ReduceTask.h
  *
- * RDD::reduce will create ReduceTasks, and run in context->JobScheduler->TaskScheduler
- *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */
@@ -15,7 +13,9 @@
 #include "RDDTask.h"
 using std::vector;
 
-
+/*
+ * RDD::reduce will create ReduceTasks, and run in context->JobScheduler->TaskScheduler
+ */
 template <class T>
 class ReduceTask : public RDDTask< T, vector<T> > {
 public:

@@ -1,9 +1,6 @@
 /*
  * RangeIteratorSeq.h
  *
- * Sub-class of AbstractIteratorSeq.
- * Containing a seq, like 1...1000
- *
  *  Created on: Jan 28, 2016
  *      Author: yupeng
  */
@@ -15,6 +12,10 @@
 #include "IteratorSeq.h"
 using std::vector;
 
+/*
+ * Sub-class of AbstractIteratorSeq.
+ * Containing a seq, like 1...1000
+ */
 template <class T>
 class RangeIteratorSeq : public IteratorSeq<T> {
 public:
@@ -26,10 +27,6 @@ public:
 	vector<T> getVector() const;
 	vector<T> reduceLeft(T (*g)(T&, T&));
 
-//	T getStart();
-//	T getEnd();
-//	T getStep();
-//	bool isInclusive();
 private:
 	T start;
 	T end;

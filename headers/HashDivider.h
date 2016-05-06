@@ -1,9 +1,6 @@
 /*
  * HashDivider.h
  *
- * Get partition index by hashCode.
- * Pair value will be on that partition after shuffle.
- *
  *  Created on: 2016年2月23日
  *      Author: knshen
  */
@@ -11,7 +8,10 @@
 #ifndef HEADERS_HASHDIVIDER_H_
 #define HEADERS_HASHDIVIDER_H_
 
-
+/*
+ * Get partition index by hashCode.
+ * Pair value will be on that partition after shuffle.
+ */
 class HashDivider
 {
 public:

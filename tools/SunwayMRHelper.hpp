@@ -22,6 +22,9 @@
 
 using namespace std;
 
+/*
+ * thread data struct for start listening thread
+ */
 struct thread_data{
    SunwayMRHelper &helper;
    const char *msg;
@@ -31,6 +34,9 @@ struct thread_data{
    : helper(h), msg(m), v(v) { }
 };
 
+/*
+ * thread function to start listening
+ */
 void *startHelperListening(void *data) {
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	struct thread_data *my_data;
@@ -42,6 +48,9 @@ void *startHelperListening(void *data) {
 
 bool xyz_send_host_resource_info_thread_cancel_flag = false;
 bool xyz_send_host_resource_info_thread_canceled_flag = true;
+/*
+ * thread function to send resource information
+ */
 void *sendHostResourceInfoToMasterRepeatedly(void *data) {
 	xyz_send_host_resource_info_thread_canceled_flag = false;
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -49,7 +58,7 @@ void *sendHostResourceInfoToMasterRepeatedly(void *data) {
 	my_data = (struct thread_data *)data;
 
 	while(true) {
-		if (xyz_send_host_resource_info_thread_cancel_flag) {
+		if (xyz_send_host_resource_info_thread_cancel_flag) { // check cancellation
 			xyz_send_host_resource_info_thread_cancel_flag = false;
 			xyz_send_host_resource_info_thread_canceled_flag = true;
 			break;
@@ -62,7 +71,9 @@ void *sendHostResourceInfoToMasterRepeatedly(void *data) {
 	pthread_exit(NULL);
 }
 
-// for starting user applications
+/*
+ * constructor
+ */
 SunwayMRHelper::SunwayMRHelper(bool forUserApp) {
 	masterListenPort = 0;
 	threads = 0;
@@ -112,7 +123,9 @@ SunwayMRHelper::SunwayMRHelper(bool forUserApp) {
 
 }
 
-// for listening
+/*
+ * to start listening from other nodes
+ */
 void SunwayMRHelper::start(string masterAddr, int masterListenPort, int threads, int memory) {
 	this->masterAddr = masterAddr;
 	this->masterListenPort = masterListenPort;
@@ -137,10 +150,17 @@ void SunwayMRHelper::start(string masterAddr, int masterListenPort, int threads,
 	}
 }
 
+/*
+ * destructor
+ */
 SunwayMRHelper::~SunwayMRHelper() {
 
 }
 
+/*
+ * to set resource of self,
+ * and to start a thread to send resource information to master
+ */
 void SunwayMRHelper::setLocalResouce(int threads, int memory) {
 
 	// send repeatedly
@@ -167,6 +187,9 @@ void SunwayMRHelper::setLocalResouce(int threads, int memory) {
 	}
 }
 
+/*
+ * function to send resource information
+ */
 void SunwayMRHelper::sendHostResourceInfoToMaster(string msg) {
 	stringstream ss;
 	ss << "SunwayMRHelper: send resource info to master: " << masterAddr << ":"
@@ -175,8 +198,13 @@ void SunwayMRHelper::sendHostResourceInfoToMaster(string msg) {
 	Messaging::sendMessage(masterAddr, masterListenPort, HOST_RESOURCE_INFO, msg);
 }
 
+/*
+ * to run an user application
+ */
 void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	// run user application
+
+	// to get application information and file contents
 	string targetHostsFileName = allHostsFileName;
 	if (localMode) targetHostsFileName = localHostFileName;
 
@@ -213,7 +241,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 		exit(1);
 	}
 
-	// for all hosts in fileContent2
+	// to send application and hosts files to each node
 	stringstream ss(fileContent2);
 	string line;
 	vector<HostResource> tmp;
@@ -241,7 +269,8 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
-				err << "SunwayMRHelper: failed to send file info[1] to host: " << host << ", " << port << "; info:" << fileInfo1.str();
+				err << "SunwayMRHelper: failed to send file info[1] to host: "
+						<< host << ", " << port << "; info:" << fileInfo1.str();
 				Logging::logError(err.str());
 			}
 
@@ -251,7 +280,8 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
-				err << "SunwayMRHelper: failed to send file info[2] to host: " << host << ", " << port << "; info:" << fileInfo2.str();
+				err << "SunwayMRHelper: failed to send file info[2] to host: "
+						<< host << ", " << port << "; info:" << fileInfo2.str();
 				Logging::logError(err.str());
 			}
 
@@ -260,7 +290,8 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
-				err << "SunwayMRHelper: failed to send file content[1] to host: " << host << ", " << port;
+				err << "SunwayMRHelper: failed to send file content[1] to host: "
+						<< host << ", " << port;
 				Logging::logError(err.str());
 			}
 
@@ -269,7 +300,8 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			if(!sr) {
 				sendWithFailure = true;
 				stringstream err;
-				err << "SunwayMRHelper: failed to send file content[2] to host: " << host << ", " << port;
+				err << "SunwayMRHelper: failed to send file content[2] to host: "
+						<< host << ", " << port;
 				Logging::logError(err.str());
 			}
 		}
@@ -280,16 +312,18 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 	Logging::logInfo("SunwayMRHelper: sending files succeeded.");
 	Logging::logInfo("SunwayMRHelper: starting...");
 
+	// to get application information
 	string appExecutableName = splitString(appFileName, '.')[0];
-
 	string masterValue = masterAddr;
 	if (localMode) masterValue = localAddr;
 	stringstream masterInfo;
 	masterInfo << "SunwayMRHelper: master is on: " << masterValue;
 	Logging::logInfo(masterInfo.str());
 
+	// to generate a random listen port
 	int appListenPort = randomValue(30001, 39999);
 
+	// application compiling and starting shell command
 	stringstream appDirStream;
 	appDirStream << fileSaveDir << appUID << "/";
 	string appDir = appDirStream.str();
@@ -302,6 +336,7 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 			<< appDir << hostsFileName << " "
 			<< masterValue << " " << appListenPort << endl;
 
+	// to send shell command to each node
 	for(unsigned int i=0; i<tmp.size(); i++) {
 		string msg = startAppCmd.str();
 		sendMessage(tmp[i].host, tmp[i].listenPort, SHELL_COMMAND, msg);
@@ -309,6 +344,9 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 
 }
 
+/*
+ * to start listening on the port
+ */
 bool SunwayMRHelper::initListening(int port) {
 	string msg;
 	int listenPort = port;
@@ -337,6 +375,9 @@ bool SunwayMRHelper::initListening(int port) {
 	}
 }
 
+/*
+ * to initialize listening port and start listening
+ */
 bool SunwayMRHelper::init() {
 	bool ret = false;
 
@@ -361,6 +402,10 @@ bool SunwayMRHelper::init() {
 	return ret;
 }
 
+/*
+ * override from Messaging.
+ * to handle message from socket.
+ */
 void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int msgType, string &msg) {
 	if (localListenPort != this->listenPort || fromHost == "" || msg == "") return;
 
@@ -373,7 +418,7 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 
 	switch(msgType) {
 	case HOST_RESOURCE_INFO:
-	{
+	{ // host resource information
 		vector<string> ss = splitString(msg, ' ');
 		if (ss.size() == 3) {
 			HostResource hr = {
@@ -382,14 +427,14 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 					atoi(ss[1].c_str()),
 					atoi(ss[2].c_str())
 			};
-			update(hr);
+			update(hr); // update host resource information in hosts file
 		}
 		break;
 	}
 
 	case FILE_INFO:
-	{
-		vector<string> ss = splitString(msg, ' '); // msg: fileUID, appUID, fileName
+	{ // file information
+		vector<string> ss = splitString(msg, ' '); // message format: fileUID appUID fileName
 		if (ss.size() == 3) {
 			int file_uid = atoi(ss[0].c_str());
 			fileInfoMap[file_uid] = msg;
@@ -398,7 +443,7 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 	}
 
 	case SHELL_COMMAND:
-	{
+	{ // shell command to compile and start user application
 		int ret = system(msg.c_str());
 		if (ret == -1) {
 			stringstream error;
@@ -409,7 +454,7 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 	}
 
 	default:
-	{
+	{ // file content
 		if(fileInfoMap.find(msgType) != fileInfoMap.end()) {
 			string file_info = fileInfoMap[msgType];
 			vector<string> vs = splitString(file_info, ' ');
@@ -430,6 +475,9 @@ void SunwayMRHelper::messageReceived(int localListenPort, string fromHost, int m
 	}
 }
 
+/*
+ * to update host resource information
+ */
 void SunwayMRHelper::update(HostResource hr) {
 	bool updated = false;
 	for (unsigned int i=0; i<allResources.size(); i++) {
@@ -445,10 +493,13 @@ void SunwayMRHelper::update(HostResource hr) {
 		allResources.push_back(hr);
 	}
 
-	saveLocalHostFile();
-	saveAllHostsFile();
+	saveLocalHostFile(); // save to file
+	saveAllHostsFile(); // save to file
 }
 
+/*
+ * to save host resource information of self
+ */
 void SunwayMRHelper::saveLocalHostFile() {
 	stringstream ss;
 	ss << localAddr << " " << threads << " " << memory << " " << listenPort;
@@ -460,10 +511,14 @@ void SunwayMRHelper::saveLocalHostFile() {
 	}
 }
 
+/*
+ * to save host resource information of all nodes
+ */
 void SunwayMRHelper::saveAllHostsFile() {
 	stringstream ss;
 	for(unsigned int i=0; i<allResources.size(); i++) {
-		ss << allResources[i].host << " " << allResources[i].threads << " " << allResources[i].memory << " " << allResources[i].listenPort;
+		ss << allResources[i].host << " " << allResources[i].threads << " "
+				<< allResources[i].memory << " " << allResources[i].listenPort;
 		if (allResources[i].host == masterAddr) {
 			ss << " master";
 		}

@@ -10,6 +10,9 @@
 
 #include "Aggregator.h"
 
+/*
+ * constructor
+ */
 template <class V, class C>
 Aggregator<V, C>::Aggregator(C (*cc)(V&), C (*mc)(C&, C&))
 {

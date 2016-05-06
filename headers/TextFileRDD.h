@@ -1,10 +1,6 @@
 /*
  * TextFileRDD.h
  *
- * Context::textFile() creates TextFileRDD.
- * TextFileRDD is constructed from vector<FileSource>.
- * TextFileRDD creates TextFileBlocks from files, and partition them into TextFilePartitions
- *
  *  Created on: Jan 13, 2016
  *      Author: yupeng
  */
@@ -27,6 +23,11 @@ using std::string;
 template <class T> class RDD;
 class SunwayMRContext;
 
+/*
+ * Context::textFile() creates TextFileRDD.
+ * TextFileRDD is constructed from vector<FileSource>.
+ * TextFileRDD creates TextFileBlocks from files, and partition them into TextFilePartitions
+ */
 class TextFileRDD : public RDD<TextFileBlock> {
 public:
 	TextFileRDD(SunwayMRContext *c, vector<FileSource> &files, int numSlices,

@@ -11,6 +11,10 @@
 #include <vector>
 using std::vector;
 
+/*
+ * An auto pointer to hold vector of pointers.
+ * In the destructor, the vector of pointers will be deleted.
+ */
 template <class T>
 class VectorAutoPointer {
 public:

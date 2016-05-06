@@ -13,6 +13,9 @@
 using std::string;
 using std::exception;
 
+/*
+ * Logging class.
+ */
 class Logging {
 public:
 	static void setMask(int m);
@@ -22,11 +25,6 @@ public:
 	static void logInfo(const string &msg);
 	static void logWarning(const string &msg);
 	static void logError(const string &msg);
-
-//	void logInfo(string msg, exception e);
-//	void logDebug(string msg, exception e);
-//	void logWarning(string msg, exception e);
-//	void logError(string msg, exception e);
 
 private:
 	static int logging_mask;

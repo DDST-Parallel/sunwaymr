@@ -1,9 +1,6 @@
 /*
  * VectorIteratorSeq.h
  *
- * Sub-class of AbstractIteratorSeq.
- * VectorIteratorSeq is initialized by a vector.
- *
  *  Created on: Jan 28, 2016
  *      Author: yupeng
  */
@@ -15,6 +12,10 @@
 #include "IteratorSeq.h"
 using std::vector;
 
+/*
+ * Sub-class of AbstractIteratorSeq.
+ * VectorIteratorSeq is initialized by a vector.
+ */
 template <class T>
 class VectorIteratorSeq : public IteratorSeq<T> {
 public:

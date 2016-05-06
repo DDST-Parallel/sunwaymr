@@ -1,8 +1,6 @@
 /*
  * RDDTask.h
  *
- * Super class of Task classes, with &rdd and &partition as members.
- *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */
@@ -19,7 +17,9 @@
 using std::vector;
 using std::string;
 
-
+/*
+ * Super class of Task classes, with &rdd and &partition as members.
+ */
 template <class T, class U>
 class RDDTask: public Task<U> {
 public:

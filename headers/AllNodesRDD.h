@@ -1,9 +1,6 @@
 /*
  * AllNodesRDD.h
  *
- * A RDD with a same partition on each node.
- * An easy way to run the same code on all nodes.
- *
  *  Created on: Jan 17, 2016
  *      Author: yupeng
  */
@@ -26,6 +23,10 @@ template <class T> class RDD;
 template <class U, class T> class MappedRDD;
 class SunwayMRContext;
 
+/*
+ * A RDD with a same partition on each node.
+ * An easy way to run the same code on all nodes.
+ */
 template <class T>
 class AllNodesRDD : public RDD<PointerContainer <T> > {
 public:
@@ -35,8 +36,7 @@ public:
 	vector<string> preferredLocations(Partition *p);
 	IteratorSeq<PointerContainer <T> > * iteratorSeq(Partition *p);
 
-	//data
-	IteratorSeq<PointerContainer <T> > *seq;
+	IteratorSeq<PointerContainer <T> > *seq; // data
 	long rdd_id;
 };
 

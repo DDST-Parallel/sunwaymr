@@ -9,6 +9,9 @@
 
 #include "Task.h"
 
+/*
+ * constructor
+ */
 template <class T>
 Task<T>::Task()
 {

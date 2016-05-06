@@ -1,8 +1,6 @@
 /*
  * Scheduler.h
  *
- * Super class of TaskScheduler
- *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */
@@ -14,7 +12,9 @@
 
 using std::string;
 
-
+/*
+ * Super class of TaskScheduler
+ */
 class Scheduler {
 public:
 	Scheduler();

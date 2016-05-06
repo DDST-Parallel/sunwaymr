@@ -13,13 +13,15 @@
 #include <vector>
 using namespace std;
 
-
+/*
+ * virtual destructor
+ */
 Partition::~Partition() { }
 
+/*
+ * there must be a virtual function for dynamic_cast
+ */
 void Partition::printInfo() { }
-
-
-
 
 #endif /* PARTITION_HPP */
 

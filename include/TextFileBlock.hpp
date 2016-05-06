@@ -13,30 +13,44 @@
 #include "FileSource.hpp"
 #include "Messaging.hpp"
 #include "Utils.hpp"
-#include "StringConvertion.hpp"
+#include "StringConversion.hpp"
 
+/*
+ * default constructor
+ */
 TextFileBlock::TextFileBlock()
 : file(FileSource()), location(""), offset(0), length(0), format(FILE_SOURCE_FORMAT_BYTE) {
 
 }
 
+/*
+ * constructor
+ */
 TextFileBlock::TextFileBlock(FileSource file, string location, int offset, int length, FileSourceFormat format)
 : file(file), location(location), offset(offset), length(length), format(format) {
 
 }
 
+/*
+ * copy constructor
+ */
 TextFileBlock::TextFileBlock(const TextFileBlock &tfb)
 : file(tfb.file), location(tfb.location), offset(tfb.offset), length(tfb.length), format(tfb.format) {
 
 }
 
+/*
+ * override from Messaging
+ */
 void TextFileBlock::messageReceived(int localListenPort, string fromHost, int msgType, string &msg) {
 
 }
 
+/*
+ * to get block data from file.
+ */
 string TextFileBlock::blockData() {
 	// retrieve data
-
 	string ret;
 	if (file.source == "[DFS server]") {
 		// TODO DFS file
@@ -57,7 +71,7 @@ string TextFileBlock::blockData() {
 					+ to_string(length)
 					+ FILE_BLOCK_REQUEST_DELIMITATION
 					+ to_string(format);
-			if(location == ".") { // file on every node
+			if(location == ".") { // file copy is on every node
 				sendMessageForReply(getLocalHost(), file.listenPort,
 						FILE_BLOCK_REQUEST, msg, ret);
 			} else {
@@ -66,8 +80,7 @@ string TextFileBlock::blockData() {
 			}
 		}
 	}
-
-	// TODO save ret to local file system
+	// TODO cache ret to local file system
 
 	return ret;
 }

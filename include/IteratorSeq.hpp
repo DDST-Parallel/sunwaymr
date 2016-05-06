@@ -11,11 +11,18 @@
 #include "IteratorSeq.h"
 #include "VectorIteratorSeq.hpp"
 
+/*
+ * virtual destructor
+ */
 template <class T>
 IteratorSeq<T>::~IteratorSeq() {
 
 }
 
+/*
+ * mapping each element in this IteratorSeq to a new IteratorSeq.
+ * the type and value of each element are modified by the map function.
+ */
 template <class T>
 template <class U> IteratorSeq<U> * IteratorSeq<T>::map(U (*f)(T&)) {
 	VectorIteratorSeq<U> *ret = new VectorIteratorSeq<U>();
@@ -29,6 +36,10 @@ template <class U> IteratorSeq<U> * IteratorSeq<T>::map(U (*f)(T&)) {
 	return ret;
 }
 
+/*
+ * flat mapping each element in this IteratorSeq to a new IteratorSeq.
+ * the type and value of each element are modified by the flat map function.
+ */
 template <class T>
 template <class U> IteratorSeq<U> * IteratorSeq<T>::flatMap(vector<U> (*f)(T&)) {
 	VectorIteratorSeq<U> *ret = new VectorIteratorSeq<U>();
@@ -43,21 +54,14 @@ template <class U> IteratorSeq<U> * IteratorSeq<T>::flatMap(vector<U> (*f)(T&)) 
 	return ret;
 }
 
-//template <class T>
-//ostream& operator<< (ostream &out, const IteratorSeq<T> &s) {
-//	for(size_t i=0; i<s.size(); i++) {
-//		out << ITERATORSEQ_DELIMITATION_LEFT
-//				<< s.at(i)
-//				<< ITERATORSEQ_DELIMITATION_RIGHT;
-//	}
-//	return out;
-//}
-
+/*
+ * determine the equality of two IteratorSeq
+ */
 template <class T>
 bool IteratorSeq<T>::operator==(const IteratorSeq<T> &s) const {
-	return (this->getType() == s.getType()
-			&& this->size() == s.size()
-			&& this->getVector() == s.getVector());
+	return (this->getType() == s.getType() // the same type
+			&& this->size() == s.size() // the same number of elements
+			&& this->getVector() == s.getVector()); // and the same data set
 }
 
 #endif /* INCLUDE_ITERATORSEQ_HPP_ */

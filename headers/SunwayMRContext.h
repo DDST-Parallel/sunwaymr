@@ -1,10 +1,6 @@
 /*
  * SunwayMRContext.h
  *
- * To keep context information in whole process of RDD transformations.
- * First RDD in user app is created by parallelize, textFile, allNodes.
- * Additionally, runTasks can receive new tasks to run.
- *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */
@@ -30,6 +26,11 @@ class TextFileRDD;
 
 long SUNWAYMR_CONTEXT_ID = 0;
 
+/*
+ * To keep context information in whole process of RDD transformations.
+ * First RDD in user app is created by parallelize, textFile, allNodes.
+ * Additionally, runTasks can receive new tasks to run.
+ */
 class SunwayMRContext {
 public:
 	SunwayMRContext();
@@ -55,7 +56,7 @@ public:
 
 	// allNodes
 	template <class T>
-	AllNodesRDD<T> * allNodes(IteratorSeq< PointerContainer<T> > *seq); // all partitions will have the save seq
+	AllNodesRDD<T> * allNodes(IteratorSeq< PointerContainer<T> > *seq); // all partitions will have the same seq data
 
 	template <class T> vector< TaskResult<T>* > runTasks(vector< Task<T>* > &tasks);
 

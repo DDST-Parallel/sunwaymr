@@ -1,3 +1,7 @@
+/*
+ * some commonly used functions
+ */
+
 #ifndef UTILS_HPP_
 #define UTILS_HPP_
 

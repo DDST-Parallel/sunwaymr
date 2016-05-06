@@ -8,7 +8,8 @@
 #ifndef INCLUDE_SHUFFLEDTASK_HPP_
 #define INCLUDE_SHUFFLEDTASK_HPP_
 
-#include <ShuffledTask.h>
+#include "ShuffledTask.h"
+
 #include "RDD.hpp"
 #include "Partition.hpp"
 #include "IteratorSeq.hpp"
@@ -23,6 +24,9 @@
 #include <fstream>
 using namespace std;
 
+/*
+ * constructor
+ */
 template <class T, class U> ShuffledTask<T, U>::ShuffledTask(
 		RDD<T> *r, Partition *p, long shID, int nPs,
 		HashDivider &hashDivider,
@@ -37,6 +41,16 @@ template <class T, class U> ShuffledTask<T, U>::ShuffledTask(
 	strFunc = sf;
 }
 
+/*
+ * to run the ShuffledTask.
+ * this are several steps:
+ *   1) create combiners for each element in the partition
+ *   2) by hash of each element, choose the new partition index of each element
+ *   3) serializing each element in new partitions
+ *   3) save to disk file in separate files for every ShuffledTask
+ *
+ * return 1
+ */
 template <class T, class U> int ShuffledTask<T, U>::run()
 {
 	// get current RDD value
@@ -62,7 +76,7 @@ template <class T, class U> int ShuffledTask<T, U>::run()
 		int pos = hd.getPartition(hashCode); // get the new partition index
 		list[pos].push_back(strFunc(datas1[i]));
 	}
-	//merge data to a string
+	// merge data to a string
 	string fileContent;
 	for(unsigned int i=0; i<list.size(); i++)
 	{
@@ -93,13 +107,17 @@ template <class T, class U> int ShuffledTask<T, U>::run()
 	return 1;
 }
 
-
-
+/*
+ * serializing the result of ShuffledTask
+ */
 template <class T, class U> string ShuffledTask<T, U>::serialize(int &t)
 {
 	return to_string(t);
 }
 
+/*
+ * deserializing a string to task result
+ */
 template <class T, class U> int ShuffledTask<T, U>::deserialize(string &s)
 {
 	int val = 0;

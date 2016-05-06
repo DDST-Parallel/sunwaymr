@@ -1,8 +1,6 @@
 /*
  * FlatMappedRDD.h
  *
- * RDD::flatmap will return a FlatMappedRDD
- *
  *  Created on: Jan 13, 2016
  *      Author: yupeng
  */
@@ -21,6 +19,9 @@ using std::string;
 
 template <class T> class RDD;
 
+/*
+ * RDD::flatmap will return a FlatMappedRDD
+ */
 template <class U, class T>
 class FlatMappedRDD : public RDD<U> {
 public:

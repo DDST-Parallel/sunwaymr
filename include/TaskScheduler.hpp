@@ -21,10 +21,13 @@
 #include "Utils.hpp"
 #include "Task.hpp"
 #include "TaskResult.hpp"
-#include "StringConvertion.hpp"
+#include "StringConversion.hpp"
 
 using namespace std;
 
+/*
+ * constructor
+ */
 template<class T>
 TaskScheduler<T>::TaskScheduler(int jobID, string selfIP, int selfIPIndex,
 		string master, string appName, int listenPort,
@@ -44,16 +47,22 @@ TaskScheduler<T>::TaskScheduler(int jobID, string selfIP, int selfIPIndex,
 	allTaskResultsReceived = false;
 	taskResultListSent = false;
 	receivedTaskResultNum = 0;
-	pthread_mutex_init(&mutex_handle_message_ready, NULL);
+	pthread_mutex_init(&mutex_handle_message_ready, NULL); // initialize mutex
 	pthread_mutex_lock(&mutex_handle_message_ready);
-	pthread_mutex_init(&mutex_task_scheduler, NULL);
+	pthread_mutex_init(&mutex_task_scheduler, NULL); // initialize mutex
 }
 
+/*
+ * destructor
+ */
 template<class T>
 TaskScheduler<T>::~TaskScheduler() {
 
 }
 
+/*
+ * thread data for task threads
+ */
 template<class T>
 struct xyz_task_scheduler_thread_data_ {
 	TaskScheduler<T> *taskScheduler;
@@ -71,6 +80,10 @@ struct xyz_task_scheduler_thread_data_ {
 	}
 };
 
+/*
+ * thread function for running tasks.
+ * every task will run in separate threads.
+ */
 template<class T>
 void *xyz_task_scheduler_run_task_(void *d) {
 	struct xyz_task_scheduler_thread_data_<T> *data = (struct xyz_task_scheduler_thread_data_<T> *) d;
@@ -82,6 +95,9 @@ void *xyz_task_scheduler_run_task_(void *d) {
 	pthread_exit(NULL);
 }
 
+/*
+ * before running tasks, do preparation work
+ */
 template<class T>
 void TaskScheduler<T>::preRunTasks(vector< Task<T> * > &tasks) {
 	stringstream runTasksInfo;
@@ -102,6 +118,9 @@ void TaskScheduler<T>::preRunTasks(vector< Task<T> * > &tasks) {
 	pthread_mutex_unlock(&mutex_handle_message_ready);
 }
 
+/*
+ * to run tasks
+ */
 template<class T>
 vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 	int taskNum = tasks.size();
@@ -137,9 +156,6 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 					break;
 				}
 			}
-//			if(j<plSize){
-//				continue;
-//			}
 		}
 	}
 
@@ -168,7 +184,7 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 	}
 	// task distribution finished
 
-	// run tasks those been distributed to self
+	// run tasks those been distributed to this node
 	int runOnThisNodeTaskNum = 0;
 	int lanuchedTaskNum = 0;
 	for (int i = 0; i < taskNum; i++) {
@@ -205,14 +221,15 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 
 		} else {
 			// [1]run tasks by pthread
-			int THREADS_NUM_MAX = threadCountVector[selfIPIndex]; // 10 threads at most TODO configuration out of code
+			int THREADS_NUM_MAX = threadCountVector[selfIPIndex]; // TODO configuration out of code
 			while (runningThreadNum < THREADS_NUM_MAX
 					&& lanuchedTaskNum < runOnThisNodeTaskNum) {
 				for (int i = 0; i < taskNum; i++) {
 					if (taskOnIPVector[i] == selfIP && launchedTask[i] == 0) { // pick non started task
 						pthread_t thread;
-						struct xyz_task_scheduler_thread_data_<T> *data = new xyz_task_scheduler_thread_data_<T>(this,
-								master, listenPort, jobID, i, tasks[i]);
+						struct xyz_task_scheduler_thread_data_<T> *data =
+								new xyz_task_scheduler_thread_data_<T>(this,
+										master, listenPort, jobID, i, tasks[i]);
 						int rc = pthread_create(&thread, NULL, xyz_task_scheduler_run_task_<T>,
 								(void *) data);
 						if (rc) {
@@ -247,10 +264,13 @@ vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
 	return taskResults;
 }
 
+/*
+ * to finish a task with task index and result
+ */
 template <class T>
 void TaskScheduler<T>::finishTask(int task, T &value) {
 	if (task>=0 && (unsigned)task<this->tasks.size()) {
-		// send out task result
+		// to send out task result
 		string msg = "";
 		msg = msg + to_string(this->jobID)
 				+ TASK_RESULT_DELIMITATION
@@ -267,6 +287,9 @@ void TaskScheduler<T>::finishTask(int task, T &value) {
 	}
 }
 
+/*
+ * override messageReceived from Messaging
+ */
 template<class T>
 void TaskScheduler<T>::messageReceived(
 		int localListenPort, string fromHost,
@@ -274,6 +297,10 @@ void TaskScheduler<T>::messageReceived(
 
 }
 
+/*
+ * override handleMessage from Scheduler.
+ * to handle messages from JobScheduler.
+ */
 template<class T>
 void TaskScheduler<T>::handleMessage(
 		int localListenPort, string fromHost,
@@ -306,6 +333,7 @@ void TaskScheduler<T>::handleMessage(
 								new TaskResult<T>(tasks[taskID], value);
 					}
 
+					// lock mutex
 					pthread_mutex_lock(&mutex_task_scheduler);
 					resultReceived[taskID] = true;
 					receivedTaskResultNum++;
@@ -316,14 +344,17 @@ void TaskScheduler<T>::handleMessage(
 							<< receivedTaskResultNum << "/"
 							<< tasks.size() << "] received";
 					Logging::logDebug(receivedDebug.str());
+
+					// unlock mutex
 					pthread_mutex_unlock(&mutex_task_scheduler);
-				} else if (jobID > this->jobID) {
+				} else if (jobID > this->jobID) { // task result for next job
 					retValue = jobID;
 					break;
 				}
 			}
 
 			// check if all task results received
+			// lock mutex
 			pthread_mutex_lock(&mutex_task_scheduler);
 			if (!taskResultListSent && (unsigned)receivedTaskResultNum == tasks.size()) {
 				allTaskResultsReceived = true;
@@ -341,15 +372,17 @@ void TaskScheduler<T>::handleMessage(
 				taskResultListSent = true;
 
 				Logging::logInfo("TaskScheduler: results sent");
+				// unlock mutex for waiting all task results received
 				pthread_mutex_unlock(&mutex_all_tasks_received);
 			}
+			// unlock mutex
 			pthread_mutex_unlock(&mutex_task_scheduler);
 		}
 
 		break;
 	}
 
-	case TASK_RESULT_LIST: {
+	case TASK_RESULT_LIST: { // task result list from master
 		if (isMaster == 0) {
 
 			Logging::logInfo("TaskScheduler: task result list received");
@@ -427,6 +460,9 @@ void TaskScheduler<T>::handleMessage(
 	}
 }
 
+/*
+ * to increase running thread number
+ */
 template<class T>
 void TaskScheduler<T>::increaseRunningThreadNum() {
 	pthread_mutex_lock(&mutex_task_scheduler);
@@ -434,6 +470,9 @@ void TaskScheduler<T>::increaseRunningThreadNum() {
 	pthread_mutex_unlock(&mutex_task_scheduler);
 }
 
+/*
+ * to decrease running thread number
+ */
 template<class T>
 void TaskScheduler<T>::decreaseRunningThreadNum() {
 	pthread_mutex_lock(&mutex_task_scheduler);
@@ -441,6 +480,9 @@ void TaskScheduler<T>::decreaseRunningThreadNum() {
 	pthread_mutex_unlock(&mutex_task_scheduler);
 }
 
+/*
+ * to get a task result as string
+ */
 template<class T>
 bool TaskScheduler<T>::getTaskResultString(int job, int task, string &result) {
 	if (job != this->jobID) return false;
@@ -459,6 +501,9 @@ bool TaskScheduler<T>::getTaskResultString(int job, int task, string &result) {
 	return false;
 }
 
+/*
+ * to get task result list as string
+ */
 template<class T>
 bool TaskScheduler<T>::getTaskResultListString(int job, string &result) {
 	if (job != this->jobID) return false;

@@ -1,9 +1,6 @@
 /*
  * MappedRDD.h
  *
- * Return type of RDD::map.
- * Mapping mappedFunction to each value of RDD.
- *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */
@@ -22,6 +19,10 @@ using std::string;
 
 template <class T> class RDD;
 
+/*
+ * Return type of RDD::map.
+ * Mapping mappedFunction to each value of RDD.
+ */
 template <class U, class T>
 class MappedRDD : public RDD<U> {
 public:

@@ -1,8 +1,6 @@
 /*
  * TaskResult.h
  *
- * Task result information of a Task.
- *
  *  Created on: Dec 2, 2015
  *      Author: yupeng
  */
@@ -12,7 +10,9 @@
 
 #include "Task.h"
 
-
+/*
+ * Task result information of a Task.
+ */
 template <class T>
 class TaskResult {
 public:
