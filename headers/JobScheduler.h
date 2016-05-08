@@ -27,7 +27,7 @@ using std::vector;
  * JobScheduler will listen message,
  * and create new TaskSchedulers when context::runTasks() is invoked.
  */
-class JobScheduler : public Messaging {
+class JobScheduler : public Messaging, public Scheduler {
 public:
 	JobScheduler();
 	JobScheduler(string hostFilePath, string master, string appName, int listenPort);
@@ -54,7 +54,10 @@ private:
 	vector<string> taskResultWorksOfNextJob;
 	vector<string> taskResultsOfNextJob;
 
-	void messageReceived(int localListenPort, string fromHost, int msgType, string &msg);
+	void messageReceived(int localListenPort, string fromHost,
+			int msgType, string &msg); // override Messaging
+	void handleMessage(int localListenPort, string fromHost,
+			int msgType, string &msg, int &retValue); // override Scheduler
 };
 
 

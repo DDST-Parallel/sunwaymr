@@ -104,17 +104,17 @@ JobScheduler::~JobScheduler() {
 /*
  * to hold listening port information of JobScheduler.
  */
-struct JobSchedulerThreadData {
+struct xyz_job_scheduler_thread_data_ {
 	JobScheduler *js;
 	int port;
-	JobSchedulerThreadData(JobScheduler *js, int port) : js(js), port(port) { }
+	xyz_job_scheduler_thread_data_(JobScheduler *js, int port) : js(js), port(port) { }
 };
 
 /*
  * thread function to start listening
  */
 void *startSchedulerListening(void *data) {
-	JobSchedulerThreadData *d = (JobSchedulerThreadData *)data;
+	xyz_job_scheduler_thread_data_ *d = (xyz_job_scheduler_thread_data_ *)data;
 	d->js->listenMessage(d->port); // will block at this line if succeeding with listening
 
 	pthread_exit(NULL);
@@ -125,7 +125,8 @@ void *startSchedulerListening(void *data) {
  */
 bool JobScheduler::start(){
 	pthread_t thread;
-	struct JobSchedulerThreadData *data = new JobSchedulerThreadData(this, listenPort);
+	struct xyz_job_scheduler_thread_data_ *data =
+			new xyz_job_scheduler_thread_data_(this, listenPort);
 	pthread_mutex_init(&mutex_listen_status, NULL);
 	pthread_mutex_lock(&mutex_listen_status);
 	int rc = pthread_create(&thread, NULL, startSchedulerListening, (void *)data);
@@ -188,7 +189,8 @@ vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
 	pthread_mutex_lock(&mutex_job_scheduler);
 	int jobID = nextJobID;
 	nextJobID++;
-	TaskScheduler<T> *ts = new TaskScheduler<T>(jobID, selfIP, selfIPIndex, master, appName,
+	TaskScheduler<T> *ts = new TaskScheduler<T>(jobID,
+			selfIP, selfIPIndex, master, appName,
 			listenPort, IPVector, threadCountVector, memoryVector);
 	taskSchedulers.push_back(ts);
 	ts->preRunTasks(tasks); // pre-run tasks, for preparation
@@ -198,7 +200,11 @@ vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
 	if(n > 0) {
 		for (unsigned int i=0; i<n; i++) {
 			int ret = 0;
-			ts->handleMessage(listenPort, taskResultWorksOfNextJob[i], A_TASK_RESULT, taskResultsOfNextJob[i], ret);
+			ts->handleMessage(listenPort,
+					taskResultWorksOfNextJob[i],
+					A_TASK_RESULT,
+					taskResultsOfNextJob[i],
+					ret);
 		}
 
 		taskResultWorksOfNextJob.clear();
@@ -223,7 +229,8 @@ vector< TaskResult<T>* > JobScheduler::runTasks(vector<Task<T>*> &tasks){
  * messages are handled by JobSchduler firstly,
  * and may be delivered to TaskScheduler if valid
  */
-void JobScheduler::messageReceived(int localListenPort, string fromHost, int msgType, string &msg) {
+void JobScheduler::messageReceived(int localListenPort, string fromHost,
+		int msgType, string &msg) {
 	if (localListenPort != this->listenPort || fromHost == "" || msg == "") return;
 
 	if(Logging::getMask() <= 0) { // checkingg logging or not
@@ -278,6 +285,14 @@ void JobScheduler::messageReceived(int localListenPort, string fromHost, int msg
 		default:
 			break;
 	}
+}
+
+/*
+ * override pure virtual function of Scheduler
+ */
+void JobScheduler::handleMessage(int localListenPort, string fromHost,
+		int msgType, string &msg, int &retValue) {
+
 }
 
 #endif /* JOBSCHEDULER_HPP_ */

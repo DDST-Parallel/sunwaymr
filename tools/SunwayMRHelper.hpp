@@ -25,12 +25,12 @@ using namespace std;
 /*
  * thread data struct for start listening thread
  */
-struct thread_data{
+struct xyz_helper_start_listening_thread_data_{
    SunwayMRHelper &helper;
    const char *msg;
    int v;
 
-   thread_data(SunwayMRHelper &h, const char *m, int v)
+   xyz_helper_start_listening_thread_data_(SunwayMRHelper &h, const char *m, int v)
    : helper(h), msg(m), v(v) { }
 };
 
@@ -39,8 +39,8 @@ struct thread_data{
  */
 void *startHelperListening(void *data) {
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-	struct thread_data *my_data;
-	my_data = (struct thread_data *)data;
+	struct xyz_helper_start_listening_thread_data_ *my_data;
+	my_data = (struct xyz_helper_start_listening_thread_data_ *)data;
 	my_data->helper.listenMessage(my_data->v);
 
 	pthread_exit(NULL);
@@ -54,8 +54,8 @@ bool xyz_send_host_resource_info_thread_canceled_flag = true;
 void *sendHostResourceInfoToMasterRepeatedly(void *data) {
 	xyz_send_host_resource_info_thread_canceled_flag = false;
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-	struct thread_data *my_data;
-	my_data = (struct thread_data *)data;
+	struct xyz_helper_start_listening_thread_data_ *my_data;
+	my_data = (struct xyz_helper_start_listening_thread_data_ *)data;
 
 	while(true) {
 		if (xyz_send_host_resource_info_thread_cancel_flag) { // check cancellation
@@ -173,7 +173,8 @@ void SunwayMRHelper::setLocalResouce(int threads, int memory) {
 	Logging::logInfo(info.str());
 
 	int v = 0;
-	struct thread_data *data = new thread_data (*this, ss.str().c_str(), v);
+	struct xyz_helper_start_listening_thread_data_ *data =
+			new xyz_helper_start_listening_thread_data_ (*this, ss.str().c_str(), v);
 
 	//pthread_cancel(sendResourceInfoThread);
 	if (!xyz_send_host_resource_info_thread_canceled_flag) {
@@ -350,7 +351,8 @@ void SunwayMRHelper::runApplication(string filePath, bool localMode) {
 bool SunwayMRHelper::initListening(int port) {
 	string msg;
 	int listenPort = port;
-	struct thread_data *data = new thread_data (*this, "", listenPort);
+	struct xyz_helper_start_listening_thread_data_ *data =
+			new xyz_helper_start_listening_thread_data_ (*this, "", listenPort);
 	pthread_t thread;
 	pthread_mutex_init(&mutex_listen_status, NULL);
 	pthread_mutex_lock(&mutex_listen_status);

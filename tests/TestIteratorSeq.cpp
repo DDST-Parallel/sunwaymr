@@ -21,6 +21,25 @@ int print(int &x) {
 
 //stringstream ss;
 
+int doubleInt0(int &x) {
+//	ss.str("");
+//	ss.clear();
+//	ss << x;
+//	string s = ss.str();
+//	ss.str("");
+//	ss.clear();
+
+	string s = "";
+	s.clear();
+	char buffer[33];
+	snprintf(buffer, sizeof(buffer), "%d", x);
+	s = buffer;
+	s = "";
+	s.clear();
+
+	return x * 2;
+}
+
 int doubleInt(int &x) {
 //	ss.str("");
 //	ss.clear();
@@ -31,8 +50,8 @@ int doubleInt(int &x) {
 
 //	string s = "";
 //	s.clear();
-//	char buffer[33];
-//	snprintf(buffer, sizeof(buffer), "%d", x);
+	char buffer[33];
+	snprintf(buffer, sizeof(buffer), "%d", x);
 //	s = buffer;
 //	s = "";
 //	s.clear();
@@ -59,9 +78,9 @@ int main() {
 
 	//newSeq->map<int>(print);
 
-	vector<int> r = newSeq->reduceLeft(sum);
-
-	if (r.size() > 0) cout << r[0] << endl;
+//	vector<int> r = newSeq->reduceLeft(sum);
+//
+//	if (r.size() > 0) cout << r[0] << endl;
 	cout << currentDateTime() << endl;
 
 	return 0;
