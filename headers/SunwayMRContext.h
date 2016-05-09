@@ -19,6 +19,7 @@
 #include "TaskResult.h"
 #include "FileSource.h"
 #include "PointerContainer.h"
+#include "DataCache.h"
 using std::string;
 
 template <class T> class ParallelArrayRDD;
@@ -64,6 +65,7 @@ public:
 	int getListenPort();
 	vector<string> getHosts();
 	int getTotalThreads();
+	void saveShuffleCache(long shuffleID, DataCache *cache);
 
 private:
 	JobScheduler *scheduler;

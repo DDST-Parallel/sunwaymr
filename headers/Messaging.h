@@ -15,6 +15,7 @@
 using namespace std;
 
 #include "MessageType.h"
+#include "DataCache.h"
 
 #ifndef END_OF_MESSAGE
 #define END_OF_MESSAGE "\aEND_OF_MESSAGE\a"
@@ -60,6 +61,7 @@ public:
 	Messaging();
 	virtual ~Messaging();
 
+	void saveShuffleCache(long shuffleID, DataCache *cache);
 	void clearAllCache();
 	void clearFileCache();
 	void clearShuffleCache();
@@ -82,13 +84,8 @@ public:
 
 	map<string, string*> file_cache_bytes;
 	map<string, vector<string>*> file_cache_lines;
-	/*
-	 * shuffleID -> data
-	 * data:
-	 * <shuffleTask0, shuffleTask1, ...>
-	 * shuffleTask0: <partition0, partition1, ...>
-	 */
-	map< long, vector< vector<string>* > > fetch_content_local;
+
+	map< long, vector<DataCache *> > shuffle_cache;
 private:
 	int listenStatus;
 

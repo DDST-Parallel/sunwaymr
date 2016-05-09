@@ -14,10 +14,12 @@
 #include "Partition.hpp"
 #include "IteratorSeq.hpp"
 #include "RDDTask.hpp"
+#include "DataCache.hpp"
 #include "Aggregator.hpp"
 #include "HashDivider.hpp"
 #include "Utils.hpp"
-#include "SunwayMRContext.h"
+#include "DataCache.hpp"
+#include "VectorIteratorSeq.hpp"
 
 #include <vector>
 #include <string>
@@ -39,72 +41,82 @@ template <class T, class U> ShuffledTask<T, U>::ShuffledTask(
     numPartitions = nPs;
 	hashFunc = hFunc;
 	strFunc = sf;
+
+    for(int i = 0; i < numPartitions; i++)
+    {
+    	partitions.push_back(new VectorIteratorSeq<U>());
+    }
+}
+
+
+/*
+ * destructor
+ */
+template <class T, class U> ShuffledTask<T, U>::~ShuffledTask() {
+	for(size_t i = 0; i < partitions.size(); i++) {
+		delete partitions[i];
+	}
+	partitions.clear();
 }
 
 /*
  * to run the ShuffledTask.
- * this are several steps:
+ * this are several things:
  *   1) create combiners for each element in the partition
  *   2) by hash of each element, choose the new partition index of each element
- *   3) serializing each element in new partitions
- *   3) save to disk file in separate files for every ShuffledTask
  *
  * return 1
  */
 template <class T, class U> int ShuffledTask<T, U>::run()
 {
 	// get current RDD value
-	IteratorSeq<T> *iter = RDDTask< T, int >::rdd->iteratorSeq(RDDTask< T, int >::partition);
-	vector<T> datas = iter->getVector();
-
-	// T -> U
-	vector<U> datas1;
-	for(unsigned int i=0; i<datas.size(); i++)
-		datas1.push_back(agg.createCombiner(datas[i]));
-
-	// get list
-    vector< vector<string> > list; // save partitionID -> keys
-    for(int i=0; i<numPartitions; i++)
-    {
-    	vector<string> v;
-    	list.push_back(v);
+	IteratorSeq<T> *seq = RDDTask< T, int >::rdd->iteratorSeq(RDDTask< T, int >::partition);
+    for(size_t i = 0; i < seq->size(); i++) {
+    	T t = seq->at(i);
+    	U data = agg.createCombiner(t);
+		long hashCode = hashFunc(data);
+		int part = hd.getPartition(hashCode); // get the new partition index
+		partitions[part]->push_back(data);
     }
 
-	for(unsigned int i=0; i<datas.size(); i++)
-	{
-		long hashCode = hashFunc(datas1[i]);
-		int pos = hd.getPartition(hashCode); // get the new partition index
-		list[pos].push_back(strFunc(datas1[i]));
-	}
-	// merge data to a string
-	string fileContent;
-	for(unsigned int i=0; i<list.size(); i++)
-	{
-		if(list[i].size() == 0)
-		{
-			fileContent += string(SHUFFLETASK_EMPTY_DELIMITATION) + string(SHUFFLETASK_PARTITION_DELIMITATION);
-			continue;
-		}
-		for(unsigned int j=0; j<list[i].size()-1; j++)
-			fileContent += list[i][j] + string(SHUFFLETASK_KV_DELIMITATION);
-
-		fileContent += list[i].back();
-		fileContent += string(SHUFFLETASK_PARTITION_DELIMITATION);
-	}
-
-	// save to file
-	string base_dir = "cache/shuffle/";
-	string app_id = num2string(SUNWAYMR_CONTEXT_ID);
-	string shuffle_id = num2string(shuffleID);
-	string task_id = num2string(this->taskID);
-
-	string dir = app_id.append("/shuffle-") + shuffle_id.append("/");
-	dir = base_dir + dir;
-	string fileName = "shuffleTaskFile";
-	fileName += task_id;
-	writeFile(dir, fileName, fileContent);
-
 	return 1;
+}
+
+/*
+ * return combiners data of requested partition.
+ * serializing each element in the partition.
+ */
+template <class T, class U>
+void ShuffledTask<T, U>::getData(long cacheIndex, string &result) {
+	result = "";
+	if(cacheIndex >= 0
+		&& cacheIndex < numPartitions
+		&& partitions[cacheIndex]->size() > 0) {
+			size_t n = partitions[cacheIndex]->size();
+			for(size_t i = 0; i < n - 1; i++) {
+				U u = partitions[cacheIndex]->at(i);
+				result += strFunc(u);
+				result += string(SHUFFLETASK_KV_DELIMITATION);
+			}
+			U u = partitions[cacheIndex]->at(n - 1);
+			result += strFunc(u);
+	}
+	else {
+		result = SHUFFLETASK_EMPTY_DELIMITATION;
+	}
+}
+
+/*
+ * get combiners data of a partition
+ */
+template <class T, class U>
+IteratorSeq<U> * ShuffledTask<T, U>::getPartitionData(int partition) {
+	if(partition < 0 || partition >= numPartitions) {
+		return NULL;
+	}
+	else {
+		return partitions[partition];
+	}
 }
 
 /*

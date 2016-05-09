@@ -9,10 +9,13 @@
 #define HEADERS_SHUFFLEDTASK_H_
 
 #include "RDDTask.h"
+#include "DataCache.h"
 #include "Aggregator.h"
 #include "HashDivider.h"
 #include "RDD.h"
 #include "Partition.h"
+#include "IteratorSeq.h"
+#include "VectorIteratorSeq.h"
 
 #include <iostream>
 #include <string>
@@ -24,14 +27,17 @@ using namespace std;
  * Values above will be fetched in ShuffledRDD::iteratorSeq
  */
 template <class T, class U>
-class ShuffledTask : public RDDTask< T, int > {
+class ShuffledTask : public RDDTask< T, int >, public DataCache {
 public:
 	ShuffledTask(RDD<T> *r, Partition *p, long shID, int nPs,
 			HashDivider &hashDivider,
 			Aggregator<T, U> &aggregator,
 			long (*hFunc)(U &u),
 			string (*sf)(U &u));
+	~ShuffledTask();
 	int run();
+	void getData(long cacheIndex, string &result);
+	IteratorSeq<U> * getPartitionData(int partition);
 	string serialize(int &t);
 	int deserialize(string &s);
 
@@ -42,6 +48,8 @@ private:
 	Aggregator<T, U> agg;
 	long (*hashFunc)(U &u);
 	string (*strFunc)(U &u);
+
+    vector< VectorIteratorSeq<U> * > partitions;
 };
 
 #endif /* HEADERS_SHUFFLEDTASK_H_ */

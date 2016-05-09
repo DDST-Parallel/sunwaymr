@@ -48,7 +48,7 @@ private:
 	string master, appName;
 	int listenPort;
 	vector<string> IPVector;
-	vector<int> threadCountVector, memoryVector, threadRemainVector;
+	vector<int> threadCountVector, memoryVector;
 	vector<string> taskOnIPVector;
 	int isMaster;
 

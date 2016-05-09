@@ -43,6 +43,16 @@ Messaging::~Messaging()
 }
 
 /*
+ * save shuffle cache
+ */
+void Messaging::saveShuffleCache(long shuffleID, DataCache *cache) {
+	if(this->shuffle_cache.find(shuffleID) == this->shuffle_cache.end()) {
+		this->shuffle_cache[shuffleID] = vector< DataCache * >();
+	}
+	this->shuffle_cache[shuffleID].push_back(cache);
+}
+
+/*
  * clear all cache, both file cache and shuffle cache
  */
 void Messaging::clearAllCache() {
@@ -72,15 +82,7 @@ void Messaging::clearFileCache() {
  * clear shuffle cache
  */
 void Messaging::clearShuffleCache() {
-	// fetch content
-	map< long, vector< vector<string>* > >::iterator it3;
-	for(it3=fetch_content_local.begin(); it3!=fetch_content_local.end(); ++it3) {
-		for (unsigned int i=0; i<it3->second.size(); i++) {
-			delete it3->second[i];
-		}
-		it3->second.clear();
-	}
-	fetch_content_local.clear();
+	// shuffle cache is cleared by ShuffledRDD now
 }
 
 /*
@@ -400,41 +402,22 @@ void* messageHandler(void *data)
 				long shuffleID = atol(paras[0].c_str());
 				int partitionID = atoi(paras[1].c_str());
 
-				// checking cache
-				pthread_mutex_lock(&m->mutex_check_file_cache);
-				map< long, vector< vector<string>* > >::iterator it = m->fetch_content_local.find(shuffleID);
-				if(it == m->fetch_content_local.end())
-				{
-					// this shuffle has not  been cached, read it
-					// shuffle files directory
-					string base_dir = "cache/shuffle/";
-					string app_id = num2string(SUNWAYMR_CONTEXT_ID);
-				    string shuffle_id = num2string(shuffleID);
-
-				    string dir = app_id.append("/shuffle-") + shuffle_id.append("/");
-				    dir = base_dir + dir;
-				    vector<string> allFileNames;
-					listAllFileNamesContain(dir, allFileNames, "shuffleTaskFile");
-
-					// read file content from every shuffle task file
-					vector< vector<string>* > vvs;
-					for(unsigned int i=0; i<allFileNames.size(); i++)
-					{
-							string content;
-							readFile(dir+allFileNames[i], content);
-							vector<string> *lines = new vector<string>();
-							splitString(content, *lines, SHUFFLETASK_PARTITION_DELIMITATION);
-							vvs.push_back(lines);
-					}
-					m->fetch_content_local[shuffleID] = vvs; // save shuffle cache
-				}
-				pthread_mutex_unlock(&m->mutex_check_file_cache);
-
 				// organize message
 				string senMsg;
-				for(unsigned int i=0; i<m->fetch_content_local[shuffleID].size()-1; i++)
-					senMsg += (*(m->fetch_content_local[shuffleID][i]))[partitionID] + string(SHUFFLETASK_KV_DELIMITATION);
-				senMsg += (*(m->fetch_content_local[shuffleID].back()))[partitionID];
+				if(m->shuffle_cache.find(shuffleID) != m->shuffle_cache.end()
+						&& m->shuffle_cache[shuffleID].size() > 0)
+				{
+					string data;
+					for(unsigned int i=0; i < m->shuffle_cache[shuffleID].size() - 1; i++) {
+						data = "";
+						m->shuffle_cache[shuffleID][i]->getData(partitionID, data);
+						senMsg += data;
+						senMsg += string(SHUFFLETASK_KV_DELIMITATION);
+					}
+					data = "";
+					m->shuffle_cache[shuffleID].back()->getData(partitionID, data);
+					senMsg += data;
+				}
 
 				// sending back result
 				send(td->client_sockfd, senMsg);

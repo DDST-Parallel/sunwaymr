@@ -47,7 +47,6 @@ template <class U> IteratorSeq<U> * IteratorSeq<T>::flatMap(vector<U> (*f)(T&)) 
 	for(size_t i = 0; i < size(); i++) {
 		T t = this->at(i);
 		vector<U> u = f(t);
-		ret->reserve(ret->size() + u.size());
 		ret->push_back(u);
 	}
 

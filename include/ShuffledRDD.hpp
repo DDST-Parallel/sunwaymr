@@ -53,27 +53,47 @@ ShuffledRDD<K, V, C>::ShuffledRDD(RDD< Pair<K, V> > *_prevRDD,
 	shuffleFinished = false;
 	recoverFunc = _recoverFunc;
 
-	// generate new partitions
+	// generate new partitions and initialize mutex
 	vector<Partition*> parts;
-	for(int i=0; i<hd.getNumPartitions(); i++)
+	for(int i = 0; i < hd.getNumPartitions(); i++)
 	{
 		Partition *part = new ShuffledPartition(this->rddID, i);
 		parts.push_back(part);
+
+		this->shuffleMutexes.push_back(pthread_mutex_t());
+		pthread_mutex_init(&this->shuffleMutexes.back(), NULL);
 	}
 	this->partitions = parts;
+
+	// construct shuffle tasks
+	vector<Partition*> pars = prevRDD->getPartitions(); //partitions before shuffle
+	for (unsigned int i = 0; i < pars.size(); i++)
+	{
+		//ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U));
+		ShuffledTask< Pair<K, V>, Pair<K, C> > *task =
+				new ShuffledTask< Pair<K, V>, Pair<K, C> >(
+						prevRDD, pars[i], this->shuffleID, hd.getNumPartitions(),
+						hd, agg, hashFunc, strFunc);
+		shuffledTasks.push_back(task);
+	}
 }
 
 /*
  * destructor.
- * deleting all the shuffle cache.
+ * deleting all the shuffle tasks and iteratorSeq cache.
  * deleting the previous RDD if that is not sticky.
  */
 template <class K, class V, class C>
 ShuffledRDD<K, V, C>::~ShuffledRDD()
 {
-	typename map<int, IteratorSeq< Pair<K, C> >* >::iterator it;
-	for (it=this->shuffleCache.begin(); it!=this->shuffleCache.end(); ++it) {
-		delete (it->second);
+	for(size_t i = 0; i < this->shuffledTasks.size(); i++) {
+		delete this->shuffledTasks[i];
+	}
+	this->shuffledTasks.clear();
+
+	typename map<int, IteratorSeq< Pair<K, C> >* >::iterator it2;
+	for (it2=this->shuffleCache.begin(); it2!=this->shuffleCache.end(); ++it2) {
+		delete (it2->second);
 	}
 	this->shuffleCache.clear();
 
@@ -115,23 +135,18 @@ void ShuffledRDD<K, V, C>::shuffle()
 
 	prevRDD->shuffle(); // firstly, the previous RDD must do the shuffle
 
-	// construct tasks
-	vector< Task<int>* > tasks;
-	vector<Partition*> pars = prevRDD->getPartitions(); //partitions before shuffle
-
-	for (unsigned int i = 0; i < pars.size(); i++)
-	{
-		//ShuffleTask(RDD<T> &r, Partition &p, long shID, int nPs, HashDivider &hashDivider, Aggregator<T, U> &aggregator, long (*hFunc)(U), string (*sf)(U));
-		Task<int> *task = new ShuffledTask< Pair<K, V>, Pair<K, C> >(
-				prevRDD, pars[i], this->shuffleID, hd.getNumPartitions(),
-				hd, agg, hashFunc, strFunc);
-		tasks.push_back(task);
-	}
-	VectorAutoPointer< Task<int> > auto_ptr1(tasks); // delete pointers automatically
-
 	// run tasks via context
+	vector< Task<int> *> tasks;
+	for(unsigned int i = 0; i < shuffledTasks.size(); i++) {
+		tasks.push_back(shuffledTasks[i]);
+	}
 	vector< TaskResult<int>* > results = this->context->runTasks(tasks);
 	VectorAutoPointer< TaskResult<int> > auto_ptr2(results); // delete pointers automatically
+
+    // cache tasks
+	for(unsigned int i = 0; i < shuffledTasks.size(); i++) {
+		this->context->saveShuffleCache(this->shuffleID, shuffledTasks[i]);
+	}
 
 	this->shuffleFinished = true;
 
@@ -155,35 +170,67 @@ template <class K, class V, class C>
 IteratorSeq< Pair<K, C> > * ShuffledRDD<K, V, C>::iteratorSeq(Partition *p)
 {
 	ShuffledPartition *srp = dynamic_cast<ShuffledPartition * >(p);
+
+	pthread_mutex_lock(&this->shuffleMutexes[srp->partitionID]);
 	// checking cache
 	if (shuffleCache.find(srp->partitionID) != shuffleCache.end()) {
+		pthread_mutex_unlock(&this->shuffleMutexes[srp->partitionID]);
 		return this->shuffleCache[srp->partitionID];
 	}
 
+	unordered_map<K, C> combiners;
+	typename unordered_map<K, C>::iterator iter;
+
+	// merge local data
+	for(size_t i = 0; i < this->shuffledTasks.size(); i++) {
+		ShuffledTask< Pair<K, V>, Pair<K, C> > * task =
+				this->shuffledTasks[i];
+		IteratorSeq< Pair <K, C > > *data =
+				task->getPartitionData(srp->partitionID);
+		if(data != NULL) {
+			size_t n = data->size();
+			for(size_t j = 0; j < n; j++) {
+				Pair<K, C> p = data->at(j);
+
+				iter = combiners.find(p.v1);
+				if(iter != combiners.end())
+				{
+					// the key exists
+					Pair<K, C> origin(p.v1, combiners[p.v1]);
+					Pair<K, C> newPair = agg.mergeCombiners(origin, p);
+					combiners[p.v1] = newPair.v2;
+				}
+				else
+				{
+					combiners[p.v1] = p.v2;
+				}
+			}
+		}
+	}
+
 	// fetch
+	vector<string> replys;
 	vector<string> IPs = (this->context)->getHosts();
 	int port = (this->context)->getListenPort();
 
+	string self = getLocalHost();
 	string str_shuffleID = num2string(shuffleID);
 	string str_partitionID = num2string(srp->partitionID);
-
-	string sendMsg = str_shuffleID+","+str_partitionID; //organize request
-
-	vector<string> replys;
+	string sendMsg = str_shuffleID + "," + str_partitionID; //organize request
 	for(unsigned int i=0; i<IPs.size(); i++)
 	{
+		if(IPs[i] == self) continue;
 		replys.push_back("");
 		sendMessageForReply(IPs[i], port, FETCH_REQUEST, sendMsg, replys.back());
 	}
 
-	// merge
-	vector< Pair<K, C> > ret;
-	VectorIteratorSeq< Pair<K, C> > *retIt = new VectorIteratorSeq< Pair<K, C> >(ret);
-	unordered_map<K, C> combiners;
+	// merge fetched data
 	merge(replys, combiners);
 	replys.clear();
 
 	// making result 
+	vector< Pair<K, C> > ret;
+	VectorIteratorSeq< Pair<K, C> > *retIt = new VectorIteratorSeq< Pair<K, C> >(ret);
 	typename unordered_map<K, C>::iterator it;
 	for(it=combiners.begin(); it!=combiners.end(); it++)
 	{
@@ -196,6 +243,7 @@ IteratorSeq< Pair<K, C> > * ShuffledRDD<K, V, C>::iteratorSeq(Partition *p)
 
 	// saving cache
 	this->shuffleCache[srp->partitionID] = retIt;
+	pthread_mutex_unlock(&this->shuffleMutexes[srp->partitionID]);
 
 	return retIt;
 }
@@ -236,6 +284,7 @@ template <class K, class V, class C>
 void ShuffledRDD<K, V, C>::merge(vector<string> &replys, unordered_map<K, C> &combiners)
 {
 	int invalid = 0;
+	typename unordered_map<K, C>::iterator iter;
 	for(unsigned int i=0; i<replys.size(); i++)
 	{
 		vector<string> pairs;
@@ -245,7 +294,6 @@ void ShuffledRDD<K, V, C>::merge(vector<string> &replys, unordered_map<K, C> &co
 			if(pairs[j] == string(SHUFFLETASK_EMPTY_DELIMITATION))
 				continue;
 
-			typename unordered_map<K, C>::iterator iter;
 			Pair<K, C> p;
 			try {
 				p = recoverFunc(pairs[j]);
@@ -257,6 +305,7 @@ void ShuffledRDD<K, V, C>::merge(vector<string> &replys, unordered_map<K, C> &co
 				invalid ++;
 				continue; // converting from string failed
 			}
+
 			iter = combiners.find(p.v1);
 			if(iter != combiners.end())
 			{

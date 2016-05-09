@@ -123,65 +123,75 @@ void TaskScheduler<T>::preRunTasks(vector< Task<T> * > &tasks) {
  */
 template<class T>
 vector<TaskResult<T>*> TaskScheduler<T>::runTasks(vector<Task<T>*> &tasks) {
-	int taskNum = tasks.size();
+	const int taskNum = tasks.size();
+	const int totalThreads = vectorSum(threadCountVector);
 
-	// to distribute tasks, to decide which node a task runs on
-	// distributiont.step.1
 	taskOnIPVector = vector<string>(taskNum, selfIP);
 	vector<int> needReDistributing(taskNum, 1);
-	threadRemainVector = vectorExpandNonNegativeSum(threadCountVector, taskNum);
-	vectorFillNegative(threadRemainVector);
+	int currentTask = 0;
+	while(currentTask < taskNum) {
+		// to distribute tasks, to decide which node a task runs on
+		// distributiont.step.1
+		vector<int> threadRemainVector = threadCountVector;
+		// distribute [totalThreads] tasks per round.
+		// this is optimized for [join] which increases tasks count.
+		int t = taskNum - currentTask;
+		if(t > totalThreads) t = totalThreads;
 
-	// distributiont.step.2
-	// preferredLocations
-	for (int i = 0; i < taskNum; i++) {
-		if (tasks[i]->preferredLocations().size() > 0) {
-			int index = -1;
+		// distributiont.step.2
+		// preferredLocations
+		for (int i = currentTask; i < currentTask + t; i++) {
+			if (tasks[i]->preferredLocations().size() > 0) {
+				int index = -1;
 
-			int j;
-			int plSize = tasks[i]->preferredLocations().size();
-			for (j = 0; j < plSize; j++) {
-				index = vectorFind(IPVector, tasks[i]->preferredLocations()[j]);
+				int j;
+				int plSize = tasks[i]->preferredLocations().size();
+				for (j = 0; j < plSize; j++) {
+					index = vectorFind(IPVector, tasks[i]->preferredLocations()[j]);
 
-				if (index != -1 && threadRemainVector[index] > 0) {
+					if (index != -1 && threadRemainVector[index] > 0) {
+						threadRemainVector[index]--;
+						taskOnIPVector[i] = IPVector[index];
+						needReDistributing[i] = 0;
+
+						stringstream taskOnIP;
+						taskOnIP << "TaskScheduler: task [" << i << "] of job["
+								<< jobID << "] will run at " << taskOnIPVector[i];
+						Logging::logDebug(taskOnIP.str());
+
+						break;
+					}
+				}
+			}
+		}
+
+		// distributiont.step.3
+		// re-distribution. reason:
+		//    1.preferred locations do not meet with resources demand
+		//    2.no preferred locations
+
+		for (int i = currentTask; i < currentTask + t; i++) {
+			if (needReDistributing[i] == 1) {
+				int index = vectorNonZero(threadRemainVector);
+				if (index != -1) {
 					threadRemainVector[index]--;
 					taskOnIPVector[i] = IPVector[index];
 					needReDistributing[i] = 0;
 
 					stringstream taskOnIP;
-					taskOnIP << "TaskScheduler: task [" << i << "] of job["
-							<< jobID << "] will run at " << taskOnIPVector[i];
+					taskOnIP << "TaskScheduler: task [" << i << "] of job[" << jobID
+							<< "] will run at " << taskOnIPVector[i];
 					Logging::logDebug(taskOnIP.str());
-
-					break;
+				} else {
+					//no thread left when heavy load
+					//threadRemainVector is big enough to deal all tasks
 				}
 			}
 		}
+
+		currentTask += t;
 	}
 
-	// distributiont.step.3
-	// re-distribution. reason:
-	//    1.preferred locations do not meet with resources demand
-	//    2.no preferred locations
-
-	for (int i = 0; i < taskNum; i++) {
-		if (needReDistributing[i] == 1) {
-			int index = vectorNonZero(threadRemainVector);
-			if (index != -1) {
-				threadRemainVector[index]--;
-				taskOnIPVector[i] = IPVector[index];
-				needReDistributing[i] = 0;
-
-				stringstream taskOnIP;
-				taskOnIP << "TaskScheduler: task [" << i << "] of job[" << jobID
-						<< "] will run at " << taskOnIPVector[i];
-				Logging::logDebug(taskOnIP.str());
-			} else {
-				//no thread left when heavy load
-				//threadRemainVector is big enough to deal all tasks
-			}
-		}
-	}
 	// task distribution finished
 
 	// run tasks those been distributed to this node

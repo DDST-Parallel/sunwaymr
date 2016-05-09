@@ -23,6 +23,7 @@
 #include "TaskResult.hpp"
 #include "FileSource.hpp"
 #include "RangeIteratorSeq.hpp"
+#include "DataCache.hpp"
 
 /*
  * default constructor
@@ -263,6 +264,13 @@ vector<string> SunwayMRContext::getHosts() {
  */
 int SunwayMRContext::getTotalThreads() {
 	return scheduler->totalThreads();
+}
+
+/*
+ * save shuffle cache
+ */
+void SunwayMRContext::saveShuffleCache(long shuffleID, DataCache *cache) {
+	this->scheduler->saveShuffleCache(shuffleID, cache);
 }
 
 #endif /* SUNWAYMRCONTEXT_HPP_ */

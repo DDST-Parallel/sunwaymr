@@ -17,10 +17,12 @@
 #include "Aggregator.h"
 #include "HashDivider.h"
 #include "ShuffledPartition.h"
+#include "ShuffledTask.h"
 
 #include <string>
 #include <vector>
 #include <map>
+#include <pthread.h>
 #include <tr1/unordered_map>
 using namespace std;
 using std::tr1::unordered_map;
@@ -56,7 +58,9 @@ private:
     Pair<K, C> (*recoverFunc)(string &s); // function to deserialize a string to a pair
     long shuffleID;
     bool shuffleFinished;
+	vector< ShuffledTask< Pair<K, V>, Pair<K, C> > * > shuffledTasks;
     map<int, IteratorSeq< Pair<K, C> >* > shuffleCache; // cache for iteratorSeq()
+    vector<pthread_mutex_t> shuffleMutexes;
 
 	void merge(vector<string> &replys, unordered_map<K, C> &combiners); // merge fetched combiners
 };
